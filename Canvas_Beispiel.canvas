@@ -1,0 +1,14 @@
+{
+	"nodes":[
+		{"id":"dbfb566fd841133d","type":"group","x":-400,"y":104,"width":1115,"height":250,"color":"1","label":"Dies ist eine Gruppe"},
+		{"id":"a99ae3c622396d27","type":"text","text":"Hier könnte ein Thema/Gedanke/Tipp/Formel oder sonst eine wichtige Info stehen","x":-380,"y":157,"width":350,"height":143,"color":"4"},
+		{"id":"697fd2129e65f7fa","type":"text","text":"Mindmap zum Modul","x":-205,"y":-240,"width":250,"height":60,"color":"5"},
+		{"id":"f8ff60db40df955c","type":"text","text":"So können Links zu Notizen meines Vaults hergestellt werden: [[CLAUDE_Zwischenablage]]","x":320,"y":124,"width":375,"height":210,"color":"3"},
+		{"id":"03cd1dfef36932b5","type":"file","file":"1. Allgemein/Klausurvorbereitung/CLAUDE_Zwischenablage.md","x":0,"y":-920,"width":400,"height":400}
+	],
+	"edges":[
+		{"id":"baad6603b7dbd91f","fromNode":"697fd2129e65f7fa","fromSide":"bottom","toNode":"a99ae3c622396d27","toSide":"top","color":"6","label":"Dies ist ein Pfeil zu einer Notiz"},
+		{"id":"2296986f22b90ff6","fromNode":"697fd2129e65f7fa","fromSide":"right","toNode":"f8ff60db40df955c","toSide":"left","color":"#eeff00"},
+		{"id":"7ed749a60aecf110","fromNode":"697fd2129e65f7fa","fromSide":"top","toNode":"03cd1dfef36932b5","toSide":"bottom","color":"#ff0000","label":"Hier geht es zu einer Notiz, die aus dem Vault stammt und hier gespiegelt wird."}
+	]
+}
