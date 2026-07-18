@@ -274,6 +274,9 @@ sub, sup { line-height: 0; }
 .nav__task.is-done .nav__dot { background: var(--done); border-color: var(--done); }
 .nav__task.is-done .nav__dot::after { content: '✓'; }
 .nav__task.is-done .nav__label { color: var(--ink-mute); }
+.nav__task.is-wrong .nav__dot { background: var(--hard); border-color: var(--hard); }
+.nav__task.is-wrong .nav__dot::after { content: '✗'; }
+.nav__task.is-wrong .nav__label { color: var(--ink-mute); }
 
 .rail__foot { margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
 
@@ -429,6 +432,9 @@ sub, sup { line-height: 0; }
 .task.is-done { border-color: var(--done); }
 .task.is-done .task__num { background: var(--done); color: #fff; border-color: var(--done); }
 .task.is-done .task__title { color: var(--ink-mute); }
+.task.is-wrong { border-color: var(--hard); }
+.task.is-wrong .task__num { background: var(--hard); color: #fff; border-color: var(--hard); }
+.task.is-wrong .task__title { color: var(--ink-mute); }
 .task.is-hidden { display: none; }
 
 .task__head {
@@ -479,6 +485,9 @@ sub, sup { line-height: 0; }
 }
 .task.is-done .task__status {
   color: #fff; background: var(--done); border: 1px solid var(--done);
+}
+.task.is-wrong .task__status {
+  color: #fff; background: var(--hard); border: 1px solid var(--hard);
 }
 
 .task__body { padding: 24px 26px 28px; }
@@ -1328,13 +1337,13 @@ function refreshProgress() {
 function navItem(id) { return $(`[data-nav="${id}"]`); }
 
 /* ---------- Aufgaben-Status ---------- */
-function markSolved(taskEl, pts) {
+function markSolved(taskEl, pts, correct = true) {
   if (taskEl.dataset.solved === '1') return;
   taskEl.dataset.solved = '1';
   SOLVED++; SCORE += pts;
-  taskEl.classList.add('is-done');
-  const st = $('[data-status]', taskEl); if (st) st.textContent = '✓ Gelöst';
-  navItem(taskEl.dataset.taskId)?.classList.add('is-done');
+  taskEl.classList.add(correct ? 'is-done' : 'is-wrong');
+  const st = $('[data-status]', taskEl); if (st) st.textContent = correct ? '✓ Gelöst' : '✗ Falsch';
+  navItem(taskEl.dataset.taskId)?.classList.add(correct ? 'is-done' : 'is-wrong');
   refreshProgress();
   applyFilter();
 }
@@ -1378,8 +1387,8 @@ window.checkChoice = function (btn) {
   fb.classList.add('show', allCorrect ? 'ok' : 'no');
   $('.fb .head', task).textContent = allCorrect ? 'Richtig!' : 'Noch nicht ganz.';
   btn.disabled = true;
-  if (allCorrect) { markSolved(task, 10); toast('+10 Punkte'); }
-  else { markSolved(task, 3); }  /* Teilpunkte fürs Dranbleiben */
+  if (allCorrect) { markSolved(task, 10, true); toast('+10 Punkte'); }
+  else { markSolved(task, 3, false); }  /* Teilpunkte fürs Dranbleiben */
   scrollNext(task);
 };
 
@@ -1401,7 +1410,7 @@ window.checkCloze = function (btn) {
   fb.classList.remove('ok', 'no'); fb.classList.add('show', all ? 'ok' : 'no');
   $('.fb .head', task).textContent = all ? 'Alles korrekt!' : `${ok} von ${fields.length} richtig.`;
   btn.disabled = true;
-  markSolved(task, all ? 10 : Math.max(3, Math.round(ok / fields.length * 10)));
+  markSolved(task, all ? 10 : Math.max(3, Math.round(ok / fields.length * 10)), all);
   if (all) toast('+10 Punkte');
   scrollNext(task);
 };
@@ -1440,7 +1449,7 @@ window.checkDnd = function (btn) {
   $('.fb .head', task).textContent = all ? 'Perfekt zugeordnet!' : `${ok} von ${tot} richtig zugeordnet.`;
   btn.disabled = true;
   $all('.token', task).forEach(tk => tk.draggable = false);
-  markSolved(task, all ? 10 : Math.max(3, Math.round(ok / tot * 10)));
+  markSolved(task, all ? 10 : Math.max(3, Math.round(ok / tot * 10)), all);
   if (all) toast('+10 Punkte');
   scrollNext(task);
 };
