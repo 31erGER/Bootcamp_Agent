@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fourier von Grund auf — Lehrkurs · Mathe 2</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Kurs-spezifische Ergänzungen (nutzen die Farben aus styles.css :root) */
+  .lead-in { font-family: var(--display); font-size: clamp(19px,2.3vw,23px); line-height: 1.5;
+    color: var(--ink-soft); max-width: 62ch; margin: 8px 0 28px; }
+  .chapter { padding-top: 56px; scroll-margin-top: 16px; }
+  .chapter__tag { font-family: var(--mono); font-size: 11px; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--accent); font-weight: 700; }
+  .chapter h2 { font-family: var(--display); font-weight: 800; font-size: clamp(26px,3.4vw,38px);
+    letter-spacing: -.02em; line-height: 1.05; margin: 6px 0 18px; }
+  .chapter h3 { font-family: var(--display); font-weight: 700; font-size: 21px; margin: 26px 0 10px; }
+  .chapter p { max-width: 66ch; margin-bottom: 14px; }
+  .eq { font-family: var(--mono); font-size: 16px; background: var(--surface); color: var(--ink);
+    border: 1px solid var(--hair); border-left: 3px solid var(--accent); border-radius: var(--radius);
+    padding: 14px 18px; margin: 18px 0; overflow-x: auto; box-shadow: var(--shadow); }
+  .eq.center { text-align: center; font-size: 18px; }
+  .viz { background: var(--surface); border: 1px solid var(--hair); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 18px; margin: 22px 0; }
+  .viz__title { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-mute); font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .viz__title::before { content: '▶'; color: var(--accent); font-size: 9px; }
+  .viz canvas { width: 100%; display: block; border-radius: 3px; background: var(--surface-2); }
+  .viz__ctrl { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 14px;
+    font-family: var(--mono); font-size: 13px; color: var(--ink-soft); }
+  .viz__ctrl input[type=range] { flex: 1; min-width: 160px; accent-color: var(--accent); }
+  .viz__ctrl button { font-family: var(--mono); font-size: 12px; background: var(--accent); color: #fff;
+    border: 0; border-radius: var(--radius); padding: 8px 14px; cursor: pointer; }
+  .viz__ctrl button:hover { background: var(--ink); }
+  .viz__read { font-family: var(--mono); font-size: 13px; color: var(--accent-deep); font-weight: 700; }
+  .viz__cap { font-size: 13px; color: var(--ink-mute); margin-top: 10px; max-width: none; }
+  .steps-eq { counter-reset: se; list-style: none; padding: 0; margin: 16px 0; }
+  .steps-eq li { counter-increment: se; position: relative; padding: 10px 0 10px 44px;
+    border-bottom: 1px solid var(--hair); max-width: 68ch; }
+  .steps-eq li:last-child { border-bottom: 0; }
+  .steps-eq li::before { content: counter(se); position: absolute; left: 0; top: 10px;
+    width: 28px; height: 28px; border-radius: 50%; background: var(--accent-tint); color: var(--accent-deep);
+    font-family: var(--mono); font-weight: 700; font-size: 13px; display: grid; place-items: center; }
+  .keyword { color: var(--accent-deep); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <aside class="rail">
+    <div class="brand">
+      <span class="brand__mark">Mathe 2 · Lehrkurs</span>
+      <span class="brand__name">Fourier von Grund auf</span>
+      <span class="brand__sub">Signale, Schwingungen &amp; Spektren verstehen</span>
+    </div>
+    <div class="note-strip">
+      Lies von oben nach unten. <b>Spiel mit den Grafiken</b> — sie sind der schnellste Weg zum Aha-Moment.
+    </div>
+    <nav class="nav">
+      <div class="nav__group">Kapitel</div>
+      <a class="nav__task" href="#k0"><span class="nav__num">0</span><span class="nav__label">Das kennst du schon</span></a>
+      <a class="nav__task" href="#k1"><span class="nav__num">1</span><span class="nav__label">Die große Idee</span></a>
+      <a class="nav__task" href="#k2"><span class="nav__num">2</span><span class="nav__label">Bausteine: Sinus &amp; Frequenz</span></a>
+      <a class="nav__task" href="#k3"><span class="nav__num">3</span><span class="nav__label">Der rotierende Zeiger (Euler)</span></a>
+      <a class="nav__task" href="#k4"><span class="nav__num">4</span><span class="nav__label">Die Fourier-Reihe</span></a>
+      <a class="nav__task" href="#k5"><span class="nav__num">5</span><span class="nav__label">Koeffizienten berechnen</span></a>
+      <a class="nav__task" href="#k6"><span class="nav__num">6</span><span class="nav__label">Das Spektrum</span></a>
+      <a class="nav__task" href="#k7"><span class="nav__num">7</span><span class="nav__label">Reelle Form (aₙ, bₙ)</span></a>
+      <a class="nav__task" href="#k8"><span class="nav__num">8</span><span class="nav__label">Anwendungen &amp; Filter</span></a>
+      <a class="nav__task" href="#k9"><span class="nav__num">9</span><span class="nav__label">Selbstcheck</span></a>
+    </nav>
+    <div class="rail__foot">
+      <a class="nav__task" href="Uebungen_06_Fourier.html"><span class="nav__num">✏️</span><span class="nav__label">Übungsblatt 06</span></a>
+      <a class="nav__task" href="index.html"><span class="nav__num">←</span><span class="nav__label">Zur Übersicht</span></a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="masthead">
+      <div class="masthead__rule"><span><span class="dot"></span>Lehrkurs · für Einsteiger</span><span>~45 Min Lesezeit</span></div>
+      <div class="kicker">Fourier-Analyse</div>
+      <h1>Fourier von <em>Grund auf</em></h1>
+      <p class="lede">Ein Signal in seine reinen Schwingungen zerlegen — das ist die ganze Idee. Wir bauen sie Schritt für Schritt auf, mit Bildern, die du bewegen kannst, und ohne dass du vorher etwas können musst.</p>
+    </header>
+
+    <!-- ══════════ KAPITEL 0 ══════════ -->
+    <section class="chapter" id="k0">
+      <span class="chapter__tag">Kapitel 0 · Anknüpfung</span>
+      <h2>Das kennst du längst — aus der Elektrotechnik</h2>
+      <p class="lead-in">Bevor wir rechnen: Wer je ein Oszilloskop oder einen Equalizer gesehen hat, trägt die Kern-Intuition von Fourier schon im Kopf. Wir geben ihr nur eine mathematische Sprache.</p>
+      <div class="callout callout--note">
+        <div class="callout__icon">⚡</div>
+        <div class="callout__body">
+          <p><b>Wechselstrom</b> ist eine <span class="keyword">Sinusschwingung</span> — 50 Hz, saubere Kurve. Genau so ein Sinus ist der Grundbaustein von Fourier.</p>
+          <p><b>Oberschwingungen</b> (Harmonische) im Netz: Ein „verzerrter" Strom ist in Wahrheit die <span class="keyword">Summe</span> aus Grundschwingung (50 Hz) plus Vielfachen (150 Hz, 250 Hz …). <b>Das ist eine Fourier-Reihe.</b></p>
+          <p>Ein <b>Zeigerdiagramm</b> (Phasor): ein rotierender Vektor, der Spannung/Strom darstellt. Mathematisch ist das exakt <span class="math">e^(iωt)</span> — der Star von Kapitel 3.</p>
+          <p>Ein <b>RC-Tiefpass</b> lässt tiefe Frequenzen durch und dämpft hohe. Das ist eine Fourier-Filterung (Kapitel 8).</p>
+        </div>
+      </div>
+      <p>Merke dir diesen Satz als roten Faden: <b>Ein periodisches Signal ist eine Summe reiner Schwingungen verschiedener Frequenzen.</b> Fourier gibt uns zwei Dinge: (1) das Rezept, welche Frequenzen mit welcher Stärke drinstecken, und (2) die Umkehrung, das Signal daraus wieder zusammenzubauen.</p>
+    </section>
+
+    <!-- ══════════ KAPITEL 1 ══════════ -->
+    <section class="chapter" id="k1">
+      <span class="chapter__tag">Kapitel 1 · Intuition</span>
+      <h2>Die große Idee: Schwingungen zusammensetzen</h2>
+      <p>Stell dir einen <span class="keyword">Rechteck-Signal</span> vor (z. B. der Takt in einem Digitalschaltkreis: an–aus–an–aus). Es sieht so „eckig" aus, dass man kaum glaubt, es habe etwas mit weichen Sinuskurven zu tun. Und doch: Addiert man die richtigen Sinusschwingungen, entsteht genau dieses Rechteck.</p>
+      <p>Die Fourier-Reihe des Rechtecks lautet:</p>
+      <div class="eq center">Rechteck(t) = <span class="frac"><span>4</span><span>π</span></span> · ( sin t + <span class="frac"><span>1</span><span>3</span></span> sin 3t + <span class="frac"><span>1</span><span>5</span></span> sin 5t + <span class="frac"><span>1</span><span>7</span></span> sin 7t + … )</div>
+      <p>Nur ungerade Vielfache (1, 3, 5, 7 …), und jede höhere Schwingung wird schwächer (<span class="math">1/3, 1/5, 1/7</span>). Zieh unten am Regler und schau, wie das Rechteck aus immer mehr Sinuswellen entsteht:</p>
+
+      <div class="viz">
+        <div class="viz__title">Baukasten: Rechteckwelle aus Sinusschwingungen</div>
+        <canvas id="syn" height="300"></canvas>
+        <div class="viz__ctrl">
+          <span>Harmonische:&nbsp;<span class="viz__read" id="synN-out">1</span></span>
+          <input type="range" id="synN" min="1" max="20" value="1">
+          <label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" id="synParts" style="accent-color:var(--accent)"> Bausteine zeigen</label>
+        </div>
+        <p class="viz__cap">Gestrichelt = Zielsignal (Rechteck). Dick = die Summe aus <span id="synN-cap">1</span> Sinusschwingung(en). Je mehr Schwingungen, desto genauer — die „Zacken" an den Kanten (Gibbs-Phänomen) bleiben aber immer ein bisschen.</p>
+      </div>
+      <div class="callout callout--think">
+        <div class="callout__icon">💡</div>
+        <div class="callout__body"><b>Aha:</b> Egal wie kompliziert ein periodisches Signal aussieht — es ist immer eine (womöglich unendliche) Summe von Sinus- und Kosinusschwingungen. Fourier beantwortet die Frage: <b>„Wie viel von welcher Frequenz steckt drin?"</b></div>
+      </div>
+    </section>
+
+    <!-- ══════════ KAPITEL 2 ══════════ -->
+    <section class="chapter" id="k2">
+      <span class="chapter__tag">Kapitel 2 · Bausteine</span>
+      <h2>Sinus, Frequenz, Periode — kurz aufgefrischt</h2>
+      <p>Ein reiner Schwingungsbaustein hat drei Eigenschaften:</p>
+      <ul>
+        <li><b>Amplitude</b> <span class="math">A</span> — wie hoch der Ausschlag ist.</li>
+        <li><b>Frequenz</b> <span class="math">n</span> — wie oft er pro Periode schwingt. <span class="math">sin(t)</span> schwingt einmal, <span class="math">sin(3t)</span> dreimal so schnell.</li>
+        <li><b>Phase</b> — wo die Schwingung startet (Sinus vs. Kosinus sind um eine Viertelperiode verschoben).</li>
+      </ul>
+      <p>In Mathe 2 arbeiten wir mit <span class="keyword">2π-periodischen</span> Funktionen: <span class="math">f(t + 2π) = f(t)</span>. Eine volle Runde dauert also <span class="math">2π</span> (im Bogenmaß — Achtung, in der Klausur ist alles im Bogenmaß, nicht in Grad!). Die Bausteine sind dann <span class="math">sin(nt)</span> und <span class="math">cos(nt)</span> mit ganzzahligem <span class="math">n = 1, 2, 3, …</span></p>
+      <div class="eq">Periode <span class="math">T = 2π/ω</span> &nbsp;·&nbsp; Kreisfrequenz <span class="math">ω = 2π·f</span> &nbsp;·&nbsp; bei uns meist <span class="math">ω = n</span> (ganzzahlig)</div>
+      <p>Der Trick, mit dem alles einfacher wird, ist, Sinus und Kosinus zu <b>einem</b> Baustein zusammenzufassen — dem rotierenden Zeiger. Weiter zu Kapitel 3.</p>
+    </section>
+
+    <!-- ══════════ KAPITEL 3 ══════════ -->
+    <section class="chapter" id="k3">
+      <span class="chapter__tag">Kapitel 3 · Euler</span>
+      <h2>Der rotierende Zeiger: <span class="math">e^(it) = cos t + i·sin t</span></h2>
+      <p>Das ist die <span class="keyword">Eulersche Formel</span> — die wichtigste Gleichung des ganzen Themas. Sie sagt: Der Ausdruck <span class="math">e^(it)</span> ist ein <b>Vektor der Länge 1, der mit der Zeit <span class="math">t</span> im Kreis rotiert</b>. Das ist dein Zeigerdiagramm.</p>
+      <ul>
+        <li>Der <b>Realteil</b> (waagerechte Projektion) ist <span class="math">cos t</span>.</li>
+        <li>Der <b>Imaginärteil</b> (senkrechte Projektion) ist <span class="math">sin t</span>.</li>
+      </ul>
+      <p>Sinus und Kosinus sind also einfach die zwei „Schatten" desselben rotierenden Zeigers. Starte die Animation:</p>
+
+      <div class="viz">
+        <div class="viz__title">Rotierender Zeiger und seine Projektionen</div>
+        <canvas id="phasor" height="260"></canvas>
+        <div class="viz__ctrl">
+          <button id="phToggle">Pause</button>
+          <span class="viz__read" id="phRead">t = 0,00 · cos t = 1,00 · sin t = 0,00</span>
+        </div>
+        <p class="viz__cap">Links rotiert der Zeiger <span class="math">e^(it)</span> auf dem Einheitskreis. Rechts entstehen dadurch die Wellen: <span style="color:var(--ink-mute)">Kosinus (waagerechte Projektion)</span> und <span style="color:var(--accent-deep)">Sinus (senkrechte Projektion)</span>.</p>
+      </div>
+
+      <p>Warum machen wir das? Weil sich mit <span class="math">e^(int)</span> viel bequemer rechnen lässt als mit getrennten Sinus- und Kosinustermen. Zwei nützliche Umkehrungen, die direkt aus Euler folgen:</p>
+      <div class="eq center">cos t = <span class="frac"><span>e^(it) + e^(−it)</span><span>2</span></span> &nbsp;&nbsp;&nbsp; sin t = <span class="frac"><span>e^(it) − e^(−it)</span><span>2i</span></span></div>
+      <div class="callout callout--note">
+        <div class="callout__icon">🧭</div>
+        <div class="callout__body">Zwei Folgerungen, die in der Klausur ständig auftauchen: <span class="math">e^(inπ) = (−1)ⁿ</span> (nach einer halben Runde × n) und <span class="math">e^(i·2πn) = 1</span> (nach vollen Runden bist du wieder am Start).</div>
+      </div>
+    </section>
+
+    <!-- ══════════ KAPITEL 4 ══════════ -->
+    <section class="chapter" id="k4">
+      <span class="chapter__tag">Kapitel 4 · Die Formel</span>
+      <h2>Die Fourier-Reihe</h2>
+      <p>Jetzt schreiben wir die große Idee als Formel. Ein 2π-periodisches Signal <span class="math">f(t)</span> ist eine Summe rotierender Zeiger aller Frequenzen:</p>
+      <div class="eq center">f(t) = &nbsp;Σ<sub>n = −∞</sub><sup>∞</sup>&nbsp; cₙ · e^(int)</div>
+      <p>Lies das so: Für jede Frequenz <span class="math">n</span> gibt es eine <span class="keyword">komplexe Zahl <span class="math">cₙ</span></span>, den <b>Fourier-Koeffizienten</b>. Er sagt <b>zwei Dinge gleichzeitig</b>:</p>
+      <ul>
+        <li>Der <b>Betrag</b> <span class="math">|cₙ|</span> = wie <b>stark</b> die Frequenz <span class="math">n</span> im Signal vertreten ist (die Amplitude).</li>
+        <li>Das <b>Argument</b> (Winkel) von <span class="math">cₙ</span> = die <b>Phase</b>, also wie die Schwingung verschoben ist.</li>
+      </ul>
+      <p>Warum laufen die <span class="math">n</span> auch ins Negative (<span class="math">−∞ … ∞</span>)? Weil ein reeller Sinus/Kosinus immer aus zwei Zeigern besteht, die gegenläufig rotieren (<span class="math">+n</span> und <span class="math">−n</span>) — das hast du gerade in der cos/sin-Formel oben gesehen. Zusammen ergeben sie eine reelle Welle.</p>
+      <div class="callout callout--think">
+        <div class="callout__icon">🎯</div>
+        <div class="callout__body"><b>Kernbotschaft:</b> Das Signal <span class="math">f(t)</span> im <b>Zeitbereich</b> und die Liste der Koeffizienten <span class="math">…, c₋₁, c₀, c₁, c₂, …</span> im <b>Frequenzbereich</b> sind <b>dieselbe Information</b> in zwei Darstellungen. <span class="math">c₀</span> ist übrigens der Mittelwert (Gleichanteil, „DC" in der E-Technik).</div>
+      </div>
+    </section>
+
+    <!-- ══════════ KAPITEL 5 ══════════ -->
+    <section class="chapter" id="k5">
+      <span class="chapter__tag">Kapitel 5 · Das Rezept</span>
+      <h2>Wie berechnet man die Koeffizienten <span class="math">cₙ</span>?</h2>
+      <p>Die Formel für den <span class="math">n</span>-ten Koeffizienten ist ein Integral über eine Periode:</p>
+      <div class="eq center">cₙ = <span class="frac"><span>1</span><span>2π</span></span> · ∫<sub>0</sub><sup>2π</sup> f(t) · e^(−int) dt</div>
+
+      <h3>Warum funktioniert das? Der Filter-Trick</h3>
+      <p>Das ist der schönste Gedanke des ganzen Themas. Man multipliziert das Signal mit <span class="math">e^(−int)</span> und integriert. Der Grund ist die <span class="keyword">Orthogonalität</span> der Bausteine:</p>
+      <div class="eq center"><span class="frac"><span>1</span><span>2π</span></span> ∫<sub>0</sub><sup>2π</sup> e^(ikt) · e^(−int) dt = &nbsp; 1 wenn k = n, &nbsp; sonst 0</div>
+      <ol class="steps-eq">
+        <li>Setze die Reihe <span class="math">f(t) = Σ cₖ e^(ikt)</span> in das Integral ein.</li>
+        <li>Multipliziere mit <span class="math">e^(−int)</span>: jeder Summand wird zu <span class="math">cₖ · e^(i(k−n)t)</span>.</li>
+        <li>Integriere über eine Periode. <b>Jeder</b> Term mit <span class="math">k ≠ n</span> mittelt sich zu <b>null</b> weg (der rotierende Zeiger überstreicht den ganzen Kreis gleichmäßig).</li>
+        <li>Nur der Term mit <span class="math">k = n</span> bleibt übrig — und liefert genau <span class="math">cₙ</span>.</li>
+      </ol>
+      <p>Das <span class="math">e^(−int)</span> wirkt also wie ein <b>Frequenz-Filter</b>, der aus dem Signalgemisch genau die Frequenz <span class="math">n</span> „heraussiebt". Anschaulich: Du drehst das Signal mit <span class="math">−n</span> zurück; nur der Anteil, der mit genau <span class="math">+n</span> rotierte, steht danach still und überlebt die Mittelung.</p>
+
+      <h3>Beispiel A — ohne Integral, nur mit Euler</h3>
+      <p>Manchmal geht es ganz ohne Rechnen. Nimm <span class="math">f(t) = cos(2t)</span>. Mit der cos-Formel aus Kapitel 3:</p>
+      <div class="eq center">cos(2t) = <span class="frac"><span>1</span><span>2</span></span> e^(2it) + <span class="frac"><span>1</span><span>2</span></span> e^(−2it)</div>
+      <p>Vergleich mit <span class="math">f = Σ cₙ e^(int)</span> zeigt sofort: <span class="math">c₂ = c₋₂ = ½</span>, alle anderen sind 0. Das Signal besteht also nur aus der Frequenz 2 — logisch, es ist ja ein reiner Kosinus.</p>
+
+      <h3>Beispiel B — das Rechteck (mit Integral)</h3>
+      <p>Für die Rechteckwelle (<span class="math">+1</span> auf <span class="math">(0,π)</span>, <span class="math">−1</span> auf <span class="math">(π,2π)</span>) rechnet man das Integral aus und erhält:</p>
+      <div class="eq center">c₀ = 0, &nbsp; cₙ = 0 für gerade n, &nbsp; cₙ = <span class="frac"><span>2</span><span>iπn</span></span> für ungerade n</div>
+      <p>Die geraden Frequenzen fehlen, die ungeraden werden mit <span class="math">1/n</span> schwächer — genau das Muster, das du im Baukasten aus Kapitel 1 gesehen hast. Kreis schließt sich.</p>
+    </section>
+
+    <!-- ══════════ KAPITEL 6 ══════════ -->
+    <section class="chapter" id="k6">
+      <span class="chapter__tag">Kapitel 6 · Spektralanalyse</span>
+      <h2>Das Spektrum — die „roten Balken"</h2>
+      <p>Trägt man die Stärke <span class="math">|cₙ|</span> gegen die Frequenz <span class="math">n</span> auf, entsteht das <span class="keyword">Spektrum</span> (Spektralanalyse). Das ist genau die Balkengrafik aus der Vorlesung — und dasselbe, was ein Frequenzanalysator in der E-Technik anzeigt. Jeder Balken ist eine Frequenz, seine Höhe ihre Amplitude.</p>
+
+      <div class="viz">
+        <div class="viz__title">Amplitudenspektrum der Rechteckwelle</div>
+        <canvas id="spec" height="240"></canvas>
+        <p class="viz__cap">Höhe der Balken <span class="math">= 4/(πn)</span> für ungerade <span class="math">n</span>. Gerade Frequenzen fehlen (Höhe 0). Die Balken werden nach rechts (höhere Frequenzen) immer kleiner — das Signal wird von seiner Grundschwingung dominiert.</p>
+      </div>
+      <div class="callout callout--note">
+        <div class="callout__icon">📡</div>
+        <div class="callout__body"><b>Zeitbereich ↔ Frequenzbereich:</b> Dieselbe Rechteckwelle ist entweder eine Kurve über die Zeit (Kapitel 1) <b>oder</b> ein Satz Balken über die Frequenz (hier). Fourier ist die Brille, die zwischen beiden Sichten wechselt.</div>
+      </div>
+    </section>
+
+    <!-- ══════════ KAPITEL 7 ══════════ -->
+    <section class="chapter" id="k7">
+      <span class="chapter__tag">Kapitel 7 · Reelle Form</span>
+      <h2>Reelle Form: die Koeffizienten <span class="math">aₙ</span> und <span class="math">bₙ</span></h2>
+      <p>Statt mit komplexen <span class="math">cₙ</span> kann man dasselbe mit reinen Kosinus- und Sinusanteilen schreiben — das ist die reelle Fourier-Reihe:</p>
+      <div class="eq center">f(t) = <span class="frac"><span>a₀</span><span>2</span></span> + Σ<sub>n≥1</sub> ( aₙ cos(nt) + bₙ sin(nt) )</div>
+      <div class="eq">aₙ = <span class="frac"><span>1</span><span>π</span></span> ∫<sub>0</sub><sup>2π</sup> f(t) cos(nt) dt &nbsp;&nbsp;·&nbsp;&nbsp; bₙ = <span class="frac"><span>1</span><span>π</span></span> ∫<sub>0</sub><sup>2π</sup> f(t) sin(nt) dt</div>
+      <p>Beide Formen hängen einfach zusammen (für <span class="math">n ≥ 1</span>):</p>
+      <div class="eq center">c₀ = <span class="frac"><span>a₀</span><span>2</span></span>, &nbsp;&nbsp; cₙ = <span class="frac"><span>aₙ − i·bₙ</span><span>2</span></span>, &nbsp;&nbsp; c₋ₙ = <span class="frac"><span>aₙ + i·bₙ</span><span>2</span></span></div>
+      <p>Praktische Abkürzungen, die dir Rechenarbeit sparen: Ist <span class="math">f</span> eine <b>gerade</b> Funktion (<span class="math">f(−t)=f(t)</span>), sind alle <span class="math">bₙ = 0</span> (nur Kosinus). Ist <span class="math">f</span> <b>ungerade</b> (<span class="math">f(−t)=−f(t)</span>), sind alle <span class="math">aₙ = 0</span> (nur Sinus — deshalb hatte das Rechteck nur Sinusterme).</p>
+      <div class="callout callout--think">
+        <div class="callout__icon">🔗</div>
+        <div class="callout__body">Für eine <b>reelle</b> Funktion gilt außerdem <span class="math">c₋ₙ = conj(cₙ)</span> (komplex konjugiert). Das ist genau das Argument aus Probeklausur-Aufgabe 1.4: Ein einziger Koeffizient <span class="math">cₙ≠0</span> mit <span class="math">n≠0</span> wäre unmöglich, weil sein Partner <span class="math">c₋ₙ</span> automatisch auch ≠0 ist.</div>
+      </div>
+    </section>
+
+    <!-- ══════════ KAPITEL 8 ══════════ -->
+    <section class="chapter" id="k8">
+      <span class="chapter__tag">Kapitel 8 · Anwendungen</span>
+      <h2>Wozu das Ganze? Filter, Faltung, Energie</h2>
+
+      <h3>Hochpass &amp; Tiefpass — dein Heimspiel</h3>
+      <p>Im Frequenzbereich ist Filtern kinderleicht: Man behält oder streicht einfach Koeffizienten.</p>
+      <ul>
+        <li><b>Tiefpass</b> (Grenzfrequenz <span class="math">N</span>): behalte <span class="math">cₙ</span> für <span class="math">|n| ≤ N</span>, setze den Rest auf 0. Effekt: das Signal wird <b>glatter</b> (die schnellen Zacken verschwinden). Genau wie dein RC-Tiefpass.</li>
+        <li><b>Hochpass</b>: umgekehrt — streiche die tiefen Frequenzen (<span class="math">|n| ≤ N</span>), behalte die hohen. Effekt: nur die schnellen Änderungen/Kanten bleiben.</li>
+      </ul>
+
+      <h3>Faltungssatz — die Lieblingsformel</h3>
+      <div class="eq center">cₙ(f ∗ g) = cₙ(f) · cₙ(g)</div>
+      <p>Eine <span class="keyword">Faltung</span> im Zeitbereich (aufwändig) wird im Frequenzbereich zu einer simplen <b>Multiplikation</b>. Das ist der Grund, warum Signalverarbeitung so oft in den Frequenzbereich wechselt — ein Filter anzuwenden heißt dann nur „Koeffizienten multiplizieren".</p>
+
+      <h3>Satz von Parseval — Energie zählen</h3>
+      <div class="eq center"><span class="frac"><span>1</span><span>2π</span></span> ∫<sub>0</sub><sup>2π</sup> |f(t)|² dt = Σ<sub>n=−∞</sub><sup>∞</sup> |cₙ|²</div>
+      <p>Die „Energie" des Signals ist im Zeit- und im Frequenzbereich gleich. Das ist mehr als Buchhaltung: Es liefert berühmte Summenwerte. Setzt man die richtige Funktion ein, bekommt man <span class="math">Σ 1/n² = π²/6</span> (Basler Problem) oder — wie in Probeklausur-Aufgabe 2 — <span class="math">Σ 1/k⁴ = π⁴/90</span>.</p>
+    </section>
+
+    <!-- ══════════ KAPITEL 9 ══════════ -->
+    <section class="chapter" id="k9">
+      <span class="chapter__tag">Kapitel 9 · Selbstcheck</span>
+      <h2>Bist du fit? Karten &amp; Kontrollfragen</h2>
+      <p>Denk erst selbst nach, dann klick die Karte um bzw. klappe die Antwort auf. Wenn du diese hier kannst, hast du Fourier verstanden.</p>
+
+      <div class="cards">
+        <div class="card3d"><div class="card3d__inner">
+          <div class="card3d__face card3d__front"><span class="card3d__tag">Idee</span><span class="card3d__q">Was besagt eine Fourier-Reihe in einem Satz?</span><span class="card3d__hint">klick</span></div>
+          <div class="card3d__face card3d__back"><span class="card3d__tag">Antwort</span><span class="card3d__a">Jedes periodische Signal ist eine Summe reiner Schwingungen <span class="math">e^(int)</span>; <span class="math">cₙ</span> gibt Stärke und Phase jeder Frequenz an.</span></div>
+        </div></div>
+        <div class="card3d"><div class="card3d__inner">
+          <div class="card3d__face card3d__front"><span class="card3d__tag">Formel</span><span class="card3d__q">Wie berechnet man <span class="math">cₙ</span>?</span><span class="card3d__hint">klick</span></div>
+          <div class="card3d__face card3d__back"><span class="card3d__tag">Antwort</span><span class="card3d__a"><span class="math">cₙ = (1/2π)∫₀^(2π) f(t)·e^(−int) dt</span> — Signal mit <span class="math">e^(−int)</span> multiplizieren und über eine Periode integrieren.</span></div>
+        </div></div>
+        <div class="card3d"><div class="card3d__inner">
+          <div class="card3d__face card3d__front"><span class="card3d__tag">Warum</span><span class="card3d__q">Warum siebt das Integral genau eine Frequenz heraus?</span><span class="card3d__hint">klick</span></div>
+          <div class="card3d__face card3d__back"><span class="card3d__tag">Antwort</span><span class="card3d__a">Orthogonalität: <span class="math">(1/2π)∫e^(i(k−n)t)dt = 0</span> für <span class="math">k≠n</span>. Alle anderen Frequenzen mitteln sich weg.</span></div>
+        </div></div>
+        <div class="card3d"><div class="card3d__inner">
+          <div class="card3d__face card3d__front"><span class="card3d__tag">Euler</span><span class="card3d__q"><span class="math">cos t</span> und <span class="math">sin t</span> durch <span class="math">e^(it)</span>?</span><span class="card3d__hint">klick</span></div>
+          <div class="card3d__face card3d__back"><span class="card3d__tag">Antwort</span><span class="card3d__a"><span class="math">cos t = (e^(it)+e^(−it))/2</span>, &nbsp;<span class="math">sin t = (e^(it)−e^(−it))/(2i)</span>.</span></div>
+        </div></div>
+        <div class="card3d"><div class="card3d__inner">
+          <div class="card3d__face card3d__front"><span class="card3d__tag">Filter</span><span class="card3d__q">Was macht ein Tiefpass mit den <span class="math">cₙ</span>?</span><span class="card3d__hint">klick</span></div>
+          <div class="card3d__face card3d__back"><span class="card3d__tag">Antwort</span><span class="card3d__a">Er behält <span class="math">cₙ</span> für <span class="math">|n|≤N</span> und setzt den Rest auf 0 → das Signal wird glatter.</span></div>
+        </div></div>
+        <div class="card3d"><div class="card3d__inner">
+          <div class="card3d__face card3d__front"><span class="card3d__tag">Parseval</span><span class="card3d__q">Wofür nutzt man den Satz von Parseval?</span><span class="card3d__hint">klick</span></div>
+          <div class="card3d__face card3d__back"><span class="card3d__tag">Antwort</span><span class="card3d__a">Energie im Zeit- = Frequenzbereich: <span class="math">(1/2π)∫|f|²=Σ|cₙ|²</span>. Liefert Summen wie <span class="math">Σ1/n²=π²/6</span>, <span class="math">Σ1/k⁴=π⁴/90</span>.</span></div>
+        </div></div>
+      </div>
+
+      <h3 style="margin-top:34px">Kontrollfragen zum Nachrechnen</h3>
+      <details class="reveal"><summary>Welche Fourier-Koeffizienten hat <span class="math">f(t)=3 + 4cos(t)</span>?</summary>
+        <div class="q"><p><span class="math">c₀ = 3</span> (Mittelwert), und <span class="math">4cos t = 2e^(it)+2e^(−it)</span> ⇒ <span class="math">c₁ = c₋₁ = 2</span>. Alle anderen 0. Kein Integral nötig — nur Euler anwenden.</p></div>
+      </details>
+      <details class="reveal"><summary>Eine Funktion ist ungerade (<span class="math">f(−t)=−f(t)</span>). Was weißt du sofort über die reellen Koeffizienten?</summary>
+        <div class="q"><p>Alle <span class="math">aₙ = 0</span> (die Kosinusterme). Es bleiben nur Sinusterme <span class="math">bₙ</span>. (Bei geraden Funktionen umgekehrt: nur <span class="math">aₙ</span>.)</p></div>
+      </details>
+      <details class="reveal"><summary>Warum ist <span class="math">c₀</span> immer der Mittelwert des Signals?</summary>
+        <div class="q"><p>Setzt man <span class="math">n=0</span> in die Formel, wird <span class="math">e^(−i·0·t)=1</span>, also <span class="math">c₀=(1/2π)∫₀^(2π) f(t)dt</span> — das ist genau der Durchschnitt über eine Periode (der Gleichanteil).</p></div>
+      </details>
+
+      <div class="callout callout--note" style="margin-top:28px">
+        <div class="callout__icon">🚀</div>
+        <div class="callout__body"><b>Nächster Schritt:</b> Jetzt anwenden! Rechne <a href="Uebungen_06_Fourier.html">Übungsblatt 06 · Fourier</a> und danach <a href="Probeklausur_Trainer.html">Probeklausur-Aufgabe 2</a> (Fourier + Parseval). Damit bist du klausurfit.</div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span>Mathe 2 · Lehrkurs Fourier</span>
+      <span><a href="index.html">Übersicht</a> · <a href="Uebungen_06_Fourier.html">Übungsblatt 06 →</a></span>
+    </footer>
+  </main>
+</div>
+
+<script src="quiz.js"></script>
+<script>
+/* ── Nutzerwunsch: KEIN automatisches Weiterscrollen beim Prüfen/Abhaken ──
+   quiz.js scrollt beim Abschluss per Element.scrollIntoView(). Wir legen diesen
+   programmatischen Scroll auf dieser Seite still. Die Navigation nutzt native
+   Anker-Sprünge (href="#k…") und ist davon NICHT betroffen – manuelles Scrollen
+   und Nav-Klicks funktionieren weiterhin. */
+(function () {
+  "use strict";
+  if (Element.prototype.scrollIntoView) {
+    Element.prototype.scrollIntoView = function () { /* deaktiviert: selbst scrollen */ };
+  }
+})();
+</script>
+<script>
+/* ── Kurs-Visualisierungen (eigenständig, nutzen die Farben aus styles.css) ── */
+(function(){
+  "use strict";
+  var css = function(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim() || "#d6431d"; };
+  function fit(cv){
+    var dpr = window.devicePixelRatio || 1;
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 260;
+    if (cv.width !== w*dpr || cv.height !== h*dpr){ cv.width = w*dpr; cv.height = h*dpr; }
+    var ctx = cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0);
+    return { ctx: ctx, w: w, h: h };
+  }
+
+  /* ── 1) Rechteck-Synthesizer ── */
+  var synCv = document.getElementById("syn"),
+      synN  = document.getElementById("synN"),
+      synOut= document.getElementById("synN-out"),
+      synCap= document.getElementById("synN-cap"),
+      synParts = document.getElementById("synParts");
+  function partial(x, N){
+    var s = 0, terms = 0, k = 1;
+    while (terms < N){ s += Math.sin(k*x)/k; k += 2; terms++; }
+    return s * 4/Math.PI;
+  }
+  function drawSyn(){
+    if(!synCv) return;
+    var o = fit(synCv), ctx=o.ctx, w=o.w, h=o.h, mid=h/2, amp=h*0.33, xmax=4*Math.PI;
+    var N = +synN.value;
+    ctx.clearRect(0,0,w,h);
+    // Achse
+    ctx.strokeStyle = css("--hair-strong"); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(w,mid); ctx.stroke();
+    // Zielsignal (Rechteck)
+    ctx.strokeStyle = css("--ink-mute"); ctx.lineWidth = 1.3; ctx.setLineDash([5,5]);
+    ctx.beginPath();
+    for (var px=0; px<=w; px++){ var x=px/w*xmax; var sq=(Math.sin(x)>=0?1:-1); var y=mid-sq*amp; px?ctx.lineTo(px,y):ctx.moveTo(px,y); }
+    ctx.stroke(); ctx.setLineDash([]);
+    // Bausteine (optional)
+    if (synParts.checked){
+      ctx.lineWidth = 1;
+      var k=1;
+      for (var c=0; c<N; c++){
+        ctx.strokeStyle = "rgba(214,67,29,0.28)";
+        ctx.beginPath();
+        for (var p2=0;p2<=w;p2++){ var xx=p2/w*xmax; var yy=mid-(4/Math.PI)*Math.sin(k*xx)/k*amp; p2?ctx.lineTo(p2,yy):ctx.moveTo(p2,yy); }
+        ctx.stroke(); k+=2;
+      }
+    }
+    // Summe
+    ctx.strokeStyle = css("--accent"); ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    for (var px2=0; px2<=w; px2++){ var x2=px2/w*xmax; var y2=mid-partial(x2,N)*amp; px2?ctx.lineTo(px2,y2):ctx.moveTo(px2,y2); }
+    ctx.stroke();
+    synOut.textContent = N; synCap.textContent = N;
+  }
+  if (synN){ synN.addEventListener("input", drawSyn); synParts.addEventListener("change", drawSyn); }
+
+  /* ── 2) Rotierender Zeiger ── */
+  var phCv = document.getElementById("phasor"),
+      phBtn = document.getElementById("phToggle"),
+      phRead= document.getElementById("phRead"),
+      phT = 0, phPlaying = true;
+  function drawPhasor(){
+    if(!phCv) return;
+    var o = fit(phCv), ctx=o.ctx, w=o.w, h=o.h;
+    ctx.clearRect(0,0,w,h);
+    var cx = h*0.5, cy = h*0.5, r = h*0.38;
+    // Kreis
+    ctx.strokeStyle = css("--hair"); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
+    // Achsen im Kreis
+    ctx.beginPath(); ctx.moveTo(cx-r,cy); ctx.lineTo(cx+r,cy); ctx.moveTo(cx,cy-r); ctx.lineTo(cx,cy+r); ctx.stroke();
+    var tipx = cx + r*Math.cos(phT), tipy = cy - r*Math.sin(phT);
+    // Projektionen
+    ctx.strokeStyle = css("--ink-mute"); ctx.setLineDash([3,3]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(tipx,tipy); ctx.lineTo(tipx,cy); ctx.stroke(); // auf x-Achse (cos)
+    ctx.strokeStyle = css("--accent-deep");
+    ctx.beginPath(); ctx.moveTo(tipx,tipy); ctx.lineTo(cx,tipy); ctx.stroke(); // auf y-Achse (sin)
+    ctx.setLineDash([]);
+    // Zeiger
+    ctx.strokeStyle = css("--accent"); ctx.lineWidth = 2.6;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(tipx,tipy); ctx.stroke();
+    ctx.fillStyle = css("--accent"); ctx.beginPath(); ctx.arc(tipx,tipy,4,0,2*Math.PI); ctx.fill();
+    // Wellen rechts
+    var gx0 = h*1.05, gw = w-gx0-8, gcy = cy, gamp = r;
+    if (gw > 40){
+      ctx.strokeStyle = css("--hair-strong"); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(gx0,gcy); ctx.lineTo(w-8,gcy); ctx.stroke();
+      // cos (grau) und sin (accent) über [0,2π]
+      var span = 2*Math.PI;
+      ctx.strokeStyle = css("--ink-mute"); ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      for (var i=0;i<=gw;i++){ var th=i/gw*span; var yy=gcy-Math.cos(th)*gamp; i?ctx.lineTo(gx0+i,yy):ctx.moveTo(gx0+i,yy); }
+      ctx.stroke();
+      ctx.strokeStyle = css("--accent-deep"); ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      for (var j=0;j<=gw;j++){ var th2=j/gw*span; var yy2=gcy-Math.sin(th2)*gamp; j?ctx.lineTo(gx0+j,yy2):ctx.moveTo(gx0+j,yy2); }
+      ctx.stroke();
+      // Marker bei aktuellem t
+      var tm = ((phT % span)+span)%span, mx = gx0 + tm/span*gw;
+      ctx.strokeStyle = css("--accent"); ctx.setLineDash([2,3]); ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(mx,gcy-gamp); ctx.lineTo(mx,gcy+gamp); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = css("--ink-mute"); ctx.beginPath(); ctx.arc(mx,gcy-Math.cos(tm)*gamp,3.5,0,2*Math.PI); ctx.fill();
+      ctx.fillStyle = css("--accent"); ctx.beginPath(); ctx.arc(mx,gcy-Math.sin(tm)*gamp,3.5,0,2*Math.PI); ctx.fill();
+    }
+    var td = (((phT%(2*Math.PI))+2*Math.PI)%(2*Math.PI));
+    phRead.textContent = "t = "+td.toFixed(2)+" · cos t = "+Math.cos(td).toFixed(2)+" · sin t = "+Math.sin(td).toFixed(2);
+    phRead.textContent = phRead.textContent.replace(/\./g, ",");
+  }
+  function loop(){ if (phPlaying) phT += 0.018; drawPhasor(); requestAnimationFrame(loop); }
+  if (phBtn){ phBtn.addEventListener("click", function(){ phPlaying=!phPlaying; phBtn.textContent = phPlaying?"Pause":"Start"; }); }
+
+  /* ── 3) Spektrum ── */
+  var specCv = document.getElementById("spec");
+  function drawSpec(){
+    if(!specCv) return;
+    var o = fit(specCv), ctx=o.ctx, w=o.w, h=o.h, base=h-34, left=44, top=20;
+    ctx.clearRect(0,0,w,h);
+    // Basislinie
+    ctx.strokeStyle = css("--hair-strong"); ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(left,base); ctx.lineTo(w-10,base); ctx.stroke();
+    var nMax = 13, slots = nMax, gw = (w-left-20)/slots, maxAmp = 4/Math.PI;
+    ctx.font = "11px 'JetBrains Mono', monospace"; ctx.textAlign="center";
+    for (var n=1; n<=nMax; n++){
+      var x = left + (n-0.5)*gw;
+      var amp = (n%2===1) ? 4/(Math.PI*n) : 0;
+      var bh = amp/maxAmp*(base-top);
+      if (amp>0){
+        ctx.fillStyle = css("--accent");
+        ctx.fillRect(x-gw*0.28, base-bh, gw*0.56, bh);
+      }
+      ctx.fillStyle = css("--ink-mute");
+      ctx.fillText(String(n), x, base+16);
+    }
+    ctx.save(); ctx.fillStyle = css("--ink-mute"); ctx.textAlign="left";
+    ctx.fillText("|cₙ|", 8, top+2);
+    ctx.textAlign="right"; ctx.fillText("Frequenz n →", w-12, h-4);
+    ctx.restore();
+  }
+
+  function redrawAll(){ drawSyn(); drawSpec(); }
+  window.addEventListener("resize", redrawAll);
+  window.addEventListener("load", function(){ redrawAll(); requestAnimationFrame(loop); });
+  // Initialer Aufruf (falls load schon durch)
+  redrawAll();
+})();
+</script>
+</body>
+</html>
