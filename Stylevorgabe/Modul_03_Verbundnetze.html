@@ -1348,12 +1348,9 @@ function markSolved(taskEl, pts, correct = true) {
   applyFilter();
 }
 function addStepScore(pts) { SCORE += pts; refreshProgress(); }
-/* Zur nächsten ungelösten Aufgabe scrollen (keine Sperr-Logik!) */
-function scrollNext(curEl) {
-  let n = curEl.nextElementSibling;
-  while (n && !(n.classList && n.classList.contains('task'))) n = n.nextElementSibling;
-  if (n && n.dataset.solved !== '1') n.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
+/* Auto-Scroll zur nächsten Aufgabe DEAKTIVIERT (Nutzerwunsch: selbst weiterscrollen).
+   Die Aufrufe bleiben stehen, tun aber bewusst nichts mehr. */
+function scrollNext(curEl) { /* absichtlich leer – kein automatisches Weiterspringen */ }
 function showDone() {
   const d = $('#done'); if (!d || d.classList.contains('show')) return;
   const pct = MAXSCORE ? Math.round(SCORE / MAXSCORE * 100) : 0;
@@ -1361,7 +1358,7 @@ function showDone() {
   $('#donestars').textContent = stars;
   $('#donescore').textContent = SCORE + ' / ' + MAXSCORE;
   $('#donepct').textContent = pct + '%';
-  d.classList.add('show'); d.scrollIntoView({ behavior: 'smooth' });
+  d.classList.add('show'); /* Auto-Scroll entfernt (Nutzerwunsch: selbst scrollen) */
   toast('Modul abgeschlossen! 🎉');
 }
 
