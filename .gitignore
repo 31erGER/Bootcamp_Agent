@@ -1,0 +1,8 @@
+# ── Persönliche Angaben — bleiben lokal ─────────────────────────────────────
+# Enthält Profil, Präferenzen und Lernvoraussetzungen des Nutzers.
+# Die eingecheckte Vorlage ist Nutzereinstellungen.example.md.
+Nutzereinstellungen.md
+
+# Frühere Namen derselben Datei, damit ein alter Klon nichts durchlässt.
+Nutzerprofil.md
+Usersettings.md
