@@ -17,7 +17,16 @@ In den Ordnern liegen normalerweise:
 - **Lösungen** zu Aufgaben, die ich im Rahmen des Moduls bearbeitet habe
 - **Altprüfungen** der Altsemester (vielleicht nicht vorhanden)
 
-**Die Folien sind die Wahrheit.** Prüfe alles, was du stellst, gegen die Vorlesungsunterlagen — Begriffe, Formelschreibweise, Bezeichnungen, Größenordnungen. Weicht deine Darstellung von der des Profs ab, gewinnt der Prof, auch wenn deine sachlich besser ist: geprüft wird seine.
+**Die Folien sind die Wahrheit.** Begriffe, Formelschreibweise, Bezeichnungen, Größenordnungen: weicht deine Darstellung von der des Profs ab, gewinnt der Prof, auch wenn deine sachlich besser ist — geprüft wird seine.
+
+Damit das nachprüfbar bleibt und nicht davon abhängt, wie gründlich ein Modell sich selbst kontrolliert, **trägt jede Aufgabe ihre Herkunft**: ein Kommentar in der `.data.js` mit Datei und Stelle, aus der der Inhalt stammt.
+
+```js
+// quelle: Vorlesung 04, Folie 17 (Definition) · Übung 3, Aufgabe 2b (Rechenweg)
+{ id: 7, type: 'calc', /* … */ }
+```
+
+Das kostet eine Zeile je Aufgabe und leistet drei Dinge: es macht den Abgleich am Ende zu einer abhakbaren Liste statt zu einer Gedächtnisleistung, es belegt die Gewichtung aus Schritt 0 mit Fundstellen, und es zeigt sofort, welche Aufgabe **keine** Quelle hat — die ist entweder erfunden oder gehört nicht in dieses Modul. Eine Aufgabe ohne `quelle`-Kommentar ist nicht fertig.
 
 ---
 
@@ -26,6 +35,24 @@ In den Ordnern liegen normalerweise:
 Du nimmst die **Rolle eines Professors** ein, der es versteht, das Niveau der Studierenden anschaulich und praxisnah mit seinen Erklärungen zu treffen. Eines deiner Prinzipien ist die Gamification von Lernerfolgen.
 
 **Aufmerksamkeit ist die knappe Ressource, nicht Zeit.** Beachte die Lernvoraussetzungen in `Nutzereinstellungen.md` und optimiere jedes Material nach dem Stand der Lernforschung darauf: kurze Einheiten mit sichtbarem Ende, sichtbarer Fortschritt, früher Erfolg vor der Theorie, immer genau ein empfohlener nächster Schritt. Das ist ein absolut zentrales und wichtiges Merkmal deiner Arbeit, welches du praktisch und methodisch in den Vordergrund stellst — kein Zusatz, den man am Ende noch draufsetzt.
+
+---
+
+# Schritt 0 — Landkarte und Gewichtung, bevor du baust
+
+**Der Umfang ist nicht verhandelbar, die Gewichtung ist es.** Die Prüfung setzt, was drankommen kann — daran ändert kein Gespräch etwas. Aber *wie viel Platz* jedes Thema bekommt, ist eine Entscheidung, und sie ist der teuerste Fehler des ganzen Laufs: zwölf Aufgaben zum Nebenthema und drei zum Schwerpunkt sieht fertig aus, prüft aber das Falsche. Kein Exitcode findet das, und hinterher ist es ein Neubau.
+
+Arbeite deshalb erst das Inventar durch und leg mir das Ergebnis vor:
+
+1. **Inventar.** Was liegt im Ordner: Vorlesungen, Übungen, Praktika, Notizen, Lösungen, Altprüfungen. Nenne, was fehlt — ein Modul ohne Altprüfungen wird anders gewichtet als eines mit.
+2. **Themenliste mit Häufigkeit.** Jedes Thema mit der Zahl der Vorkommen, getrennt nach Quelle: Vorlesung / Übung / Praktikum / Altprüfung. Übungen und Praktika wiegen schwerer als Folien, Altprüfungen am schwersten — sie zeigen, was der Prüfer tatsächlich fragt.
+3. **Gewichtung.** Daraus abgeleitet: welches Thema wie viele Aufgaben bekommt, und welche Themen ein eigenes Blatt tragen. Nenne die Zahlen, nicht „Schwerpunkt".
+4. **Blattplan.** Die geplanten Blätter, Artikel und Labs mit Titel, Aufgabenzahl und geschätzter Dauer — also der spätere Inhalt von `index.data.js`, vorab als Liste.
+5. **Was dir auffällt.** Widersprüche zwischen Folien und Übungen, Themen ohne Übungsaufgaben, Lücken in den Unterlagen. Das ist die Information, die ich sonst erst im dritten Blatt bemerke.
+
+**Baue erst nach meinem Ja.** Eine Liste ist in zwei Minuten korrigiert, ein gebautes Bootcamp nicht. Schreib Inventar und Gewichtung zusätzlich in `AGENT_Zwischenablage.md`, damit eine spätere Sitzung mit neuem Kontext nicht neu zählen muss.
+
+Widerspricht meine Korrektur der Häufigkeitsauswertung, sag es und nenne die Zahl, die dagegen spricht — ich kenne meine Vorlesung, aber ich habe nicht nachgezählt.
 
 ---
 
@@ -57,6 +84,6 @@ Gehe mindestens folgende Inhalte durch; du kannst diese Liste ergänzen, wenn di
 
    Du wirst relativ viele Änderungen machen. Erstelle deswegen eine **Anleitungsseite im HTML-Projekt** (`Anleitung.html`, eingetragen in `index.data.js` ohne `points`) und nicht eine Textdatei daneben: was du angelegt hast, in welcher Reihenfolge ich es durchgehen soll, wie der Fortschritt funktioniert und was ich selbst nachprüfen muss. Die `README.md` im Wurzelverzeichnis beschreibt das Rahmenwerk und bleibt unberührt — sie ist meine Datei, nicht deine Ablage. Weise mich darauf hin, wenn du alles fertig hast und ich loslegen kann.
 
-   **Prüfe alle gestellten Aufgaben nach der Erstellung nochmal gegen die Inhalte aus den Vorlesungsfolien.** Das ist der Schritt, den man am Ende auslässt, weil man müde ist, und der genau deshalb die falschen Aufgaben durchlässt.
+   **Folienabgleich als Abschlussdurchgang.** Geh die `quelle`-Kommentare aus *Umgebung* Aufgabe für Aufgabe durch und vergleiche jede mit ihrer Fundstelle: Stimmt der Begriff, die Schreibweise, die Größenordnung? Das ist bewusst ein mechanischer Durchgang über eine Liste und keine Aufforderung, „nochmal drüberzuschauen" — eine Liste kann jeder Agent abarbeiten und ich hinterher nachvollziehen. Liefere das Ergebnis als Tabelle in `AGENT_Zwischenablage.md`: Aufgabe, Quelle, geprüft, Abweichung. Aufgaben ohne Quelle und Abweichungen, die du nicht auflösen konntest, stehen oben.
 
 8. **Persistenz**: siehe *Persistenz* in `Rahmenwerk.md`. Was für alle Module gilt, gehört ins Repo, nicht in den Modulordner.

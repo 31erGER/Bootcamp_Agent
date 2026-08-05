@@ -72,6 +72,44 @@ Praktisch heißt das:
 
 ---
 
+# Dichte
+
+**Kürzen heißt Redundanz entfernen, nicht Inhalt.** Das ist der ganze Punkt: ich will nichts weglassen, ich will dasselbe Wissen auf weniger Zeilen. Ein Text, der nach dem Kürzen eine Frage nicht mehr beantwortet, wurde falsch gekürzt.
+
+Die Prüffrage für jeden Absatz: **streiche ihn — fehlt danach eine Information?** Wenn nein, war er Wiederholung und gehört weg. Wenn ja, bleibt er, egal wie lang er ist.
+
+Konkret, weil das sonst Geschmackssache bleibt:
+
+- **Keine Ankündigungen und keine Rückblicke.** „Im Folgenden wird erklärt …", „Wie oben gezeigt …", „Zusammenfassend lässt sich sagen …" — das sind Wegweiser in einem Text, der Überschriften hat.
+- **Keine Zusammenfassung eines Abschnitts innerhalb desselben Abschnitts.** Wer bis dahin gelesen hat, braucht sie nicht; wer nicht gelesen hat, liest sie auch nicht.
+- **Ein Sachverhalt steht an einer Stelle.** Zwei Absätze, die dasselbe unterschiedlich sagen, werden einer.
+- **Tabelle für Aufzählbares, Fließtext für Begründungen.** Eine Begründung in Stichpunkten verliert das „weil"; eine Aufzählung in Fließtext verliert die Übersicht.
+- **Kein Füllwerk um eine Zahl herum.** „Es ist wichtig zu beachten, dass der Wert typischerweise bei etwa 50 Hz liegt" ist „50 Hz".
+
+**Maßstab, weil es dort schiefgegangen ist:** die Markdown-Dateien im Homelab-Projekt sind zu ausführlich geworden. Der Fehler dort ist nicht die Länge, sondern die Wiederholung — dieselbe Aussage in Einleitung, Abschnitt und Zusammenfassung. Genau das ist gemeint.
+
+Das gilt für **alles**, was du schreibst: Zettel, Anleitungsseite, Zwischenablage, Fließtext in Fachartikeln, Rückmeldungen und Vertiefungen in Aufgaben. Die Vertiefung einer Aufgabe ist der beste Test: drei dichte Sätze schlagen zwei Absätze, weil ich sie nach einer falschen Antwort tatsächlich lese.
+
+---
+
+# Subagenten und Tokenausbeute
+
+**Möglichst viel Arbeit pro Token hat Vorrang vor Geschwindigkeit.** Wanduhrzeit ist mir egal — ein Lauf, der eine Stunde länger dauert und dafür ein Drittel der Tokens braucht, ist der bessere Lauf.
+
+Daraus folgt die Regel für Subagenten, und sie fällt gegen sie aus: **Delegation kostet Tokens.** Jeder Subagent baut Kontext neu auf, exploriert Dinge neu, die du schon weißt, schreibt einen Bericht, und du liest diesen Bericht. Das ist Aufwand, der Wanduhrzeit spart und Tokens verbrennt — also genau der Tausch, den ich nicht will. **Steht Delegation der Tokenausbeute im Weg, lass sie weg. Ich brauche sie nicht.**
+
+Es gibt einen Fall, in dem Delegation die Tokenrechnung **verbessert**, und der ist der einzige gute Grund: **wenn großes Rohmaterial gelesen werden muss, von dem nur das Ergebnis gebraucht wird.** Zweihundert Folien durchsehen und eine Themenliste mit Häufigkeiten zurückgeben — dabei bleiben die Folien im Kontext des Subagenten und kommen nie in den Hauptkontext. Das spart mehr, als die Delegation kostet.
+
+Nicht delegieren:
+
+- **Verifikation, Review, Gegenprüfung.** Das gehört in deine eigene Schleife. Ein Prüf-Subagent liest alles ein zweites Mal und verdoppelt damit die Kosten des Prüfens.
+- **Arbeit, die du in wenigen Werkzeugaufrufen selbst erledigst.** Ein paar Dateien lesen, eine Handvoll Änderungen, eine einfache Suche.
+- **Eine kleine Aufgabe, aufgeteilt auf mehrere Agenten.** Parallelität ist hier nur Geschwindigkeit, und Geschwindigkeit ist nicht das Ziel.
+
+Wenn du delegierst: **einmal präzise briefen** statt starten, warten und nachbriefen. Und wenn ein Subagent geliefert hat, **rechne sein Ergebnis nicht nach** — das war der Sinn der Delegation. Halte die Zahl niedrig; im Zweifel machst du es selbst.
+
+---
+
 # Aufgaben sind Daten
 
 **Eine Aufgabe ist ein Objekt, kein handgeschriebenes Markup.** Das ist die wichtigste Regel dieser Datei, und sie hat drei Gründe:

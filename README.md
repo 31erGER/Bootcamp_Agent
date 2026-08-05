@@ -26,6 +26,11 @@ Das Projekt in den Ordner des jeweiligen Moduls oder Unterrichtsfachs clonen (od
 
 AI-Agent losschicken. In Claude Code genügt „bereite mich auf die Klausur in diesem Modul vor" oder „ich will etwas über *Thema* lernen" — die Skills in `.claude/skills/` greifen selbst. Alternativ die Slash-Commands `/klausur` und `/thema <Thema>`, oder bei einem anderen Agenten direkt: „lies [[Klausurvorbereitung]] und [[Rahmenwerk]] und arbeite sie ab" (bzw. [[NeuesThema]]).
 
+> [!tip] Ohne Plan Mode starten
+> Beide Aufträge haben einen eigenen **Schritt 0**: der Agent legt erst Inventar, Gewichtung und Blattplan vor (Klausurvorbereitung) beziehungsweise Zuschnitt und Landkarte (Neues Thema) und baut erst nach einer Bestätigung. Das leistet dasselbe wie Plan Mode, nur fachlich statt dateibezogen — es fragt nach Gewichtung und Abgrenzung, nicht nach Dateilisten. Beides zu benutzen ist Doppelarbeit und kostet einen zusätzlichen Durchgang.
+>
+> Plan Mode lohnt an einer anderen Stelle: wenn am **Rahmenwerk selbst** gearbeitet wird — `Stylevorgabe/assets/`, `tools/`. Dort geht es um Regressionsrisiko für alle Module, und dafür ist die dateibezogene Vorschau das richtige Werkzeug.
+
 ### Schritt 4
 
 Wenn der Agent fertig ist, selbst gegenprüfen:
