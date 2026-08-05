@@ -1,7 +1,7 @@
 /* ============================================================================
    validate.js — Redaktionsregeln als Code
    ---------------------------------------------------------------------------
-   Die Regeln aus PROJECTSCAN.md waren bisher Bitten in einem Fließtext. Hier
+   Die Regeln aus Rahmenwerk.md waren bisher Bitten in einem Fließtext. Hier
    sind sie geprüft. Ein Blatt ist erst fertig, wenn diese Prüfung ohne FEHLER
    durchläuft — sichtbar in der Seite und im Prüfwerkzeug, nicht in einem
    Dokument, in dem es verstaubt.
