@@ -3,30 +3,31 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Modul 03a · Verbundnetze — Aufgabenheft</title>
+<title>Selbsttest · alle neun Aufgabentypen</title>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
-     Aufgabenheft Modul 03a. Diese Datei ist nur noch das Gerüst: die Aufgaben
-     stehen in Modul_03_Verbundnetze.data.js, das Aussehen in assets/styles.css,
-     die Logik in assets/engine.js.
+     Das GERÜST eines Aufgabenblattes. Wer ein neues Blatt anlegt, kopiert diese
+     Datei, tauscht den Titel und die eine data.js-Zeile — sonst nichts.
 
-     Vorher waren es 423 KB in einer Datei — davon 340 KB Schriftdaten als
-     base64, und zwar in JEDER HTML erneut. Jetzt liegen die Schriften einmal in
-     assets/fonts.css, und ein weiteres Blatt kostet keine Schriftbytes mehr.
+     Alles Sichtbare kommt aus der Datendatei. Die Attribute [data-…] sind die
+     Andockpunkte, an denen engine.js einhängt:
 
-     Skriptreihenfolge ist bindend:
-       engine.js     definiert WB.register
-       validate.js   Redaktionsregeln (nur zum Prüfen nötig, stört sonst nicht)
-       *.data.js     ruft WB.register und rendert damit das Blatt
-       viz.js        definiert WB.viz.define
-       *.viz.js      die Zeichnungen dieses Blattes
-       audit.js      Selbstprüfung, wird nur mit einem Anker aktiv
+       [data-masthead]        Kopf: Rubrik, Dauer, Überschrift, Vorspann, Signatur
+       [data-intro]           Einleitung links, Merkstreifen rechts
+       [data-stats]           die vier Kennzahlen
+       [data-sheet]           die Teile mit den Aufgaben          ← Pflicht
+       .rail .nav             Aufgabenliste, wird gefüllt
+       [data-progress-*]      Ringzahl, Zähler, Punktestand
+       [data-arc]             der Ring selbst (r wird ausgelesen)
+       [data-filter]          Filterknöpfe: alle offen geloest leicht mittel schwer
+       [data-reset]           Stand löschen
+       [data-store-warning]   erscheint nur, wenn localStorage gesperrt ist
 
-     Prüfen:  Modul_03_Verbundnetze.html#pruefen
-              assets/breiten.html?page=../Modul_03_Verbundnetze.html
+     Skriptreihenfolge ist bindend: engine.js definiert WB.register, die
+     Datendatei ruft es auf, audit.js hängt sich hinterher an.
      ═══════════════════════════════════════════════════════════════════════════ -->
 
-<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -34,9 +35,9 @@
 
   <aside class="rail">
     <div class="brand">
-      <div class="brand__mark">Energieversorgung</div>
-      <div class="brand__name">Modul 03a</div>
-      <div class="brand__sub">Verbundnetze · Regelzonen &amp; Frequenzhaltung</div>
+      <div class="brand__mark">Rahmenwerk</div>
+      <div class="brand__name">Selbsttest</div>
+      <div class="brand__sub">Neun Typen, ein Durchlauf</div>
     </div>
 
     <div class="progress">
@@ -61,19 +62,13 @@
         <button class="filter is-active" type="button" data-filter="alle">Alle</button>
         <button class="filter" type="button" data-filter="offen">Offen</button>
         <button class="filter" type="button" data-filter="geloest">Gelöst</button>
-        <button class="filter" type="button" data-filter="leicht">Leicht</button>
-        <button class="filter" type="button" data-filter="mittel">Mittel</button>
         <button class="filter" type="button" data-filter="schwer">Schwer</button>
       </div>
       <div class="note-strip" data-store-warning hidden>
         <b>Kein Speicher.</b> Dieser Browser sperrt <code>localStorage</code> auf
         <code>file://</code> — der Stand überlebt kein Neuladen.
       </div>
-      <div class="filters">
-        <a class="filter" href="index.html">Übersicht</a>
-        <a class="filter" href="Fourier_Lehrkurs.html">Lehrkurs</a>
-        <button class="filter" type="button" data-reset>Stand löschen</button>
-      </div>
+      <button class="filter" type="button" data-reset>Stand löschen</button>
     </div>
   </aside>
 
@@ -82,13 +77,16 @@
     <section class="intro" data-intro></section>
     <div class="stats" data-stats></div>
 
+    <!-- Eine Visualisierung, deklarativ eingebunden: kein Skript im Blatt.
+         data-ctl gibt den Namen im Parameterobjekt, data-out zeigt den Wert an
+         und behält seine Einheit aus dem Text. -->
     <figure class="viz" data-viz="frequenzeinbruch" data-viz-opts='{"height":330}'>
       <div class="viz__title">Frequenz nach einem Kraftwerksausfall</div>
       <canvas></canvas>
       <div class="viz__ctrl">
         <label>Ausgefallene Leistung
-          <input type="range" data-ctl="dp" min="300" max="3000" step="100" value="1200">
-          <output class="viz__read" data-out="dp">1200 MW</output>
+          <input type="range" data-ctl="dp" min="300" max="3000" step="100" value="900">
+          <output class="viz__read" data-out="dp">900 MW</output>
         </label>
         <label>Netzleistungszahl
           <input type="range" data-ctl="lam" min="8000" max="25000" step="1000" value="15000">
@@ -96,29 +94,30 @@
         </label>
       </div>
       <figcaption class="viz__cap">
-        Die Reglerstellung entspricht dem Lastfall aus Aufgabe&nbsp;14. Der Tiefpunkt liegt
-        <b>unter</b> dem Wert, auf dem die Frequenz danach stehen bleibt — die Trägheit der Läufer
-        lässt sie durchschwingen, bevor die Primärregelung sie fängt. Stehen bleibt sie bei
-        50&nbsp;Hz minus ΔP/λ, und erst die Sekundärregelung holt sie zurück. Zieh die
-        Netzleistungszahl herunter, und du siehst, warum ein kleines Netz gefährdet ist.
+        Der Tiefpunkt liegt <b>unter</b> dem Wert, auf dem die Frequenz danach stehen bleibt —
+        die Trägheit lässt sie durchschwingen, bevor die Primärregelung sie fängt. Stehen bleibt
+        sie bei 50 Hz minus ΔP/λ, und erst die Sekundärregelung holt sie zurück.
+        Man sieht auch, warum ein kleines Netz gefährdet ist: bei λ = 8000 MW/Hz wirft derselbe
+        Ausfall die Frequenz doppelt so weit wie bei 16 000.
       </figcaption>
     </figure>
 
     <div data-sheet></div>
 
     <footer class="foot">
-      <span>Modul 03a · Verbundnetze · Aufgabenheft</span>
+      <span>Rahmenwerk · Selbsttest</span>
       <span>läuft ohne Server, ohne Build</span>
     </footer>
   </main>
 
 </div>
 
-<script src="assets/engine.js"></script>
-<script src="assets/validate.js"></script>
-<script src="Modul_03_Verbundnetze.data.js"></script>
-<script src="assets/viz.js"></script>
-<script src="assets/viz-verbundnetz.js"></script>
-<script src="assets/audit.js"></script>
+<script src="engine.js"></script>
+<script src="validate.js"></script>
+<script src="selbsttest.data.js"></script>
+<!-- viz.js VOR den Zeichnungen: es stellt WB.viz.define bereit. -->
+<script src="viz.js"></script>
+<script src="viz-verbundnetz.js"></script>
+<script src="audit.js"></script>
 </body>
 </html>

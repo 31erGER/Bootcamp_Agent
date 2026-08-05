@@ -1,0 +1,1657 @@
+/* ============================================================================
+   styles.css — Design-System für Arbeitsblätter, Fachartikel und Hub
+   ---------------------------------------------------------------------------
+   Die EINZIGE Datei, die eine HTML per <link> lädt. Sie holt sich die Schriften
+   und die Farbpalette selbst:
+
+     <link rel="stylesheet" href="assets/styles.css">
+
+   Warum das so ist: 80 % einer Arbeitsblatt-Datei waren früher base64-Schriften
+   — 340 von 423 KB, und das in JEDER Datei erneut. Jetzt liegen sie einmal in
+   fonts.css. Ein Blatt kostet dadurch rund 60 KB statt 423, und ein zusätzliches
+   Blatt kostet keine Schriftbytes mehr.
+
+   Geändert wird das Aussehen in colorpalett.css, nicht hier.
+
+   Abschnitte, in dieser Reihenfolge:
+     @BASE       Reset, Grundschrift, Papiergrund, Fokusring
+     @LAYOUT     .shell, Seitenleiste, Masthead, Teile, Fußzeile
+     @TASKCARD   Aufgabenkarte, Chips, Callouts, Tabellen
+     @QUIZ       die neun Aufgabentypen und ihre Rückmeldung
+     @LEHRKURS   Kapitel, Formeln, Visualisierungen, Karteikarten, Kontrollfragen
+     @HUB        Einstiegsseite über alle Blätter eines Moduls
+     @GAME       Spielstand: XP, Serie, Auszeichnungen, Ränge
+     @RESPONSIVE 1200 / 760 / darunter — der Abschnitt, der früher ganz fehlte
+     @PRINT      Ausdruck für die Klausurvorbereitung
+   ============================================================================ */
+
+@import url('fonts.css');
+@import url('colorpalett.css');
+
+/* @BASE:START */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+
+body {
+  font-family: var(--body);
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(28,24,19,.05) 1px, transparent 0);
+  background-size: 26px 26px;
+  line-height: 1.6;
+  font-size: 16.5px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: .035;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+::selection { background: var(--accent); color: #fff; }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+sub, sup { line-height: 0; }
+
+/* ── Fokusring ────────────────────────────────────────────────────────────────
+   Jede Aufgabe muss ohne Maus bedienbar sein, und dafür muss sichtbar sein,
+   wo man gerade ist. `:focus-visible` statt `:focus`, damit ein Mausklick
+   keinen Ring hinterlässt. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+/* @BASE:END */
+/* @LAYOUT:START */
+.shell {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  max-width: var(--maxw);
+  margin: 0 auto;
+  align-items: start;
+}
+
+.rail {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 30px 26px 26px;
+  border-right: 1px solid var(--hair);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  overflow-y: auto;
+  background: linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+}
+.rail::-webkit-scrollbar { width: 8px; }
+.rail::-webkit-scrollbar-thumb { background: var(--hair-strong); border-radius: 8px; }
+
+.brand { display: flex; flex-direction: column; gap: 4px; }
+.brand__mark {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .34em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.brand__name {
+  font-family: var(--display);
+  font-optical-sizing: auto;
+  font-weight: 900;
+  font-size: 30px;
+  line-height: .94;
+  letter-spacing: -.02em;
+  color: var(--ink);
+}
+.brand__sub {
+  font-size: 12px;
+  color: var(--ink-mute);
+  letter-spacing: .01em;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.progress__ring { position: relative; flex: 0 0 auto; width: 64px; height: 64px; }
+.progress__ring svg { transform: rotate(-90deg); display: block; }
+.progress__track { stroke: var(--hair); }
+.progress__arc {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  transition: stroke-dashoffset .7s var(--ease);
+}
+.progress__pct {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-family: var(--mono); font-weight: 700; font-size: 15px;
+  color: var(--ink);
+}
+.progress__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.progress__count { font-family: var(--display); font-weight: 700; font-size: 17px; }
+.progress__count b { color: var(--accent); font-weight: 900; }
+.progress__label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--ink-mute);
+}
+.progress__score {
+  font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--accent-deep);
+}
+
+.nav { display: flex; flex-direction: column; gap: 4px; }
+.nav__group {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  padding: 14px 8px 6px;
+  display: flex; align-items: baseline; gap: 8px;
+}
+.nav__group::before {
+  content: ''; height: 1px; width: 14px; background: var(--accent);
+  display: inline-block; transform: translateY(-3px);
+}
+.nav__task {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 9px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  line-height: 1.25;
+  position: relative;
+  transition: background .18s var(--ease), color .18s var(--ease);
+}
+.nav__task:hover { background: var(--accent-tint); color: var(--ink); }
+.nav__dot {
+  flex: 0 0 auto; width: 16px; height: 16px; border-radius: 50%;
+  border: 1.5px solid var(--hair-strong);
+  display: grid; place-items: center;
+  font-size: 9px; color: #fff;
+  transition: background .2s var(--ease), border-color .2s var(--ease);
+}
+.nav__num { font-family: var(--mono); font-size: 11px; color: var(--ink-mute); width: 18px; }
+.nav__task.is-active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: inset 2px 0 0 var(--accent);
+  font-weight: 600;
+}
+.nav__task.is-done .nav__dot { background: var(--done); border-color: var(--done); }
+.nav__task.is-done .nav__dot::after { content: '✓'; }
+.nav__task.is-done .nav__label { color: var(--ink-mute); }
+.nav__task.is-wrong .nav__dot { background: var(--hard); border-color: var(--hard); }
+.nav__task.is-wrong .nav__dot::after { content: '✗'; }
+.nav__task.is-wrong .nav__label { color: var(--ink-mute); }
+
+.rail__foot { margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.filter {
+  font-family: var(--mono);
+  font-size: 10.5px; letter-spacing: .04em; text-transform: uppercase;
+  padding: 5px 10px;
+  border: 1px solid var(--hair);
+  background: var(--surface);
+  color: var(--ink-soft);
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all .16s var(--ease);
+}
+.filter:hover { border-color: var(--hair-strong); }
+.filter.is-active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+.main { padding: 0 clamp(24px, 5vw, 88px) 120px; min-width: 0; }
+
+.masthead { padding: 64px 0 40px; border-bottom: 2px solid var(--ink); position: relative; }
+.masthead__rule {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--ink-mute); padding-bottom: 26px;
+}
+.masthead__rule span { display: inline-flex; align-items: center; gap: 8px; }
+.masthead__rule .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+.kicker {
+  font-family: var(--mono);
+  font-size: 12px; letter-spacing: .28em; text-transform: uppercase;
+  color: var(--accent); font-weight: 700; margin-bottom: 18px;
+}
+.masthead h1 {
+  font-family: var(--display);
+  font-optical-sizing: auto;
+  font-weight: 900;
+  font-size: clamp(48px, 8vw, 104px);
+  line-height: .9;
+  letter-spacing: -.035em;
+  color: var(--ink);
+}
+.masthead h1 em {
+  font-style: italic; font-weight: 500; color: var(--accent);
+}
+.lede {
+  font-family: var(--display);
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-size: clamp(18px, 2.4vw, 23px);
+  line-height: 1.45;
+  color: var(--ink-soft);
+  max-width: 56ch;
+  margin-top: 28px;
+}
+
+.trace { width: 100%; height: 46px; margin-top: 30px; display: block; overflow: visible; }
+.trace path {
+  fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round;
+  stroke-dasharray: 1400; stroke-dashoffset: 1400;
+  animation: trace-draw 2.4s var(--ease) .3s forwards;
+}
+.trace .grid { stroke: var(--hair); stroke-width: 1; }
+@keyframes trace-draw { to { stroke-dashoffset: 0; } }
+
+.intro {
+  /* minmax(0, …) statt nackter fr-Werte: ein fr-Track darf nicht unter seinen
+     min-content schrumpfen. Ohne das sprengt ein langes Wort das Raster, und
+     `max-width` am Kind hilft nicht mehr, weil der Track schon zu breit ist.
+     Gilt für JEDES fr-Raster in dieser Datei — vom Prüfwerkzeug gefunden. */
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 44px;
+  padding: 44px 0;
+  border-bottom: 1px solid var(--hair);
+}
+.intro__body { min-width: 0; }
+.intro__body p { margin-bottom: 14px; max-width: 60ch; color: var(--ink-soft); }
+.intro__body p:first-of-type::first-letter {
+  font-family: var(--display); font-weight: 900;
+  float: left; font-size: 3.6em; line-height: .78;
+  padding: 8px 12px 0 0; color: var(--accent);
+}
+.intro__aside { display: flex; flex-direction: column; gap: 14px; }
+
+.note-strip {
+  background: var(--accent-tint);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 14px 16px; font-size: 14px; color: var(--ink-soft);
+}
+.note-strip b { color: var(--ink); }
+
+.stats {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0;
+  border-bottom: 1px solid var(--hair);
+}
+.stat { padding: 26px 22px; border-right: 1px solid var(--hair); min-width: 0; }
+.stat:last-child { border-right: 0; }
+.stat__num {
+  font-family: var(--display); font-weight: 900; font-size: 42px; line-height: 1;
+  letter-spacing: -.03em; color: var(--ink);
+}
+.stat__num.is-accent { color: var(--accent); }
+.stat__lbl {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-mute); margin-top: 8px;
+}
+
+.part { padding-top: 64px; scroll-margin-top: 20px; }
+.part__head {
+  display: flex; align-items: flex-end; gap: 20px;
+  padding-bottom: 22px; margin-bottom: 36px;
+  border-bottom: 1px solid var(--hair);
+  /* Umbrechen statt quetschen. Ohne das schob der Teilkopf bei knappem Platz
+     28 px über den Rand hinaus — unsichtbar, weil ein Flex-Container nicht
+     scrollt. Mit `flex: 1 1 240px` an den Titeln rutscht die Zeile lieber um,
+     als den Titel auf Buchstabenbreite zu drücken. */
+  flex-wrap: wrap;
+}
+.part__index {
+  font-family: var(--display); font-weight: 900;
+  font-size: clamp(56px, 9vw, 96px); line-height: .8;
+  color: var(--paper);
+  -webkit-text-stroke: 1.4px var(--hair-strong);
+  letter-spacing: -.04em;
+}
+.part__titles { flex: 1 1 240px; min-width: 0; }
+.part__eyebrow {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .24em; text-transform: uppercase;
+  color: var(--accent); font-weight: 700;
+}
+.part__title {
+  font-family: var(--display); font-weight: 700; font-size: clamp(26px, 3.6vw, 40px);
+  letter-spacing: -.02em; line-height: 1.05; margin-top: 6px;
+  /* Letztes Netz: „Frequenzhaltung" ist bei 39 px schon 320 px breit, und ein
+     deutsches Kompositum kann jederzeit länger sein. Ohne `anywhere` bleibt der
+     Kasten so breit wie das längste Wort und schneidet ab. */
+  min-width: 0; overflow-wrap: anywhere;
+}
+.part__count {
+  font-family: var(--mono); font-size: 12px; color: var(--ink-mute);
+  white-space: nowrap; padding-bottom: 6px;
+}
+
+.foot {
+  margin-top: 80px; padding-top: 30px;
+  border-top: 2px solid var(--ink);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.foot a { color: var(--ink); }
+/* @LAYOUT:END */
+/* @TASKCARD:START */
+.tasks { display: flex; flex-direction: column; gap: 26px; }
+
+.task {
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  scroll-margin-top: 20px;
+  transition: opacity .35s var(--ease), filter .35s var(--ease), border-color .25s var(--ease);
+  overflow: hidden;
+}
+.task.is-done { border-color: var(--done); }
+.task.is-done .task__num { background: var(--done); color: #fff; border-color: var(--done); }
+.task.is-done .task__title { color: var(--ink-mute); }
+.task.is-wrong { border-color: var(--hard); }
+.task.is-wrong .task__num { background: var(--hard); color: #fff; border-color: var(--hard); }
+.task.is-wrong .task__title { color: var(--ink-mute); }
+.task.is-hidden { display: none; }
+
+.task__head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  padding: 22px 26px;
+  border-bottom: 1px solid var(--hair);
+  position: relative;
+}
+.task__num {
+  font-family: var(--mono); font-weight: 700; font-size: 16px;
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  display: grid; place-items: center;
+  color: var(--ink);
+  transition: all .25s var(--ease);
+}
+.task__titles { min-width: 0; }
+.task__eyebrow {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.task__title {
+  font-family: var(--display); font-weight: 600; font-size: clamp(20px, 2.6vw, 27px);
+  letter-spacing: -.015em; line-height: 1.1; margin-top: 3px;
+}
+.task__meta { display: flex; align-items: center; gap: 12px; }
+
+.chip {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: 5px 11px; border-radius: 100px; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.chip::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.chip--leicht { color: var(--easy); background: var(--easy-bg); }
+.chip--mittel { color: var(--med);  background: var(--med-bg); }
+.chip--schwer { color: var(--hard); background: var(--hard-bg); }
+.chip--bonus  { color: var(--accent); background: var(--accent-soft); }
+
+.task__status {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+  padding: 5px 11px; border-radius: 100px; white-space: nowrap;
+  color: var(--ink-mute); background: var(--surface-2); border: 1px dashed var(--hair-strong);
+}
+.task.is-done .task__status {
+  color: #fff; background: var(--done); border: 1px solid var(--done);
+}
+.task.is-wrong .task__status {
+  color: #fff; background: var(--hard); border: 1px solid var(--hard);
+}
+
+.task__body { padding: 24px 26px 28px; }
+.goal {
+  font-family: var(--display); font-style: italic; font-weight: 400;
+  font-size: 18px; line-height: 1.45; color: var(--ink-soft);
+  padding-left: 16px; border-left: 2px solid var(--accent);
+  margin-bottom: 22px;
+}
+.goal b { font-style: normal; font-weight: 600; color: var(--ink); }
+
+.task__body p { margin-bottom: 14px; max-width: 68ch; }
+.task__body > p:first-child { margin-top: 0; }
+
+/* Prosa-Listen im Aufgabentext. `:not([class])` ist Absicht und keine Spielerei:
+   diese Regeln sollen Aufzählungen treffen, die in einem feedback- oder
+   deep-Text stehen — und die haben nie eine Klasse. Bauteillisten haben immer
+   eine. Ohne die Einschränkung erbte die Zonenlegende der Bildaufgabe
+   (<ol class="hot__legend">) die Nummerierung und trug ihre Zeilennummer
+   doppelt: einmal als „01" vom ::before, einmal als „1." aus der Engine. */
+.task__body ol:not([class]), .task__body ul:not([class]) {
+  margin: 0 0 18px; padding-left: 0; list-style: none; counter-reset: step;
+}
+.task__body ol:not([class]) > li {
+  counter-increment: step; position: relative;
+  padding: 4px 0 4px 40px; margin-bottom: 6px; max-width: 66ch;
+}
+.task__body ol:not([class]) > li::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute; left: 0; top: 4px;
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  color: var(--accent);
+}
+.task__body ul:not([class]) > li {
+  position: relative; padding: 3px 0 3px 24px; margin-bottom: 5px; max-width: 66ch;
+}
+.task__body ul:not([class]) > li::before {
+  content: ''; position: absolute; left: 4px; top: 13px;
+  width: 7px; height: 1.5px; background: var(--ink-mute);
+}
+.task__body li > strong, .task__body p > strong { font-weight: 600; color: var(--ink); }
+.task__body code:not(pre code) {
+  font-family: var(--mono); font-size: .86em;
+  background: var(--surface-2); border: 1px solid var(--hair);
+  padding: 1px 6px; border-radius: 3px; color: var(--accent-deep);
+}
+
+.q {
+  background: var(--surface-2);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  padding: 16px 18px; margin-bottom: 16px;
+}
+.q__tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent); font-weight: 700; display: block; margin-bottom: 6px;
+}
+.q p { margin: 0; max-width: none; }
+.q .hl { color: var(--accent-deep); font-weight: 600; }
+
+.callout {
+  display: grid; grid-template-columns: auto 1fr; gap: 14px;
+  background: var(--accent-tint);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: var(--radius);
+  padding: 16px 18px; margin: 18px 0; font-size: 14.5px;
+}
+.callout__icon { font-size: 18px; line-height: 1.4; }
+.callout__body { color: var(--ink-soft); }
+.callout__body b, .callout__body strong { color: var(--ink); }
+.callout--note   { background: var(--accent-tint); }
+.callout--think  { background: var(--med-bg); border-color: color-mix(in srgb, var(--med) 35%, transparent); }
+.callout p { margin: 0 0 6px; max-width: none; }
+.callout p:last-child { margin-bottom: 0; }
+.callout ul { margin: 6px 0 0; }
+.callout ul li::before { background: var(--accent); }
+
+.table-wrap { overflow-x: auto; margin: 18px 0; border: 1px solid var(--hair); border-radius: var(--radius); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+thead th {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  text-align: left; color: var(--ink-mute); font-weight: 700;
+  padding: 11px 14px; background: var(--surface-2); border-bottom: 1px solid var(--hair);
+  white-space: nowrap;
+}
+tbody td { padding: 11px 14px; border-bottom: 1px solid var(--hair); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:nth-child(even) { background: var(--surface-2); }
+/* @TASKCARD:END */
+/* @QUIZ:START */
+/* ---- Antwortoptionen (Single/Multiple Choice) ---- */
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--hair);
+  border-radius: var(--radius);
+  padding: 13px 16px; cursor: pointer;
+  font-size: 15px; line-height: 1.5;
+  transition: border-color .15s var(--ease), background .15s var(--ease);
+}
+.opt:hover { border-color: var(--accent); }
+.opt input { margin-top: 4px; accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+.opt.correct { border-color: var(--easy); background: var(--easy-bg); }
+.opt.wrong   { border-color: var(--hard); background: var(--hard-bg); }
+.opt .mark { margin-left: auto; font-family: var(--mono); font-weight: 700; font-size: 16px; }
+.opt.correct .mark { color: var(--easy); }
+.opt.wrong .mark   { color: var(--hard); }
+.multi-hint {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink-mute); margin-bottom: 10px;
+}
+
+/* ---- Prüfen-Buttons ---- */
+.btnrow { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; align-items: center; }
+button.act {
+  font-family: var(--mono); font-size: 13px; font-weight: 500;
+  background: var(--accent); color: #fff;
+  border: 0; border-radius: var(--radius);
+  padding: 11px 18px; cursor: pointer;
+  transition: transform .15s var(--ease), background .15s var(--ease), color .15s var(--ease);
+}
+button.act:hover { background: var(--ink); transform: translateY(-1px); }
+button.act:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+/* ---- Feedback ---- */
+.fb { margin-top: 18px; border-radius: var(--radius); padding: 16px 18px; font-size: 14.5px; display: none; }
+.fb.show { display: block; }
+.fb.ok { background: var(--easy-bg); border: 1px solid var(--easy); }
+.fb.no { background: var(--hard-bg); border: 1px solid var(--hard); }
+.fb .head { font-family: var(--display); font-weight: 700; font-size: 16.5px; margin-bottom: 6px; }
+.fb.ok .head { color: var(--easy); }
+.fb.no .head { color: var(--hard); }
+.fb .body { color: var(--ink-soft); }
+.fb .body .mute { color: var(--ink-mute); }
+.fb .deep { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hair-strong); color: var(--ink-soft); }
+.fb .deep::before {
+  content: 'Vertiefung';
+  display: block;
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent-deep); margin-bottom: 6px;
+}
+.fb .deep b { color: var(--ink); }
+
+/* ---- Lückentext ---- */
+.cloze { font-size: 16px; line-height: 2.3; max-width: 70ch; overflow-wrap: anywhere; }
+.cloze select, .cloze input {
+  font-family: var(--mono); font-size: 14px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-bottom: 2px solid var(--accent);
+  color: var(--ink);
+  border-radius: 3px 3px 0 0;
+  padding: 5px 8px; margin: 0 3px;
+  /* Ein <select> wächst von sich aus auf die Breite seiner LÄNGSTEN Option und
+     kennt keine Obergrenze. „der betroffenen Regelzone allein" sind 250 px; bei
+     320 px Fenster bleiben dem Lückentext 237 px, das Feld hing 76 px im
+     Nichts — und weil ein geschlossenes Auswahlfeld nie scrollt, sieht man das
+     von Auge nicht, man verliert nur den rechten Rand des Satzes. Das
+     Prüfwerkzeug meldet deshalb den ELTERN-Container, nicht das Feld.
+     `max-width` deckelt die Anzeige; aufgeklappt zeigt der Browser die Liste
+     ohnehin in voller Breite an.
+
+     Und die 6 px abziehen: `max-width: 100%` deckelt den Rahmenkasten, der
+     Außenabstand kommt oben drauf. Mit `margin: 0 3px` blieb genau ein
+     Überstand von 6 px stehen — bei 320, 360 und 390 px derselbe Wert, was ihn
+     überhaupt erst als Rechenfehler erkennbar gemacht hat und nicht als
+     Textumbruch. */
+  max-width: calc(100% - 6px);
+  vertical-align: baseline;
+}
+.cloze select:focus, .cloze input:focus { outline: none; box-shadow: 0 0 0 3px var(--accent-tint); }
+.cloze select.correct, .cloze input.correct { border-color: var(--easy); border-bottom-color: var(--easy); background: var(--easy-bg); }
+.cloze select.wrong,   .cloze input.wrong   { border-color: var(--hard); border-bottom-color: var(--hard); background: var(--hard-bg); }
+
+/* ---- Zuordnung / Drag & Drop ---- */
+.dnd { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; margin-top: 6px; }
+.dndcol h4 {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-mute); margin: 0 0 10px;
+}
+.pool { display: flex; flex-direction: column; gap: 9px; min-height: 30px; }
+.token {
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 11px 14px; cursor: grab;
+  font-size: 14px; line-height: 1.5;
+  transition: border-color .12s var(--ease), transform .12s var(--ease);
+}
+.token:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-1px); }
+.token.dragging { opacity: .4; }
+.token.placed { cursor: grab; box-shadow: none; }
+/* Nach dem Prüfen sperrt die Engine die Kärtchen (`disabled`), und der Browser
+   graut den Text von sich aus aus. In der Auflösung stand die Zuordnung dann
+   blass in blassen Kästen und sah aus wie ein leeres Formular — genau der Text,
+   den man jetzt LESEN soll. Also Farbe und Deckkraft zurückholen; dass es
+   gesperrt ist, sagt der Zeiger. */
+.token:disabled { opacity: 1; color: var(--ink); cursor: default; }
+.token:disabled:hover { transform: none; }
+.target {
+  background: transparent;
+  border: 1.5px dashed var(--hair-strong);
+  border-radius: var(--radius);
+  padding: 11px 13px; min-height: 54px;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.target.over { border-color: var(--accent); background: var(--accent-tint); }
+.target .lbl {
+  font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: var(--ink-soft);
+}
+.target.correct { border-style: solid; border-color: var(--easy); background: var(--easy-bg); }
+.target.wrong   { border-style: solid; border-color: var(--hard); background: var(--hard-bg); }
+
+/* ---- Rechenaufgabe ---- */
+.calc table.given { width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 14.5px; }
+.calc table.given td { padding: 8px 12px; border-bottom: 1px solid var(--hair); }
+.calc table.given tr:last-child td { border-bottom: 0; }
+.calc table.given td:first-child { color: var(--ink-mute); }
+.calc table.given td:last-child { font-weight: 600; text-align: right; font-family: var(--mono); font-size: 13.5px; }
+.step {
+  background: var(--surface-2);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  padding: 15px 17px; margin: 12px 0;
+  transition: opacity .3s var(--ease);
+}
+.step.locked { opacity: .38; pointer-events: none; }
+.step .slbl { font-weight: 600; margin-bottom: 8px; font-size: 14.5px; color: var(--ink); }
+.step .formula {
+  font-family: var(--mono); font-size: 13.5px;
+  background: var(--ink); color: #e9e2d4;
+  border-radius: var(--radius);
+  padding: 9px 13px; margin: 8px 0;
+  overflow-x: auto;
+}
+.step .inrow { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.step input.num {
+  font-family: var(--mono); font-size: 15px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-bottom: 2px solid var(--accent);
+  color: var(--ink);
+  border-radius: 3px 3px 0 0;
+  padding: 9px 11px; width: 140px;
+}
+.step input.num:focus { outline: none; box-shadow: 0 0 0 3px var(--accent-tint); }
+.step input.num.correct { border-color: var(--easy); border-bottom-color: var(--easy); background: var(--easy-bg); }
+.step input.num.wrong   { border-color: var(--hard); border-bottom-color: var(--hard); background: var(--hard-bg); }
+.step .unit { color: var(--ink-mute); font-size: 14px; }
+.step .hint { font-size: 13.5px; color: var(--ink-mute); margin-top: 9px; display: none; }
+.step .hint.show { display: block; }
+
+/* ---- Flüchtige Notizen (bewusst OHNE Speicherung) ---- */
+.solbox {
+  margin: 18px 0 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  padding: 12px 14px 14px;
+}
+.solbox__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 9px;
+}
+.solbox__title {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent-deep); font-weight: 600;
+}
+.solbox__status {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .04em;
+  color: var(--ink-mute);
+}
+.solbox__input {
+  display: block; width: 100%;
+  min-height: 56px; resize: vertical;
+  font-family: var(--body); font-size: 14.5px; line-height: 1.6;
+  color: var(--ink); background: var(--surface);
+  border: 1px solid var(--hair); border-radius: var(--radius);
+  padding: 10px 12px;
+  transition: border-color .16s var(--ease), box-shadow .16s var(--ease);
+}
+.solbox__input::placeholder { color: var(--ink-mute); }
+.solbox__input:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-tint);
+}
+
+/* ---- Toast ---- */
+.toast {
+  position: fixed; bottom: 22px; left: 50%;
+  transform: translateX(-50%) translateY(120px);
+  background: var(--ink); color: var(--paper);
+  font-family: var(--mono); font-size: 13.5px; font-weight: 700;
+  padding: 13px 22px; border-radius: var(--radius);
+  box-shadow: 0 8px 30px rgba(28,24,19,.35);
+  z-index: 200;
+  transition: transform .45s cubic-bezier(.2,1.3,.4,1);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ---- Abschluss-Panel ---- */
+.done {
+  margin: 40px 0 0; padding: 34px 28px;
+  background: var(--done-bg); border: 1px solid var(--done);
+  border-radius: var(--radius);
+  display: none; text-align: center;
+}
+.done.show { display: block; animation: pop .5s var(--ease); }
+.done__check {
+  width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 12px;
+  background: var(--done); color: #fff; display: grid; place-items: center; font-size: 22px;
+}
+.done h3 { font-family: var(--display); font-weight: 700; font-size: 24px; color: var(--done); }
+.done .stars { font-size: 32px; letter-spacing: 6px; margin: 10px 0 2px; color: var(--med); }
+.done .big {
+  font-family: var(--display); font-weight: 900; font-size: 44px;
+  letter-spacing: -.02em; color: var(--ink); margin: 4px 0;
+}
+.done p { font-size: 14px; color: var(--ink-soft); max-width: 56ch; margin: 10px auto 0; }
+@keyframes pop { from { transform: scale(.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+/* @QUIZ:END */
+
+/* @QUIZPLUS:START ============================================================
+   Die sechs Aufgabentypen, die es vorher nicht gab. Zusammen mit choice, cloze
+   und dnd aus @QUIZ sind es neun:
+
+     choice    Einfach- und Mehrfachauswahl
+     cloze     Lückentext aus Auswahlfeldern und Freitext
+     dnd       Zuordnung, mit Tipp-Pfad neben HTML5-Drag
+     order     Reihenfolge sortieren            ← neu
+     hotspot   Stelle in einem Bild anklicken   ← neu
+     estimate  Wert auf einer Skala schätzen    ← neu
+     matrix    Ja/Nein-Raster                   ← neu
+     forecast  Formular mit mehreren Feldern    ← neu
+     calc      mehrstufiger Rechenweg           ← neu im Markup (Engine hatte es
+                                                  schon, benutzt hat es niemand)
+   ============================================================================ */
+
+/* ---- Reihenfolge (order) --------------------------------------------------
+   Bewusst mit Pfeil-Buttons statt Drag: das ist auf Touch bedienbar, mit der
+   Tastatur bedienbar und braucht keine Bibliothek. Drag wäre hübscher und für
+   die Hälfte der Nutzer unbrauchbar. */
+.order { display: flex; flex-direction: column; gap: 9px; }
+.order__row {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center; gap: 12px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--hair);
+  border-radius: var(--radius);
+  padding: 11px 14px;
+}
+.order__pos {
+  font-family: var(--mono); font-weight: 700; font-size: 13px;
+  color: var(--ink-mute); width: 22px; text-align: right;
+}
+.order__label { font-size: 15px; line-height: 1.45; min-width: 0; overflow-wrap: anywhere; }
+.order__btn {
+  font-family: var(--mono); font-size: 14px; line-height: 1;
+  background: var(--surface); color: var(--ink-soft);
+  border: 1px solid var(--hair); border-radius: var(--radius-sm);
+  width: 30px; height: 30px; cursor: pointer;
+  transition: border-color .12s var(--ease), color .12s var(--ease);
+}
+.order__btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.order__btn:disabled { opacity: .3; cursor: not-allowed; }
+.order__row.correct { border-color: var(--easy); background: var(--easy-bg); }
+.order__row.wrong   { border-color: var(--hard); background: var(--hard-bg); }
+
+/* ---- Bildstelle (hotspot) ------------------------------------------------
+   Trefferzonen liegen in Prozent, damit sie bei jeder Bildbreite sitzen.
+   x und r beziehen sich auf die BREITE, y auf die Höhe; die Engine rechnet die
+   Höhe über das Seitenverhältnis um, damit der Trefferbereich ein Kreis bleibt
+   und keine Ellipse.
+
+   Maus und Touch, kein Tastaturpfad: eine Liste der möglichen Stellen wäre die
+   halbe Lösung. Wer eine Aufgabe braucht, die ohne Maus geht, nimmt matrix. */
+.hot { position: relative; margin-top: 6px; }
+.hot__stage {
+  position: relative; display: block; width: 100%;
+  border: 1px solid var(--hair); border-radius: var(--radius);
+  background: var(--surface); overflow: hidden; cursor: crosshair;
+}
+.hot__stage img { display: block; width: 100%; height: auto; }
+.hot__ask {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .04em;
+  color: var(--accent-deep); font-weight: 700; margin-bottom: 9px;
+}
+.hot__mark {
+  position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px;
+  border-radius: 50%; border: 2px solid var(--accent);
+  background: var(--accent-tint);
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent-deep);
+  pointer-events: none;
+}
+.hot__mark.correct { border-color: var(--easy); background: rgba(47,125,79,.22); color: var(--easy); }
+.hot__mark.wrong   { border-color: var(--hard); background: rgba(154,40,32,.22); color: var(--hard); }
+/* Auflösung: die richtigen Zonen werden nach dem Prüfen eingeblendet.
+
+   Der Ring trägt nur eine NUMMER, der Name steht in der Legende darunter.
+   Vorher hing die Beschriftung frei am Ring — bei „Transformator zwischen den
+   Ebenen" waren das 157 px an einem 73 px kleinen Kreis, und `.hot__stage`
+   schneidet mit `overflow: hidden` ab. Eine Zone am linken Bildrand verlor
+   damit die Hälfte ihres Namens, und auf 320 px alle. Kein Randfall: die Zonen
+   liegen dort, wo im Bild etwas zu sehen ist, und das ist selten die Mitte. */
+.hot__zone {
+  position: absolute; border-radius: 50%;
+  border: 2px dashed var(--easy); background: rgba(47,125,79,.10);
+  pointer-events: none; aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  display: grid; place-items: center;
+}
+.hot__zone .num {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  color: var(--easy); background: var(--surface);
+  min-width: 17px; height: 17px; border-radius: 50%;
+  display: grid; place-items: center; line-height: 1;
+}
+.hot__legend { list-style: none; display: grid; gap: 5px; margin-top: 14px; }
+.hot__legend li {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline; gap: 10px;
+  font-size: 13.5px; color: var(--ink-soft);
+  padding: 6px 10px; border-radius: var(--radius);
+  background: var(--surface-2); border: 1px solid var(--hair);
+}
+.hot__legend .n {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  color: var(--easy); width: 16px; text-align: right;
+}
+.hot__legend .t { min-width: 0; overflow-wrap: anywhere; }
+.hot__legend .v { font-family: var(--mono); font-size: 11px; white-space: nowrap; }
+.hot__legend li.correct { border-color: var(--easy); background: var(--easy-bg); }
+.hot__legend li.correct .v { color: var(--easy); }
+.hot__legend li.wrong { border-color: var(--hard); background: var(--hard-bg); }
+.hot__legend li.wrong .v { color: var(--hard); }
+
+/* ---- Schätzen (estimate) -------------------------------------------------
+   Kein Zweitversuch: der Regler steht schon auf dem eigenen Wert, ein zweiter
+   Versuch wäre reines Ausprobieren. Das setzt die Engine, hier steht nur die
+   Optik. */
+.est { margin-top: 6px; }
+.est__row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.est__row > * { min-width: 0; max-width: 100%; }
+.est__slider { flex: 1 1 200px; min-width: 140px; accent-color: var(--accent); }
+.est__val {
+  font-family: var(--mono); font-weight: 700; font-size: 19px;
+  color: var(--accent-deep); white-space: nowrap;
+}
+.est__unit { font-family: var(--mono); font-size: 13px; color: var(--ink-mute); }
+.est__scale {
+  display: flex; justify-content: space-between;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-mute); margin-top: 6px;
+}
+.est__truth {
+  font-family: var(--mono); font-size: 13px; font-weight: 700;
+  margin-top: 10px; display: none;
+}
+.est__truth.show { display: block; }
+.est__truth.correct { color: var(--easy); }
+.est__truth.near    { color: var(--med); }
+.est__truth.wrong   { color: var(--hard); }
+
+/* ---- Raster (matrix) ----------------------------------------------------
+   Auf schmalen Schirmen scrollt die Matrix in ihrem eigenen Rahmen. Geprüft:
+   sie leckt nicht in die Seite. Mehr als vier Spalten warnt validate.js an,
+   weil die Zeilen dann auch beim Scrollen nicht mehr zu lesen sind. */
+.mtx__wrap { overflow-x: auto; margin-top: 6px; border: 1px solid var(--hair); border-radius: var(--radius); }
+.mtx { border-collapse: collapse; width: 100%; min-width: 460px; font-size: 14px; }
+.mtx th {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-mute); font-weight: 700; padding: 11px 12px;
+  background: var(--surface-2); border-bottom: 1px solid var(--hair);
+}
+.mtx th:first-child { text-align: left; }
+.mtx td { padding: 10px 12px; border-bottom: 1px solid var(--hair); text-align: center; }
+.mtx td:first-child { text-align: left; overflow-wrap: anywhere; }
+.mtx tr:last-child td { border-bottom: 0; }
+.mtx__cell { cursor: pointer; }
+.mtx__cell input { accent-color: var(--accent); width: 17px; height: 17px; }
+.mtx__cell.correct { background: var(--easy-bg); box-shadow: inset 0 0 0 1.5px var(--easy); }
+.mtx__cell.wrong   { background: var(--hard-bg); box-shadow: inset 0 0 0 1.5px var(--hard); }
+
+/* ---- Prognose / Mehrfeldformular (forecast) -----------------------------
+   `minmax(0, 1fr)` und nicht `1fr`: ein 1fr-Track darf nicht unter den
+   min-content seines Inhalts schrumpfen, und der min-content eines <select>
+   ist so breit wie seine längste Option. Mit `1fr` sprengt eine Option wie
+   „sehr hoch, geschlossene Eisschicht" auf 320 px die ganze Aufgabenkarte —
+   und das `max-width: 100 %` am Feld selbst hilft dann nichts mehr, weil der
+   Track schon zu breit ist. */
+.fc { display: grid; gap: 13px; margin-top: 6px; }
+.fc__field {
+  /* Auch der Track des Eingabefelds braucht minmax(0, …): ein `auto`-Track wird
+     so breit wie der max-content seines Inhalts, und der max-content eines
+     <select> ist seine längste Option. Eine Option wie „sehr hoch, geschlossene
+     Eisschicht" sprengte damit die Aufgabenkarte noch bei 900 px — das
+     `max-width: 100 %` am Feld selbst greift dann nicht mehr, weil der Track
+     schon zu breit ist. Vom Prüfwerkzeug gefunden. */
+  display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  align-items: center; gap: 12px;
+  padding: 11px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+}
+.fc__lbl { font-size: 14.5px; min-width: 0; overflow-wrap: anywhere; }
+.fc__lbl small { display: block; color: var(--ink-mute); font-size: 12.5px; }
+.fc__field input, .fc__field select {
+  font-family: var(--mono); font-size: 14px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-bottom: 2px solid var(--accent);
+  color: var(--ink); border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  padding: 7px 10px;
+  /* `width: 100 %` und nicht `min-width`: das Feld soll seinen Track füllen und
+     mit ihm schrumpfen, nicht ihn aufspannen. */
+  width: 100%; min-width: 0; max-width: 100%;
+}
+.fc__field input:focus, .fc__field select:focus {
+  outline: none; box-shadow: 0 0 0 3px var(--accent-tint);
+}
+.fc__truth {
+  font-family: var(--mono); font-size: 12.5px; font-weight: 700;
+  text-align: right; min-width: 0; color: var(--ink-mute);
+}
+.fc__field.correct { border-color: var(--easy); background: var(--easy-bg); }
+.fc__field.correct .fc__truth { color: var(--easy); }
+.fc__field.wrong   { border-color: var(--hard); background: var(--hard-bg); }
+.fc__field.wrong .fc__truth { color: var(--hard); }
+
+/* ---- Nachträge zu @QUIZ ---------------------------------------------------
+   Deutsche Komposita sind der Regelfall, nicht die Ausnahme. `break-word`
+   bricht zwar um, fließt aber NICHT in die min-content-Breite ein — die Spalte
+   bleibt dann so breit wie das längste Wort und schneidet den Rest ab. Nur
+   `anywhere` zählt die Umbruchstellen mit. Gefunden an „Niederschlagsschleppe"
+   in einer Zuordnung bei genau 760 px. */
+.token, .target .lbl { min-width: 0; overflow-wrap: anywhere; }
+.dndcol { min-width: 0; }
+/* Dasselbe in der Rechenaufgabe: eine Tabelle wird nie schmaler als der
+   min-content ihrer Zellen, und „Schneefallgrenze" neben „Nullgradgrenze" sind
+   zusammen schon 300 px. `width: 100 %` hilft dagegen nicht. */
+.calc table.given td { overflow-wrap: anywhere; }
+
+/* Der Begriff wird zum Button, sobald ein Token angetippt ist — das ist der
+   Touch- und Tastaturpfad der Zuordnung. Ein <button> im <button> wäre ungültig,
+   deshalb ersetzt er das Label statt darin zu stecken. */
+.target .lbl--action {
+  background: none; border: 0; padding: 0; cursor: pointer; text-align: left;
+  font-family: var(--mono); font-size: 12.5px; font-weight: 700;
+  color: var(--accent-deep); min-width: 0; overflow-wrap: anywhere;
+}
+.target .lbl--action:disabled { cursor: default; color: var(--ink-soft); }
+.token.is-picked {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-tint);
+  transform: translateY(-1px);
+}
+.dnd__hint {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+  color: var(--ink-mute); margin-top: 12px;
+}
+
+/* Zweitversuch: die Engine gibt eine Aufgabe nach einem Fehlversuch einmal
+   frei, zu halber Punktzahl. Der Knopf sagt das auch. */
+button.act--retry { background: var(--med); }
+button.act--retry:hover { background: var(--ink); }
+.fb .retry-note {
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-mute);
+  margin-top: 8px; display: block;
+}
+
+/* Die richtige Antwort, die die Auflösung neben eine falsch gefüllte Lücke
+   setzt. Grün und in der Monospace, damit sie sich klar von der eigenen
+   Eingabe abhebt und nicht als Teil des Satzes gelesen wird. */
+.sol {
+  font-family: var(--mono); font-size: 12.5px; font-weight: 700;
+  color: var(--easy); white-space: nowrap;
+  padding: 1px 5px; border-radius: var(--radius-sm);
+  background: var(--easy-bg);
+}
+/* @QUIZPLUS:END */
+
+/* @LEHRKURS:START ============================================================
+   Fachartikel: Kapitel, Formeln, Visualisierungen, Karteikarten, Kontrollfragen.
+
+   Diese Regeln standen früher als <style>-Block IN der Artikel-HTML — und die
+   Hälfte davon gar nicht: `.cards`, `.card3d*`, `.reveal` und `.math` wurden
+   im Markup benutzt, ihre Regeln lagen aber in der `styles.css`, die es im Repo
+   nie gab. Die 54 Karteikarten des Fourier-Artikels waren dadurch unformatiert.
+   ============================================================================ */
+
+.lead-in {
+  font-family: var(--display); font-size: clamp(19px, 2.3vw, 23px); line-height: 1.5;
+  color: var(--ink-soft); max-width: 62ch; margin: 8px 0 28px;
+}
+
+/* ---- Kapitel -------------------------------------------------------------
+   scroll-margin-top hält die Überschrift frei, wenn per Anker gesprungen wird.
+   Jeder Fachartikel beginnt mit „Kapitel 0 · Das kennst du schon" — die
+   Anknüpfung an Alltagsbeobachtungen, bevor ein Fachbegriff fällt. */
+.chapter { padding-top: 56px; scroll-margin-top: 20px; }
+.chapter__tag {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--accent); font-weight: 700;
+}
+.chapter h2 {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(26px, 3.4vw, 38px);
+  letter-spacing: -.02em; line-height: 1.05; margin: 6px 0 18px;
+  overflow-wrap: break-word;
+}
+.chapter h3 { font-family: var(--display); font-weight: 700; font-size: 21px; margin: 26px 0 10px; }
+.chapter p  { max-width: 66ch; margin-bottom: 14px; }
+.chapter ul, .chapter ol { margin: 0 0 18px; padding-left: 0; list-style: none; counter-reset: cstep; }
+.chapter ol > li {
+  counter-increment: cstep; position: relative;
+  padding: 4px 0 4px 40px; margin-bottom: 6px; max-width: 66ch;
+}
+.chapter ol > li::before {
+  content: counter(cstep, decimal-leading-zero);
+  position: absolute; left: 0; top: 4px;
+  font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent);
+}
+.chapter ul > li { position: relative; padding: 3px 0 3px 24px; margin-bottom: 5px; max-width: 66ch; }
+.chapter ul > li::before {
+  content: ''; position: absolute; left: 4px; top: 13px;
+  width: 7px; height: 1.5px; background: var(--ink-mute);
+}
+.keyword { color: var(--accent-deep); font-weight: 600; }
+.math { font-family: var(--mono); font-size: .95em; }
+
+/* ---- Formeln -------------------------------------------------------------
+   Eine Formel steht IM Kapitel, nie in der Aufgabenstellung eines Übungsblatts:
+   dort wäre sie Abschreiben. `overflow-x: auto`, weil eine lange Gleichung sonst
+   die Seite sprengt. */
+.eq {
+  font-family: var(--mono); font-size: 16px;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--hair); border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 14px 18px; margin: 18px 0;
+  overflow-x: auto; box-shadow: var(--shadow);
+}
+.eq.center { text-align: center; font-size: 18px; }
+.eq__note {
+  display: block; margin-top: 9px; padding-top: 9px;
+  border-top: 1px solid var(--hair);
+  font-family: var(--body); font-size: 13px; color: var(--ink-mute);
+}
+
+/* ---- Rechenschritte ------------------------------------------------------ */
+.steps-eq { counter-reset: se; list-style: none; padding: 0; margin: 16px 0; }
+.steps-eq li {
+  counter-increment: se; position: relative;
+  padding: 10px 0 10px 44px; border-bottom: 1px solid var(--hair); max-width: 68ch;
+}
+.steps-eq li:last-child { border-bottom: 0; }
+.steps-eq li::before {
+  content: counter(se); position: absolute; left: 0; top: 10px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent-tint); color: var(--accent-deep);
+  font-family: var(--mono); font-weight: 700; font-size: 13px;
+  display: grid; place-items: center;
+}
+
+/* ---- Visualisierung -----------------------------------------------------
+   Der Rahmen; gezeichnet wird in viz.js. Farben liest die Zeichenfunktion über
+   getComputedStyle vom CANVAS-Element, nicht von :root — damit ein
+   data-variant am <html> auch in der Grafik greift. */
+.viz {
+  background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 18px; margin: 22px 0;
+}
+.viz__title {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-mute); font-weight: 700; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.viz__title::before { content: '▶'; color: var(--accent); font-size: 9px; }
+.viz canvas { width: 100%; display: block; border-radius: var(--radius-sm); background: var(--surface-2); }
+.viz__ctrl {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 14px;
+  font-family: var(--mono); font-size: 13px; color: var(--ink-soft);
+}
+/* Kein Reglerelement darf breiter werden als die Zeile — sonst wird die
+   Steuerung auf schmalen Schirmen abgeschnitten und damit unbedienbar. */
+.viz__ctrl > * { min-width: 0; max-width: 100%; }
+.viz__ctrl span { overflow-wrap: break-word; }
+.viz__ctrl label { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.viz__ctrl input[type=range] { flex: 1 1 160px; min-width: 120px; accent-color: var(--accent); }
+.viz__ctrl input[type=checkbox] { accent-color: var(--accent); }
+.viz__ctrl select {
+  font-family: var(--mono); font-size: 13px;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--hair); border-bottom: 2px solid var(--accent);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: 5px 8px;
+}
+.viz__ctrl button {
+  font-family: var(--mono); font-size: 12px;
+  background: var(--accent); color: #fff;
+  border: 0; border-radius: var(--radius); padding: 8px 14px; cursor: pointer;
+}
+.viz__ctrl button:hover { background: var(--ink); }
+.viz__read { font-family: var(--mono); font-size: 13px; color: var(--accent-deep); font-weight: 700; }
+.viz__cap { font-size: 13px; color: var(--ink-mute); margin-top: 10px; max-width: none; }
+
+/* ---- Karteikarten -------------------------------------------------------
+   Umklappen per Klick UND per Tastatur: das Karten-Element ist ein <button>,
+   nicht ein <div> mit onclick. `prefers-reduced-motion` schaltet die Drehung
+   auf ein hartes Umschalten um — die Karte funktioniert weiter, sie dreht sich
+   nur nicht mehr. */
+.cards {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(258px, 100%), 1fr));
+  gap: 14px; margin: 18px 0;
+}
+.card3d {
+  perspective: 1200px; background: none; border: 0; padding: 0;
+  min-height: 168px; cursor: pointer; text-align: left; font: inherit; color: inherit;
+}
+.card3d__inner {
+  position: relative; width: 100%; height: 100%; min-height: 168px;
+  transform-style: preserve-3d;
+  transition: transform .55s var(--ease);
+}
+.card3d.is-flipped .card3d__inner { transform: rotateY(180deg); }
+.card3d__face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--hair); border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow-wrap: anywhere;
+}
+.card3d__front { background: var(--surface); }
+.card3d__back  { background: var(--accent-soft); transform: rotateY(180deg); }
+.card3d__tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent-deep); font-weight: 700;
+}
+.card3d__q { font-family: var(--display); font-weight: 600; font-size: 17px; line-height: 1.3; }
+.card3d__a { font-size: 14px; line-height: 1.55; color: var(--ink-soft); }
+.card3d__a b { color: var(--ink); }
+.card3d__hint {
+  margin-top: auto; font-family: var(--mono); font-size: 10px;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--ink-mute);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card3d__inner { transition: none; }
+}
+
+/* ---- Kontrollfrage -----------------------------------------------------
+   Ein <details>: erst nachdenken, dann aufklappen. Kein JavaScript, funktioniert
+   im Ausdruck aufgeklappt und ist von Haus aus tastaturbedienbar. */
+.reveal {
+  border: 1px solid var(--hair); border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface); margin: 14px 0; overflow: hidden;
+}
+.reveal > summary {
+  cursor: pointer; padding: 14px 18px; list-style: none;
+  font-family: var(--display); font-weight: 600; font-size: 16.5px; line-height: 1.35;
+  /* Raster und nicht Flex: der Fragetext ist ein ANONYMES Element neben dem
+     ::before-Kreis, und ein anonymes Flex-Kind kommt nicht unter seine
+     min-content-Breite — man kann ihm kein `min-width: 0` geben, es hat kein
+     Selektor. Als Rasterspalte mit minmax(0, 1fr) schrumpft es.
+     Gefunden an „Eine Funktion ist ungerade (f(−t)=−f(t))": 366 px Mindestbreite
+     in einem 269 px breiten Kasten, unsichtbar abgeschnitten bis 414 px. */
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  align-items: start; gap: 10px;
+  overflow-wrap: anywhere;
+}
+.reveal > summary::-webkit-details-marker { display: none; }
+.reveal > summary::before {
+  content: '?'; flex: 0 0 auto;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent-tint); color: var(--accent-deep);
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  display: grid; place-items: center; margin-top: 1px;
+}
+.reveal[open] > summary { border-bottom: 1px solid var(--hair); }
+.reveal[open] > summary::before { content: '!'; background: var(--accent); color: #fff; }
+.reveal > *:not(summary) { padding: 0 18px 16px; font-size: 14.5px; color: var(--ink-soft); }
+.reveal > *:not(summary):first-of-type { padding-top: 14px; }
+
+/* ---- Bruch -------------------------------------------------------------
+   <span class="frac"><span>4</span><span>π</span></span> — Zähler, Nenner.
+
+   Diese Regel hat 18 Stellen im Fourier-Artikel gerettet. Sie fehlte, und weil
+   zwei <span> ohne Regel einfach nebeneinander stehen, las die Fourier-Reihe des
+   Rechtecks bisher:
+
+       Rechteck(t) = 4π · ( sin t + 13 sin 3t + 15 sin 5t + … )
+
+   statt 4/π und 1/3, 1/5. Das ist nicht bloß hässlich, es ist FALSCH — und zwar
+   so falsch, dass ein Lernender die Formel auswendig lernt und in der Klausur
+   damit durchfällt. Der schlimmste Fehler dieses Rahmenwerks war eine fehlende
+   CSS-Regel, nicht eine falsche Zahl. Genau deshalb prüft bootcamp-check.ps1
+   jetzt, ob eine Seite Klassen benutzt, die es im Stylesheet nicht gibt.
+
+   `vertical-align: middle` und nicht die Grundlinie: ein inline-grid richtet
+   sich sonst an der letzten Zeile aus, und der Bruch hängt dann zu hoch. */
+.frac {
+  display: inline-grid; grid-template-rows: auto auto;
+  vertical-align: middle; text-align: center;
+  margin: 0 .2em; line-height: 1.15;
+}
+.frac > span { padding: 0 .3em; font-size: .84em; white-space: nowrap; }
+.frac > span:first-child { border-bottom: 1.4px solid currentColor; padding-bottom: .08em; }
+.frac > span:last-child { padding-top: .08em; }
+
+/* ---- Lesefortschritt ---------------------------------------------------
+   Das Gegenstück zum Punktestand eines Aufgabenblattes: ein Artikel hat keine
+   Punkte, aber ein Ende. lehrkurs.js setzt --read auf einen Prozentwert. */
+.readbar {
+  --read: 0%;
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 14px 16px;
+  background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.readbar__head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--ink-mute);
+}
+.readbar__val { font-size: 13px; letter-spacing: 0; font-weight: 700; color: var(--accent-deep); }
+.readbar__track {
+  height: 5px; border-radius: 100px; background: var(--hair); overflow: hidden;
+}
+.readbar__track::after {
+  content: ''; display: block; height: 100%; width: var(--read);
+  background: var(--accent); border-radius: 100px;
+  transition: width .12s linear;
+}
+/* @LEHRKURS:END */
+
+/* @HUB:START ================================================================
+   Einstiegsseite über alle Blätter eines Moduls. Vorher gab es sie nicht — der
+   Lernende sah nirgends, was es überhaupt gibt und wie weit er ist.
+
+   Bewusst OHNE Seitenleiste und ohne den redaktionellen Masthead: eine
+   Übersichtsseite soll ruhig sein. Die Lehrbuch-Anmutung beginnt erst in einem
+   Blatt oder Artikel, wo sie den Lesefluss trägt.
+   ============================================================================ */
+
+/* Das ruhige Register wird hier wirklich eingelöst und nicht nur behauptet:
+   der Rauschfilm über der Seite ist Teil der redaktionellen Anmutung und hat
+   auf einem Inhaltsverzeichnis nichts zu suchen. */
+body.is-hub::before { display: none; }
+body.is-hub { background: var(--paper-2); }
+
+.hub { max-width: 1080px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 40px) 90px; }
+.hub__head { padding: 56px 0 28px; }
+.hub__section {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--ink-mute); font-weight: 700;
+  margin: 40px 0 16px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--hair);
+  display: flex; align-items: baseline; gap: 9px;
+}
+.hub__section::before {
+  content: ''; height: 1px; width: 16px; background: var(--accent);
+  display: inline-block; transform: translateY(-3px);
+}
+.userstat { min-width: 0; }
+.hub__kicker {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .28em; text-transform: uppercase;
+  color: var(--accent); font-weight: 700; margin-bottom: 14px;
+}
+.hub__head h1 {
+  font-family: var(--display); font-weight: 900;
+  font-size: clamp(30px, 5vw, 52px);
+  line-height: 1.02; letter-spacing: -.03em; color: var(--ink);
+  overflow-wrap: break-word;
+}
+.hub__head h1 em { font-style: italic; font-weight: 500; color: var(--accent); }
+.hub__lede {
+  font-family: var(--display); font-size: clamp(17px, 2.1vw, 21px); line-height: 1.5;
+  color: var(--ink-soft); max-width: 62ch; margin-top: 18px;
+}
+
+/* ---- Eigener Stand ------------------------------------------------------- */
+.userpanel {
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 26px; align-items: center;
+  background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 24px 26px; margin: 8px 0 40px;
+}
+.userpanel__main { min-width: 0; }
+.userpanel__rank { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.userpanel__rank b { font-family: var(--display); font-weight: 800; font-size: 24px; letter-spacing: -.02em; }
+.userpanel__step {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.userpanel__xp { font-size: 13.5px; color: var(--ink-soft); margin-top: 6px; }
+.userpanel__stats {
+  display: flex; gap: 26px; flex-wrap: wrap; margin-top: 18px;
+}
+.userstat__num { font-family: var(--display); font-weight: 900; font-size: 27px; line-height: 1; }
+.userstat__num.is-accent { color: var(--accent); }
+.userstat__lbl {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-mute); margin-top: 5px;
+}
+.userpanel__side { min-width: 0; }
+.resume {
+  display: flex; flex-direction: column; gap: 8px; min-width: 0;
+  background: var(--surface-2); border: 1px solid var(--hair);
+  border-radius: var(--radius); padding: 16px 18px;
+}
+.resume__lbl {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent-deep); font-weight: 700;
+}
+.resume__title {
+  font-family: var(--display); font-weight: 700; font-size: 17px;
+  overflow-wrap: anywhere;
+}
+.resume__meta { font-size: 12.5px; color: var(--ink-mute); }
+.resume__btn {
+  align-self: flex-start; margin-top: 4px;
+  font-family: var(--mono); font-size: 12.5px;
+  background: var(--accent); color: #fff; text-decoration: none;
+  border-radius: var(--radius); padding: 9px 15px;
+}
+.resume__btn:hover { background: var(--ink); }
+
+/* ---- Blattkarten -------------------------------------------------------- */
+.sheets {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(272px, 100%), 1fr));
+  gap: 16px;
+}
+.sheetcard {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 18px 20px; text-decoration: none; color: inherit;
+  transition: transform .16s var(--ease), box-shadow .16s var(--ease), border-color .16s var(--ease);
+}
+.sheetcard:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); border-color: var(--accent); }
+.sheetcard__id {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent); font-weight: 700;
+}
+.sheetcard__title {
+  font-family: var(--display); font-weight: 700; font-size: 19px;
+  line-height: 1.2; letter-spacing: -.015em; overflow-wrap: break-word;
+}
+.sheetcard__desc { font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); }
+.sheetcard__meta {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  justify-content: space-between; margin-top: auto; padding-top: 10px;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-mute);
+}
+.sheetcard__state {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+}
+.sheetcard__state.is-done { color: var(--done); }
+.sheetcard__state.is-open { color: var(--med); }
+.sheetcard__stars { color: var(--med); letter-spacing: 1px; }
+/* @HUB:END */
+
+/* @GAME:START ===============================================================
+   Spielstand. Alles hier nutzt --signal, nicht --accent: „das habe ich
+   geschafft" soll optisch von „das ist die Aufgabe" getrennt bleiben.
+   ============================================================================ */
+
+.xpbar, .sheetcard__bar {
+  display: block; height: 7px; border-radius: 100px;
+  background: var(--hair); overflow: hidden;
+}
+.xpbar > span, .sheetcard__bar > span {
+  display: block; height: 100%; border-radius: 100px;
+  background: var(--signal);
+  transition: width .6s var(--ease);
+}
+.sheetcard__bar.is-done > span { background: var(--done); }
+.xpbar { margin-top: 10px; }
+
+.badges { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  letter-spacing: .04em;
+  padding: 6px 11px; border-radius: 100px;
+  border: 1px dashed var(--badge-off); color: var(--ink-mute);
+  background: transparent;
+}
+.badge.is-earned {
+  border-style: solid; border-color: var(--signal);
+  background: var(--signal-soft); color: var(--ink);
+}
+.badge__icon { font-size: 13px; }
+
+.combo {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--signal); opacity: 0; transition: opacity .3s var(--ease);
+}
+.combo.show { opacity: 1; }
+/* @GAME:END */
+
+/* @RESPONSIVE:START =========================================================
+   Der Abschnitt, den es vorher NICHT gab. Das alte Blatt hatte genau eine
+   @media-Regel, und die war `prefers-reduced-motion` — also null Breakpoints
+   bei einem starren 312-px-Raster mit `height: 100vh` an der Seitenleiste.
+   Auf einem Telefon war es unbenutzbar.
+
+   Drei Stufen:
+     ≥ 1200 px   Seitenleiste klebt links in voller Breite, Layout wie gedacht
+     760–1199    Seitenleiste schmaler, Aufgaben- und Teilekopf umbrechen
+     < 760 px    einspaltig; die Seitenleiste wird zu einem waagerechten
+                 Streifen aus Status-Punkten — gleiches Markup, kein JavaScript,
+                 die Punkte zeigen weiter ✓ und ✗
+
+   Der obere Umschaltpunkt lag bei 1100 px und war falsch: dort wächst die
+   Seitenleiste von 248 auf 312 px, der Inhalt wird durch das Überschreiten der
+   Grenze also SCHMALER — bei 1099 px blieben ihm 728 px, bei 1100 px nur 663.
+   Genau in diese Lücke fiel der Teilekopf und schnitt 28 px ab. Ein Breakpoint
+   darf den Inhalt nicht verengen; bei 1200 px reichen die 754 px.
+
+   Geprüft wird bis 320 px, nicht bis 768. Ein iPhone SE im Hochformat hat
+   375 px, ein altes Android 360, und mit vergrößerter Schrift landet man
+   effektiv bei 320.
+   ============================================================================ */
+
+@media (max-width: 1199px) {
+  .shell { grid-template-columns: var(--rail-slim) minmax(0, 1fr); }
+  .main  { padding: 0 clamp(18px, 4vw, 40px) 90px; }
+  .masthead { padding: 40px 0 30px; }
+
+  /* Die Meta-Spalte des Aufgabenkopfs in eine eigene Zeile: bei drei Spalten
+     drückt sie sonst den Titel auf zwei Zeichen Breite zusammen. */
+  .task__head { grid-template-columns: auto minmax(0, 1fr); }
+  .task__meta { grid-column: 1 / -1; justify-content: flex-start; }
+
+  /* Der Teilekopf ist ein Flex mit drei Kindern; ohne diese Zeile wird der
+     Titel zwischen Ziffer und Zähler auf 30 px gequetscht. */
+  .part__titles { flex: 1 1 100%; order: 3; }
+  .part__count  { white-space: normal; }
+
+  .intro { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .stat:nth-child(2) { border-right: 0; }
+  .stat:nth-child(-n+2) { border-bottom: 1px solid var(--hair); }
+
+  .userpanel { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 20px; }
+
+  /* Zuordnung und Prognose einspaltig — zwei Spalten sind unter 1200 px zu eng
+     für Begriff plus Beschreibung. */
+  .dnd { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .fc__field { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .fc__truth { text-align: left; min-width: 0; }
+}
+
+@media (max-width: 759px) {
+  /* Einspaltig. Die Seitenleiste steht oben und klebt dort, damit der
+     Fortschritt beim Scrollen sichtbar bleibt. */
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .rail {
+    position: sticky; top: 0; z-index: 50;
+    height: auto; max-height: none; overflow: visible;
+    padding: 14px 16px;
+    border-right: 0; border-bottom: 1px solid var(--hair-strong);
+    flex-direction: row; align-items: center; gap: 14px; flex-wrap: wrap;
+    background: var(--paper-2);
+  }
+  .brand { flex: 1 1 160px; min-width: 0; }
+  .brand__name { font-size: 21px; }
+  .brand__sub  { display: none; }
+
+  /* Hier stand `.note-strip { display: none }`. Gemeint war der Streifen in der
+     Seitenleiste, getroffen wurden auch die Merkstreifen der Einleitung — und
+     die tragen Inhalt, keine Zierde. Auf 320 px fehlten sie ersatzlos.
+     Der Streifen in der Leiste bleibt, nimmt aber eine eigene Zeile: er
+     erscheint nur, wenn localStorage gesperrt ist, und das ist genau die
+     Nachricht, die man nicht verstecken will. */
+  .rail .note-strip {
+    flex: 1 1 100%; font-size: 12.5px; padding: 9px 12px;
+  }
+
+  /* Kompakter Fortschritt: der Ring bleibt, die Zahlen daneben schrumpfen. */
+  .progress { padding: 10px 12px; gap: 11px; box-shadow: none; }
+  .progress__ring { width: 44px; height: 44px; }
+  .progress__ring svg { width: 44px; height: 44px; }
+  .progress__pct { font-size: 12px; }
+  .progress__count { font-size: 14px; }
+  .progress__label { display: none; }
+
+  /* Die Kapitel- bzw. Aufgabenliste wird ein waagerechter Streifen aus
+     Status-Punkten. Gleiches Markup wie die Seitenleiste: die Beschriftung wird
+     versteckt, der Punkt bleibt und zeigt weiter ✓ oder ✗. */
+  .nav {
+    flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; gap: 6px;
+    order: 3; padding-top: 4px;
+  }
+  .nav__group { display: none; }
+  .nav__task { padding: 4px; border-radius: 100px; }
+  .nav__task .nav__label { display: none; }
+  .nav__task .nav__num { display: none; }
+  .nav__task.is-active { box-shadow: none; background: var(--accent-tint); }
+  .nav__dot { width: 20px; height: 20px; font-size: 11px; }
+  .rail__foot { flex: 1 1 100%; order: 4; flex-direction: row; flex-wrap: wrap; gap: 8px; margin-top: 0; }
+  .filters { order: 5; flex: 1 1 100%; }
+
+  .main { padding: 0 16px 70px; }
+  .masthead { padding: 28px 0 22px; }
+  .masthead h1 { font-size: clamp(30px, 9vw, 46px); }
+  .masthead__rule { flex-wrap: wrap; gap: 8px; padding-bottom: 16px; }
+  .lede { font-size: 17px; margin-top: 18px; }
+  .trace { height: 34px; margin-top: 20px; }
+
+  .intro__body p:first-of-type::first-letter { font-size: 2.8em; }
+  .stats { grid-template-columns: minmax(0, 1fr); }
+  .stat { border-right: 0; border-bottom: 1px solid var(--hair); padding: 18px 16px; }
+  .stat__num { font-size: 32px; }
+
+  .part { padding-top: 42px; }
+  .part__head { flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+  .part__index { font-size: 44px; }
+
+  .task__head { padding: 16px 17px; gap: 12px; }
+  .task__num { width: 38px; height: 38px; font-size: 14px; }
+  .task__body { padding: 18px 17px 22px; }
+
+  /* Ein Regler je Zeile: Beschriftung, Schieber und Messwert nebeneinander
+     ergeben unter 760 px drei unlesbare Streifen. */
+  .viz { padding: 13px; }
+  .viz__ctrl { flex-direction: column; align-items: stretch; gap: 9px; }
+  .viz__ctrl input[type=range] { flex: 1 1 auto; width: 100%; }
+
+  /* Einspaltig, sonst wird jede Karteikarte zu einer 2-px-Spalte gequetscht. */
+  .cards { grid-template-columns: minmax(0, 1fr); }
+
+  .est__row { gap: 10px; }
+  .est__slider { flex: 1 1 100%; }
+
+  .done { padding: 24px 18px; }
+  .done .big { font-size: 34px; }
+
+  .hub { padding: 0 16px 70px; }
+  .hub__head { padding: 30px 0 20px; }
+  .userpanel__stats { gap: 18px; }
+}
+
+/* Ganz schmal: nur noch dafür sorgen, dass kein einziges Wort überläuft.
+   Lange deutsche Komposita sind hier die Regel, nicht die Ausnahme. */
+@media (max-width: 400px) {
+  .task__title, .part__title, .chapter h2, .sheetcard__title,
+  .masthead h1, .hub__head h1 { overflow-wrap: anywhere; }
+  .opt { padding: 11px 13px; font-size: 14.5px; }
+  .cloze { line-height: 2.1; }
+  .step { padding: 12px 13px; }
+  .step input.num { width: 100%; }
+
+  /* Reihenfolge: die beiden Pfeilknöpfe wandern unter die Beschriftung. Bei
+     320 px blieben dem Text neben Position und zwei Knöpfen 89 px — zu wenig
+     für „Primärregelung greift". Vom Prüfwerkzeug gefunden. */
+  .order__row { grid-template-columns: auto minmax(0, 1fr); row-gap: 8px; }
+  .order__btn:nth-of-type(1) { grid-column: 1; justify-self: start; }
+  .order__btn:nth-of-type(2) { grid-column: 2; justify-self: start; }
+
+  /* Ein Auswahlfeld ist so breit wie seine längste Option und lässt sich nicht
+     umbrechen. Bei 320 px passte „allen Regelzonen gemeinsam" nicht mehr in die
+     231 px, die dem Lückentext bleiben, und wurde mitten im Wort abgeschnitten —
+     man konnte die eigene Antwort nicht mehr lesen. Zwei Punkt kleiner reicht,
+     um die Zeile zu halten. */
+  .cloze select, .cloze input { font-size: 12.5px; padding: 5px 6px; }
+
+  /* Zonenlegende zweizeilig: nebeneinander blieben dem Namen 120 px und
+     „getroffen" wurde gequetscht. Die Bewertung rutscht unter den Namen. */
+  .hot__legend li { grid-template-columns: auto minmax(0, 1fr); row-gap: 3px; }
+  .hot__legend .v { grid-column: 2; }
+}
+/* @RESPONSIVE:END */
+
+/* @PRINT:START ==============================================================
+   Ausdruck. Zielgruppe ist die Klausurvorbereitung am Papier: Seitenleiste und
+   Knöpfe weg, alle Lösungen und Vertiefungen aufgeklappt, Seitenumbruch vor
+   jedem Teil. Der Rauschfilm über der Seite muss weg — er würde mitdrucken und
+   das Blatt grau machen.
+   ============================================================================ */
+
+@media print {
+  body { background: #fff; font-size: 11pt; }
+  body::before { display: none !important; }
+
+  .shell { display: block; max-width: none; }
+  .rail, .filters, .btnrow, .toast, .solbox, .hot__ask { display: none !important; }
+  .main { padding: 0; }
+
+  .masthead { padding: 0 0 18px; }
+  .masthead h1 { font-size: 26pt; }
+  .trace { display: none; }
+
+  /* Alles aufklappen, was im Browser eingeklappt ist */
+  .fb { display: block !important; break-inside: avoid; }
+  .step .hint { display: block !important; }
+  .step.locked { opacity: 1 !important; }
+  .reveal { break-inside: avoid; }
+  .reveal > *:not(summary) { display: block !important; }
+  .est__truth, .hot__zone { display: block !important; }
+
+  /* Karteikarten flach nebeneinander: eine gedrehte Rückseite ist auf Papier
+     unsichtbar. Beide Seiten untereinander drucken. */
+  .card3d { perspective: none; min-height: 0; break-inside: avoid; }
+  .card3d__inner { transform: none !important; min-height: 0; }
+  .card3d__face { position: static; inset: auto; transform: none !important; box-shadow: none; }
+  .card3d__hint { display: none; }
+
+  .part { break-before: page; padding-top: 0; }
+  .part:first-of-type { break-before: avoid; }
+  .task, .viz, .callout, .eq { break-inside: avoid; box-shadow: none; }
+  .chapter { break-inside: auto; padding-top: 24px; }
+
+  a { text-decoration: none; color: var(--ink); }
+  a[href^='http']::after { content: ' (' attr(href) ')'; font-size: 8pt; color: #666; }
+}
+/* @PRINT:END */

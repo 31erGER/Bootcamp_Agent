@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breitenprüfung — Werkzeug</title>
+<!--
+  Prüft ein Blatt auf echten Handybreiten.
+
+  Aufruf:
+    assets/breiten.html?page=../Modul_03_Verbundnetze.html
+    assets/breiten.html?page=../Fourier_Lehrkurs.html&widths=320,375,414
+    assets/breiten.html?page=selbsttest.html&state=geloest
+
+  state=geloest lässt das Blatt im iframe erst durchlösen und misst dann. Das
+  ist der breitere Zustand: Rückmeldung, Vertiefung, Zonenlegende und die
+  Lösungswerte neben den Lücken kommen erst nach dem Prüfen dazu. Beide Läufe
+  gehören dazu — ungelöst und gelöst.
+
+  Warum über einen iframe und nicht mit --window-size:
+    Headless-Chromium klemmt --window-size bei 478 px fest — nachgemessen:
+    angefordert 320, bekommen 478. Und ein bloß verengter Container hilft nicht,
+    weil @media auf das Fenster reagiert, nicht auf einen Container. Ein iframe
+    hat einen echten eigenen Viewport, dort greifen die Media Queries korrekt.
+
+    Lesen kann diese Seite das iframe-DOM nicht: von file:// ist der Ursprung
+    opak. Deshalb misst sich das Blatt selbst (assets/audit.js, Modus #audit)
+    und schickt das Ergebnis per postMessage herauf.
+
+  Diese Datei ist Werkzeug, kein Lehrmaterial. Sie darf im Modulordner bleiben
+  oder gelöscht werden — kein Blatt hängt von ihr ab.
+-->
+<style>
+  :root { color-scheme: light; }
+  body {
+    margin: 0; padding: 22px;
+    font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: #1c1813; color: #e9e2d4;
+  }
+  h1 { font-size: 15px; letter-spacing: .16em; text-transform: uppercase; color: #d6431d; margin: 0 0 4px; }
+  .sub { color: #857b6c; margin-bottom: 18px; }
+  pre { white-space: pre-wrap; margin: 0; }
+  .frame { position: fixed; left: -20000px; top: 0; }
+  iframe { border: 0; display: block; background: #fff; }
+  b.ok { color: #6fbf87; }
+  b.bad { color: #ef6a5a; }
+</style>
+</head>
+<body>
+<h1>Breitenprüfung</h1>
+<div class="sub" id="sub">…</div>
+<pre id="verdict">warte auf Messungen …</pre>
+<div class="frame" id="frame"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var qs = new URLSearchParams(location.search);
+  var page = qs.get('page');
+  /* Die Standardliste enthält bewusst 1199 UND 1200: dort schaltet die
+     Seitenleiste von 248 auf 312 px, der Inhalt wird über die Grenze hinweg also
+     schmaler. Genau an dieser Kante brach der Teilekopf, und ohne beide Breiten
+     in der Liste hätte es niemand gemerkt. Eine Breite kurz vor und kurz nach
+     jedem Breakpoint zu prüfen ist die Regel, nicht die Ausnahme. */
+  var widths = (qs.get('widths') || '320,360,390,414,600,759,760,900,1199,1200,1340')
+    .split(',').map(Number).filter(function (n) { return n > 0; });
+  var solved = qs.get('state') === 'geloest';
+  var HASH = solved ? '#autoaudit' : '#audit';
+
+  var out = document.getElementById('verdict');
+  var sub = document.getElementById('sub');
+  var frameHost = document.getElementById('frame');
+
+  if (!page) {
+    out.textContent =
+      'VERDICT-BEGIN\n' +
+      'ERGEBNIS=FEHLGESCHLAGEN\n' +
+      '  ! kein ?page= angegeben\n' +
+      '    Beispiel: breiten.html?page=../Modul_03_Verbundnetze.html\n' +
+      'VERDICT-END';
+    return;
+  }
+  sub.textContent = page + '  ·  ' + widths.join(', ') + ' px  ·  ' +
+    (solved ? 'aufgelöster Zustand' : 'ungelöster Zustand');
+
+  var lines = [];
+  var errors = [];
+  var pending = null;
+  var timer = null;
+
+  window.addEventListener('message', function (e) {
+    if (!e.data || e.data.kind !== 'wb-audit') return;
+    if (!pending) return;
+    clearTimeout(timer);
+    var r = e.data;
+    var p = pending; pending = null;
+
+    lines.push(
+      'Fenster ' + String(p.want).padStart(4) + 'px  ·  Viewport ' + String(r.viewport).padStart(4) +
+      'px  ·  bodyScroll ' + String(r.bodyScroll).padStart(4) +
+      '  ·  waagerecht=' + (r.horizontal ? 'JA' : 'nein') +
+      '  ·  abgeschnitten=' + r.cutCount +
+      '  ·  scrollt_absichtlich=' + r.scrolls +
+      '  ·  gelöst=' + r.solved + '/' + r.total
+    );
+    r.cut.forEach(function (l) { lines.push('       > ' + l); });
+
+    /* Beweis, dass im angeforderten Zustand gemessen wurde. Ohne diese Prüfung
+       hätte ein still gescheitertes #autoaudit denselben grünen Bericht
+       geliefert wie ein echter Lauf — nur eben vom ungelösten Blatt. */
+    if (solved && r.total > 0 && r.solved !== r.total) {
+      errors.push(p.want + 'px: nur ' + r.solved + ' von ' + r.total +
+                  ' Aufgaben gelöst — der aufgelöste Zustand wurde nicht gemessen');
+    }
+
+    if (r.cutCount) errors.push(p.want + 'px: ' + r.cutCount + ' Stelle(n) abgeschnitten');
+    if (r.horizontal) errors.push(p.want + 'px: scrollt waagerecht');
+    /* Viewport ist rund 15 px schmaler als das Fenster — das ist die
+       Bildlaufleiste, kein Fehler. Erst eine größere Abweichung heißt, dass das
+       iframe die Breite nicht bekommen hat und die Messung nichts wert ist. */
+    if (p.want - r.viewport > 26 || r.viewport > p.want + 2) {
+      errors.push(p.want + 'px: Viewport war ' + r.viewport + 'px — Messung ungültig');
+    }
+
+    p.done();
+  });
+
+  function step(i) {
+    if (i >= widths.length) return finish();
+    var w = widths[i];
+    var f = document.createElement('iframe');
+    f.setAttribute('title', 'Prüfbreite ' + w + ' px');
+    f.style.width = w + 'px';
+    f.style.height = '900px';
+    /* Der Anker lässt audit.js im Kind messen und heraufmelden */
+    f.src = page + (page.indexOf('#') >= 0 ? '' : HASH);
+
+    pending = {
+      want: w,
+      done: function () { f.remove(); step(i + 1); }
+    };
+    /* Meldet das Kind nicht, darf die Kette nicht hängen bleiben. */
+    timer = setTimeout(function () {
+      if (!pending) return;
+      lines.push(String(w).padStart(5) + 'px  KEINE MELDUNG — audit.js im Blatt eingebunden?');
+      errors.push(w + 'px: keine Meldung vom Blatt');
+      var p = pending; pending = null; p.done();
+    }, 12000);
+
+    frameHost.appendChild(f);
+  }
+
+  function finish() {
+    lines.push('');
+    lines.push('ERGEBNIS=' + (errors.length ? 'FEHLGESCHLAGEN' : 'GRUEN'));
+    errors.forEach(function (e) { lines.push('  ! ' + e); });
+    out.textContent = 'VERDICT-BEGIN\n' + lines.join('\n') + '\nVERDICT-END';
+  }
+
+  window.addEventListener('load', function () { step(0); });
+})();
+</script>
+</body>
+</html>

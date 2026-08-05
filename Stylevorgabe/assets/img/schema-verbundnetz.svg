@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img"
+     aria-label="Schematisches Verbundnetz mit drei Spannungsebenen: oben eine 380-kV-Sammelschiene mit drei Schaltanlagen, in der Mitte ein Transformator zur 110-kV-Ebene, unten die 20-kV-Ebene mit Abnehmern; links ein Grosskraftwerk mit Generator, rechts eine dezentrale Einspeisung">
+  <defs>
+    <style>
+      /* Bewusst OHNE deutende Beschriftung: die Spannungswerte sind Messdaten
+         wie die Druckwerte auf einer Wetterkarte, aber nichts heisst hier
+         „Umspannwerk" oder „Verteilnetz" — sonst waere die Hotspot-Aufgabe
+         geschenkt. */
+      .bus   { stroke: #1c1813; stroke-width: 7; stroke-linecap: round; }
+      .ln    { stroke: #4a4339; stroke-width: 2; fill: none; }
+      .ln2   { stroke: #4a4339; stroke-width: 2; fill: none; stroke-dasharray: 0; }
+      .node  { fill: #fffdf7; stroke: #1c1813; stroke-width: 2; }
+      .sw    { fill: none; stroke: #1c1813; stroke-width: 2.4; }
+      .gen   { fill: #fffdf7; stroke: #d6431d; stroke-width: 2.6; }
+      .genw  { fill: none; stroke: #d6431d; stroke-width: 2; }
+      .trf   { fill: none; stroke: #a8300f; stroke-width: 2.6; }
+      .load  { fill: #4a4339; }
+      .lbl   { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; fill: #857b6c;
+               paint-order: stroke fill; stroke: #ffffff; stroke-width: 3.5px; stroke-linejoin: round; }
+      .grid  { stroke: rgba(28,24,19,.07); stroke-width: 1; }
+    </style>
+  </defs>
+
+  <rect width="800" height="500" fill="#fffdf7"/>
+
+  <g class="grid">
+    <path d="M0 100H800M0 200H800M0 300H800M0 400H800"/>
+    <path d="M100 0V500M200 0V500M300 0V500M400 0V500M500 0V500M600 0V500M700 0V500"/>
+  </g>
+
+  <!-- ═══ Obere Ebene: Sammelschiene mit drei Schaltanlagen ═══ -->
+  <path class="bus" d="M100 110 H700"/>
+  <text class="lbl" x="712" y="115">380 kV</text>
+
+  <!-- Schaltanlagen: Trennschalter als Schraegstrich zwischen zwei Knoten -->
+  <g>
+    <circle class="node" cx="150" cy="110" r="6"/>
+    <circle class="node" cx="400" cy="110" r="6"/>
+    <circle class="node" cx="650" cy="110" r="6"/>
+    <!-- Leistungsschalter an den Abzweigen -->
+    <path class="sw" d="M150 110 V148 M143 148 h14 v20 h-14 z"/>
+    <path class="sw" d="M400 110 V148 M393 148 h14 v20 h-14 z"/>
+    <path class="sw" d="M650 110 V148 M643 148 h14 v20 h-14 z"/>
+  </g>
+
+  <!-- Kuppelleitungen zwischen den Schaltanlagen, doppelt gefuehrt -->
+  <path class="ln" d="M150 96 C230 76 320 76 400 96"/>
+  <path class="ln" d="M400 96 C480 76 570 76 650 96"/>
+
+  <!-- ═══ Grosskraftwerk links: Generator speist auf die obere Ebene ═══
+       Alles auf einer Achse bei x=150, unter der linken Schaltanlage. Der
+       Blocktransformator sitzt AUF der Leitung — daneben gezeichnet sah er aus
+       wie ein zufaellig abgelegtes Bauteil. -->
+  <g>
+    <circle class="gen" cx="150" cy="258" r="24"/>
+    <path class="genw" d="M137 258 q6.5 -10 13 0 q6.5 10 13 0"/>
+    <path class="ln" d="M150 234 V206"/>
+    <g class="trf">
+      <circle cx="150" cy="196" r="11"/>
+      <circle cx="150" cy="180" r="11"/>
+    </g>
+    <path class="ln" d="M150 169 V168"/>
+    <text class="lbl" x="182" y="263">700 MW</text>
+  </g>
+
+  <!-- ═══ Mitte: Transformator zwischen den Ebenen ═══ -->
+  <path class="ln" d="M400 168 V228"/>
+  <g class="trf">
+    <circle cx="400" cy="242" r="16"/>
+    <circle cx="400" cy="262" r="16"/>
+  </g>
+  <path class="ln" d="M400 278 V310"/>
+
+  <!-- Ebene 110 kV -->
+  <path class="bus" d="M180 310 H620"/>
+  <text class="lbl" x="632" y="315">110 kV</text>
+  <circle class="node" cx="400" cy="310" r="6"/>
+
+  <!-- Zweiter Transformator zur Verteilebene -->
+  <path class="ln" d="M250 310 V348"/>
+  <g class="trf">
+    <circle cx="250" cy="362" r="14"/>
+    <circle cx="250" cy="380" r="14"/>
+  </g>
+  <path class="ln" d="M250 394 V420"/>
+
+  <!-- ═══ Untere Ebene: Verteilnetz mit Abnehmern ═══
+       Die Beschriftung steht hier ÜBER der Schiene und nicht rechts daneben:
+       rechts kommt die dezentrale Einspeisung an, dort lag sie auf der Leitung. -->
+  <path class="bus" d="M120 420 H560"/>
+  <text class="lbl" x="120" y="406">20 kV</text>
+
+  <!-- Abnehmer als Pfeile nach unten -->
+  <g>
+    <path class="ln" d="M160 420 V456"/><path class="load" d="M153 456 h14 l-7 12 z"/>
+    <path class="ln" d="M320 420 V456"/><path class="load" d="M313 456 h14 l-7 12 z"/>
+    <path class="ln" d="M470 420 V456"/><path class="load" d="M463 456 h14 l-7 12 z"/>
+  </g>
+
+  <!-- ═══ Dezentrale Einspeisung rechts unten ═══ -->
+  <g>
+    <path class="ln" d="M650 148 V196"/>
+    <path class="ln" d="M650 196 H700 V352"/>
+    <circle class="gen" cx="700" cy="378" r="20"/>
+    <path class="genw" d="M689 378 q5.5 -9 11 0 q5.5 9 11 0"/>
+    <path class="ln" d="M700 398 V420 H560"/>
+    <text class="lbl" x="726" y="382">42 MW</text>
+  </g>
+</svg>

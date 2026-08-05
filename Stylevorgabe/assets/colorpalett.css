@@ -1,0 +1,89 @@
+/* ============================================================================
+   colorpalett.css — die EINE Datei, an der das Design geändert wird
+   ---------------------------------------------------------------------------
+   Hier stehen ausschließlich Tokens, keine Regeln. Wer Farben, Schriften,
+   Radien oder Abstände ändern will, ändert sie hier — und zwar einmal für
+   sämtliche Arbeitsblätter, Fachartikel und den Hub. Kein Suchen in HTML-Dateien.
+
+   Eingebunden wird sie von styles.css, das seinerseits die einzige Datei ist,
+   die eine HTML per <link> lädt.
+
+   Reihenfolge der Tokens:
+     Papier & Flächen · Tinte · Linien · Akzent · Schwierigkeitsgrade
+     Spielstand · Schriften · Maße · Bewegung
+   ============================================================================ */
+
+:root {
+  /* ── Papier & Flächen ───────────────────────────────────────────────────── */
+  --paper:        #f4f0e7;   /* Seitengrund */
+  --paper-2:      #efe9dc;   /* Seitengrund, zweite Stufe (Seitenleiste) */
+  --surface:      #fffdf7;   /* Karten */
+  --surface-2:    #faf6ec;   /* Karten, eingesenkt (Fragekästen, Schritte) */
+
+  /* ── Tinte ──────────────────────────────────────────────────────────────── */
+  --ink:          #1c1813;   /* Überschriften, Zahlen */
+  --ink-soft:     #4a4339;   /* Fließtext */
+  --ink-mute:     #857b6c;   /* Nebensachen, Einheiten, Achsen */
+
+  /* ── Linien ─────────────────────────────────────────────────────────────── */
+  --hair:         rgba(28, 24, 19, 0.14);
+  --hair-strong:  rgba(28, 24, 19, 0.28);
+
+  /* ── Akzent ─────────────────────────────────────────────────────────────── */
+  --accent:       #d6431d;
+  --accent-deep:  #a8300f;   /* Text auf hellem Grund, wenn --accent zu grell ist */
+  --accent-soft:  #f7e2d6;   /* Flächen */
+  --accent-tint:  rgba(214, 67, 29, 0.10);  /* Hinterlegungen, Fokusring */
+
+  /* ── Schwierigkeitsgrade & Ergebnis ─────────────────────────────────────── */
+  --easy:    #2f7d4f;  --easy-bg: #e4efe5;
+  --med:     #b07908;  --med-bg:  #f4ebd2;
+  --hard:    #9a2820;  --hard-bg: #f2dfdb;
+  --done:    #2f7d4f;  --done-bg: #e6f0e7;
+
+  /* ── Spielstand ─────────────────────────────────────────────────────────────
+     --signal trägt alles, was Fortschritt und Belohnung anzeigt: XP-Balken,
+     Serien-Zähler, verdiente Auszeichnungen. Bewusst NICHT --accent, damit
+     „das habe ich geschafft" optisch von „das ist die Aufgabe" getrennt bleibt. */
+  --signal:      #e0a020;
+  --signal-soft: #f8ecd0;
+  --badge-off:   var(--hair-strong);
+
+  /* ── Schriften ──────────────────────────────────────────────────────────────
+     Alle drei liegen als base64-Subset in fonts.css und funktionieren offline.
+     --display trägt Überschriften und alles Redaktionelle, --body den Lesetext,
+     --mono jede Zahl, Einheit, Formel und Achsenbeschriftung. */
+  --display: 'Fraunces', Georgia, serif;
+  --body:    'Archivo', system-ui, sans-serif;
+  --mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* ── Maße ───────────────────────────────────────────────────────────────── */
+  --rail:      312px;  /* Breite der klebenden Seitenleiste ab 1100 px */
+  --rail-slim: 248px;  /* dieselbe zwischen 760 und 1099 px */
+  --maxw:      1340px;
+  --radius:    4px;
+  --radius-sm: 3px;
+
+  /* Zweistufiger Schatten: eine harte Haarlinie für die Kante, ein weicher
+     Wurf für die Tiefe. Ein einzelner Schatten wirkt auf Papiergrund flach. */
+  --shadow:
+    0 1px 0 var(--hair),
+    0 18px 40px -28px rgba(28, 24, 19, 0.45);
+  --shadow-lift:
+    0 1px 0 var(--hair),
+    0 24px 50px -26px rgba(28, 24, 19, 0.55);
+
+  /* ── Bewegung ───────────────────────────────────────────────────────────── */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ── Lösungsblätter ───────────────────────────────────────────────────────────
+   Ein <html data-variant="loesung"> dreht den Akzent von Terracotta auf Blau.
+   Damit ist auf einen Blick erkennbar, ob man das Aufgaben- oder das
+   Lösungsblatt in der Hand hat, ohne dass eine zweite Datei nötig wäre. */
+:root[data-variant='loesung'] {
+  --accent:       #1c4fb0;
+  --accent-deep:  #133b87;
+  --accent-soft:  #d9e3f4;
+  --accent-tint:  rgba(28, 79, 176, 0.10);
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modul 03 · Verbundnetze — Übersicht</title>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     Die Einstiegsseite des Moduls. Sie ist neu: das Rahmenwerk hatte keine, und
+     der Student sah nirgends, was es gibt und wie weit er ist.
+
+     Sie ist ABSICHTLICH ruhig gehalten — kein Rauschfilm, keine 100-px-Serifen,
+     keine Initiale. Zwei optische Register: die Übersicht ist ein Inhalts-
+     verzeichnis, die redaktionelle Anmutung beginnt erst im Blatt. Wer beides
+     gleich laut macht, nimmt der Lektion ihren Auftritt.
+
+     Der Inhalt steht in index.data.js.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body class="is-hub">
+
+<div class="hub">
+
+  <header class="hub__head" data-hub-head></header>
+
+  <section class="userpanel" data-hub-user aria-label="Dein Stand"></section>
+
+  <div class="note-strip" data-store-warning hidden style="margin-bottom:22px">
+    <b>Kein Speicher.</b> Dieser Browser sperrt <code>localStorage</code> auf
+    <code>file://</code>. Die Blätter laufen, aber der Stand überlebt kein Neuladen.
+  </div>
+
+  <h2 class="hub__section">Blätter dieses Moduls</h2>
+  <div class="sheets" data-hub-sheets></div>
+
+  <h2 class="hub__section">Auszeichnungen</h2>
+  <div class="badges" data-hub-badges></div>
+
+  <footer class="foot">
+    <span>Rahmenwerk · Übersicht</span>
+    <span>läuft ohne Server, ohne Build</span>
+  </footer>
+
+</div>
+
+<script src="assets/engine.js"></script>
+<script src="assets/hub.js"></script>
+<script src="index.data.js"></script>
+<!-- Macht die Seite für die Breitenprüfung messbar; ohne Anker inaktiv. -->
+<script src="assets/audit.js"></script>
+</body>
+</html>

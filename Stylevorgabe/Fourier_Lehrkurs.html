@@ -4,45 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fourier von Grund auf — Lehrkurs · Mathe 2</title>
-<link rel="stylesheet" href="styles.css">
-<style>
-  /* Kurs-spezifische Ergänzungen (nutzen die Farben aus styles.css :root) */
-  .lead-in { font-family: var(--display); font-size: clamp(19px,2.3vw,23px); line-height: 1.5;
-    color: var(--ink-soft); max-width: 62ch; margin: 8px 0 28px; }
-  .chapter { padding-top: 56px; scroll-margin-top: 16px; }
-  .chapter__tag { font-family: var(--mono); font-size: 11px; letter-spacing: .22em;
-    text-transform: uppercase; color: var(--accent); font-weight: 700; }
-  .chapter h2 { font-family: var(--display); font-weight: 800; font-size: clamp(26px,3.4vw,38px);
-    letter-spacing: -.02em; line-height: 1.05; margin: 6px 0 18px; }
-  .chapter h3 { font-family: var(--display); font-weight: 700; font-size: 21px; margin: 26px 0 10px; }
-  .chapter p { max-width: 66ch; margin-bottom: 14px; }
-  .eq { font-family: var(--mono); font-size: 16px; background: var(--surface); color: var(--ink);
-    border: 1px solid var(--hair); border-left: 3px solid var(--accent); border-radius: var(--radius);
-    padding: 14px 18px; margin: 18px 0; overflow-x: auto; box-shadow: var(--shadow); }
-  .eq.center { text-align: center; font-size: 18px; }
-  .viz { background: var(--surface); border: 1px solid var(--hair); border-radius: var(--radius);
-    box-shadow: var(--shadow); padding: 18px; margin: 22px 0; }
-  .viz__title { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--ink-mute); font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-  .viz__title::before { content: '▶'; color: var(--accent); font-size: 9px; }
-  .viz canvas { width: 100%; display: block; border-radius: 3px; background: var(--surface-2); }
-  .viz__ctrl { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 14px;
-    font-family: var(--mono); font-size: 13px; color: var(--ink-soft); }
-  .viz__ctrl input[type=range] { flex: 1; min-width: 160px; accent-color: var(--accent); }
-  .viz__ctrl button { font-family: var(--mono); font-size: 12px; background: var(--accent); color: #fff;
-    border: 0; border-radius: var(--radius); padding: 8px 14px; cursor: pointer; }
-  .viz__ctrl button:hover { background: var(--ink); }
-  .viz__read { font-family: var(--mono); font-size: 13px; color: var(--accent-deep); font-weight: 700; }
-  .viz__cap { font-size: 13px; color: var(--ink-mute); margin-top: 10px; max-width: none; }
-  .steps-eq { counter-reset: se; list-style: none; padding: 0; margin: 16px 0; }
-  .steps-eq li { counter-increment: se; position: relative; padding: 10px 0 10px 44px;
-    border-bottom: 1px solid var(--hair); max-width: 68ch; }
-  .steps-eq li:last-child { border-bottom: 0; }
-  .steps-eq li::before { content: counter(se); position: absolute; left: 0; top: 10px;
-    width: 28px; height: 28px; border-radius: 50%; background: var(--accent-tint); color: var(--accent-deep);
-    font-family: var(--mono); font-weight: 700; font-size: 13px; display: grid; place-items: center; }
-  .keyword { color: var(--accent-deep); font-weight: 600; }
-</style>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     Dieser Artikel war nicht lauffähig: er lud `styles.css` und `quiz.js`, und
+     beide gab es im Repo nicht. Die 54 Karteikarten waren dadurch unformatiert
+     und drehten sich nicht um.
+
+     Behoben, ohne den Inhalt anzutasten:
+       · styles.css liegt jetzt in assets/ und enthält den Abschnitt @LEHRKURS.
+       · Der frühere <style>-Block hier ist gelöscht — er war zu 100 % Dublette
+         zu @LEHRKURS.
+       · quiz.js ist ersetzt durch assets/lehrkurs.js (Karten, Kapitelmarkierung,
+         Lesefortschritt).
+       · Der globale Eingriff `Element.prototype.scrollIntoView = function(){}`
+         ist ENTFERNT. Er schaltete für jedes Element der Seite ein
+         Browser-Verhalten ab, um eine einzige Bewegung zu unterdrücken. Die
+         Ursache ist an der Quelle behoben: nichts scrollt mehr von selbst.
+       · Die drei Zeichnungen laufen über assets/viz.js und
+         assets/viz-fourier.js statt über eine eigene fit()-Kopie.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
 <div class="shell">
@@ -53,6 +35,15 @@
       <span class="brand__name">Fourier von Grund auf</span>
       <span class="brand__sub">Signale, Schwingungen &amp; Spektren verstehen</span>
     </div>
+    <div class="readbar" data-read-progress role="progressbar"
+         aria-label="Lesefortschritt" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="readbar__head">
+        <span>gelesen</span>
+        <span class="readbar__val" data-read-label>0%</span>
+      </div>
+      <div class="readbar__track"></div>
+    </div>
+
     <div class="note-strip">
       Lies von oben nach unten. <b>Spiel mit den Grafiken</b> — sie sind der schnellste Weg zum Aha-Moment.
     </div>
@@ -70,7 +61,8 @@
       <a class="nav__task" href="#k9"><span class="nav__num">9</span><span class="nav__label">Selbstcheck</span></a>
     </nav>
     <div class="rail__foot">
-      <a class="nav__task" href="Uebungen_06_Fourier.html"><span class="nav__num">✏️</span><span class="nav__label">Übungsblatt 06</span></a>
+      <div class="nav__group">Weiter</div>
+      <a class="nav__task" href="Modul_03_Verbundnetze.html"><span class="nav__num">→</span><span class="nav__label">Aufgabenheft Modul 03a</span></a>
       <a class="nav__task" href="index.html"><span class="nav__num">←</span><span class="nav__label">Zur Übersicht</span></a>
     </div>
   </aside>
@@ -109,16 +101,18 @@
       <div class="eq center">Rechteck(t) = <span class="frac"><span>4</span><span>π</span></span> · ( sin t + <span class="frac"><span>1</span><span>3</span></span> sin 3t + <span class="frac"><span>1</span><span>5</span></span> sin 5t + <span class="frac"><span>1</span><span>7</span></span> sin 7t + … )</div>
       <p>Nur ungerade Vielfache (1, 3, 5, 7 …), und jede höhere Schwingung wird schwächer (<span class="math">1/3, 1/5, 1/7</span>). Zieh unten am Regler und schau, wie das Rechteck aus immer mehr Sinuswellen entsteht:</p>
 
-      <div class="viz">
+      <figure class="viz" data-viz="rechteck-synthese" data-viz-opts='{"height":300,"params":{"n":1}}'>
         <div class="viz__title">Baukasten: Rechteckwelle aus Sinusschwingungen</div>
-        <canvas id="syn" height="300"></canvas>
+        <canvas></canvas>
         <div class="viz__ctrl">
-          <span>Harmonische:&nbsp;<span class="viz__read" id="synN-out">1</span></span>
-          <input type="range" id="synN" min="1" max="20" value="1">
-          <label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" id="synParts" style="accent-color:var(--accent)"> Bausteine zeigen</label>
+          <label>Harmonische
+            <input type="range" data-ctl="n" min="1" max="20" value="1">
+            <output class="viz__read" data-out="n" data-digits="0">1</output>
+          </label>
+          <label><input type="checkbox" data-ctl="teile"> Bausteine zeigen</label>
         </div>
-        <p class="viz__cap">Gestrichelt = Zielsignal (Rechteck). Dick = die Summe aus <span id="synN-cap">1</span> Sinusschwingung(en). Je mehr Schwingungen, desto genauer — die „Zacken" an den Kanten (Gibbs-Phänomen) bleiben aber immer ein bisschen.</p>
-      </div>
+        <figcaption class="viz__cap">Gestrichelt ist das Zielsignal, dick die Summe der Sinusschwingungen. Je mehr Schwingungen, desto genauer — die „Zacken" an den Kanten (Gibbs-Phänomen) bleiben aber immer ein bisschen, egal wie viele Glieder du nimmst.</figcaption>
+      </figure>
       <div class="callout callout--think">
         <div class="callout__icon">💡</div>
         <div class="callout__body"><b>Aha:</b> Egal wie kompliziert ein periodisches Signal aussieht — es ist immer eine (womöglich unendliche) Summe von Sinus- und Kosinusschwingungen. Fourier beantwortet die Frage: <b>„Wie viel von welcher Frequenz steckt drin?"</b></div>
@@ -151,15 +145,18 @@
       </ul>
       <p>Sinus und Kosinus sind also einfach die zwei „Schatten" desselben rotierenden Zeigers. Starte die Animation:</p>
 
-      <div class="viz">
+      <figure class="viz" data-viz="zeiger"
+              data-viz-opts='{"height":260,"animate":{"key":"t","step":0.018}}'>
         <div class="viz__title">Rotierender Zeiger und seine Projektionen</div>
-        <canvas id="phasor" height="260"></canvas>
+        <canvas></canvas>
         <div class="viz__ctrl">
-          <button id="phToggle">Pause</button>
-          <span class="viz__read" id="phRead">t = 0,00 · cos t = 1,00 · sin t = 0,00</span>
+          <button type="button" data-play>Pause</button>
+          <span>t = <output class="viz__read" data-out="tw" data-digits="2">0,00</output></span>
+          <span>cos t = <output class="viz__read" data-out="cw" data-digits="2">1,00</output></span>
+          <span>sin t = <output class="viz__read" data-out="sw" data-digits="2">0,00</output></span>
         </div>
-        <p class="viz__cap">Links rotiert der Zeiger <span class="math">e^(it)</span> auf dem Einheitskreis. Rechts entstehen dadurch die Wellen: <span style="color:var(--ink-mute)">Kosinus (waagerechte Projektion)</span> und <span style="color:var(--accent-deep)">Sinus (senkrechte Projektion)</span>.</p>
-      </div>
+        <figcaption class="viz__cap">Links rotiert der Zeiger <span class="math">e^(it)</span> auf dem Einheitskreis. Rechts entstehen dadurch die Wellen: Kosinus als waagerechte, Sinus als senkrechte Projektion — zwei Schatten desselben Zeigers.</figcaption>
+      </figure>
 
       <p>Warum machen wir das? Weil sich mit <span class="math">e^(int)</span> viel bequemer rechnen lässt als mit getrennten Sinus- und Kosinustermen. Zwei nützliche Umkehrungen, die direkt aus Euler folgen:</p>
       <div class="eq center">cos t = <span class="frac"><span>e^(it) + e^(−it)</span><span>2</span></span> &nbsp;&nbsp;&nbsp; sin t = <span class="frac"><span>e^(it) − e^(−it)</span><span>2i</span></span></div>
@@ -222,11 +219,11 @@
       <h2>Das Spektrum — die „roten Balken"</h2>
       <p>Trägt man die Stärke <span class="math">|cₙ|</span> gegen die Frequenz <span class="math">n</span> auf, entsteht das <span class="keyword">Spektrum</span> (Spektralanalyse). Das ist genau die Balkengrafik aus der Vorlesung — und dasselbe, was ein Frequenzanalysator in der E-Technik anzeigt. Jeder Balken ist eine Frequenz, seine Höhe ihre Amplitude.</p>
 
-      <div class="viz">
+      <figure class="viz" data-viz="spektrum" data-viz-opts='{"height":240}'>
         <div class="viz__title">Amplitudenspektrum der Rechteckwelle</div>
-        <canvas id="spec" height="240"></canvas>
-        <p class="viz__cap">Höhe der Balken <span class="math">= 4/(πn)</span> für ungerade <span class="math">n</span>. Gerade Frequenzen fehlen (Höhe 0). Die Balken werden nach rechts (höhere Frequenzen) immer kleiner — das Signal wird von seiner Grundschwingung dominiert.</p>
-      </div>
+        <canvas></canvas>
+        <figcaption class="viz__cap">Höhe der Balken <span class="math">= 4/(πn)</span> für ungerade <span class="math">n</span>. Gerade Frequenzen fehlen (Höhe 0). Die Balken werden nach rechts, also zu höheren Frequenzen hin, immer kleiner — das Signal wird von seiner Grundschwingung dominiert.</figcaption>
+      </figure>
       <div class="callout callout--note">
         <div class="callout__icon">📡</div>
         <div class="callout__body"><b>Zeitbereich ↔ Frequenzbereich:</b> Dieselbe Rechteckwelle ist entweder eine Kurve über die Zeit (Kapitel 1) <b>oder</b> ein Satz Balken über die Frequenz (hier). Fourier ist die Brille, die zwischen beiden Sichten wechselt.</div>
@@ -316,177 +313,30 @@
 
       <div class="callout callout--note" style="margin-top:28px">
         <div class="callout__icon">🚀</div>
-        <div class="callout__body"><b>Nächster Schritt:</b> Jetzt anwenden! Rechne <a href="Uebungen_06_Fourier.html">Übungsblatt 06 · Fourier</a> und danach <a href="Probeklausur_Trainer.html">Probeklausur-Aufgabe 2</a> (Fourier + Parseval). Damit bist du klausurfit.</div>
+        <div class="callout__body"><b>Nächster Schritt:</b> Jetzt anwenden — ein Lehrkurs wird erst durch das Übungsblatt zu Wissen. Welche Blätter zu diesem Modul gehören, steht in der <a href="index.html">Übersicht</a>.</div>
       </div>
     </section>
 
     <footer class="foot">
       <span>Mathe 2 · Lehrkurs Fourier</span>
-      <span><a href="index.html">Übersicht</a> · <a href="Uebungen_06_Fourier.html">Übungsblatt 06 →</a></span>
+      <span><a href="index.html">Übersicht</a></span>
     </footer>
   </main>
 </div>
 
-<script src="quiz.js"></script>
-<script>
-/* ── Nutzerwunsch: KEIN automatisches Weiterscrollen beim Prüfen/Abhaken ──
-   quiz.js scrollt beim Abschluss per Element.scrollIntoView(). Wir legen diesen
-   programmatischen Scroll auf dieser Seite still. Die Navigation nutzt native
-   Anker-Sprünge (href="#k…") und ist davon NICHT betroffen – manuelles Scrollen
-   und Nav-Klicks funktionieren weiterhin. */
-(function () {
-  "use strict";
-  if (Element.prototype.scrollIntoView) {
-    Element.prototype.scrollIntoView = function () { /* deaktiviert: selbst scrollen */ };
-  }
-})();
-</script>
-<script>
-/* ── Kurs-Visualisierungen (eigenständig, nutzen die Farben aus styles.css) ── */
-(function(){
-  "use strict";
-  var css = function(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim() || "#d6431d"; };
-  function fit(cv){
-    var dpr = window.devicePixelRatio || 1;
-    var w = cv.clientWidth || 600, h = cv.clientHeight || 260;
-    if (cv.width !== w*dpr || cv.height !== h*dpr){ cv.width = w*dpr; cv.height = h*dpr; }
-    var ctx = cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0);
-    return { ctx: ctx, w: w, h: h };
-  }
+<!-- engine.js wird hier NUR wegen WB.store geladen: der Lesefortschritt gehört in
+     denselben Speicher wie die Aufgabenstände, damit die Übersicht ihn findet.
+     Ohne ein [data-sheet] im Dokument tut engine.js sonst nichts.
 
-  /* ── 1) Rechteck-Synthesizer ── */
-  var synCv = document.getElementById("syn"),
-      synN  = document.getElementById("synN"),
-      synOut= document.getElementById("synN-out"),
-      synCap= document.getElementById("synN-cap"),
-      synParts = document.getElementById("synParts");
-  function partial(x, N){
-    var s = 0, terms = 0, k = 1;
-    while (terms < N){ s += Math.sin(k*x)/k; k += 2; terms++; }
-    return s * 4/Math.PI;
-  }
-  function drawSyn(){
-    if(!synCv) return;
-    var o = fit(synCv), ctx=o.ctx, w=o.w, h=o.h, mid=h/2, amp=h*0.33, xmax=4*Math.PI;
-    var N = +synN.value;
-    ctx.clearRect(0,0,w,h);
-    // Achse
-    ctx.strokeStyle = css("--hair-strong"); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(w,mid); ctx.stroke();
-    // Zielsignal (Rechteck)
-    ctx.strokeStyle = css("--ink-mute"); ctx.lineWidth = 1.3; ctx.setLineDash([5,5]);
-    ctx.beginPath();
-    for (var px=0; px<=w; px++){ var x=px/w*xmax; var sq=(Math.sin(x)>=0?1:-1); var y=mid-sq*amp; px?ctx.lineTo(px,y):ctx.moveTo(px,y); }
-    ctx.stroke(); ctx.setLineDash([]);
-    // Bausteine (optional)
-    if (synParts.checked){
-      ctx.lineWidth = 1;
-      var k=1;
-      for (var c=0; c<N; c++){
-        ctx.strokeStyle = "rgba(214,67,29,0.28)";
-        ctx.beginPath();
-        for (var p2=0;p2<=w;p2++){ var xx=p2/w*xmax; var yy=mid-(4/Math.PI)*Math.sin(k*xx)/k*amp; p2?ctx.lineTo(p2,yy):ctx.moveTo(p2,yy); }
-        ctx.stroke(); k+=2;
-      }
-    }
-    // Summe
-    ctx.strokeStyle = css("--accent"); ctx.lineWidth = 2.6;
-    ctx.beginPath();
-    for (var px2=0; px2<=w; px2++){ var x2=px2/w*xmax; var y2=mid-partial(x2,N)*amp; px2?ctx.lineTo(px2,y2):ctx.moveTo(px2,y2); }
-    ctx.stroke();
-    synOut.textContent = N; synCap.textContent = N;
-  }
-  if (synN){ synN.addEventListener("input", drawSyn); synParts.addEventListener("change", drawSyn); }
-
-  /* ── 2) Rotierender Zeiger ── */
-  var phCv = document.getElementById("phasor"),
-      phBtn = document.getElementById("phToggle"),
-      phRead= document.getElementById("phRead"),
-      phT = 0, phPlaying = true;
-  function drawPhasor(){
-    if(!phCv) return;
-    var o = fit(phCv), ctx=o.ctx, w=o.w, h=o.h;
-    ctx.clearRect(0,0,w,h);
-    var cx = h*0.5, cy = h*0.5, r = h*0.38;
-    // Kreis
-    ctx.strokeStyle = css("--hair"); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
-    // Achsen im Kreis
-    ctx.beginPath(); ctx.moveTo(cx-r,cy); ctx.lineTo(cx+r,cy); ctx.moveTo(cx,cy-r); ctx.lineTo(cx,cy+r); ctx.stroke();
-    var tipx = cx + r*Math.cos(phT), tipy = cy - r*Math.sin(phT);
-    // Projektionen
-    ctx.strokeStyle = css("--ink-mute"); ctx.setLineDash([3,3]); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(tipx,tipy); ctx.lineTo(tipx,cy); ctx.stroke(); // auf x-Achse (cos)
-    ctx.strokeStyle = css("--accent-deep");
-    ctx.beginPath(); ctx.moveTo(tipx,tipy); ctx.lineTo(cx,tipy); ctx.stroke(); // auf y-Achse (sin)
-    ctx.setLineDash([]);
-    // Zeiger
-    ctx.strokeStyle = css("--accent"); ctx.lineWidth = 2.6;
-    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(tipx,tipy); ctx.stroke();
-    ctx.fillStyle = css("--accent"); ctx.beginPath(); ctx.arc(tipx,tipy,4,0,2*Math.PI); ctx.fill();
-    // Wellen rechts
-    var gx0 = h*1.05, gw = w-gx0-8, gcy = cy, gamp = r;
-    if (gw > 40){
-      ctx.strokeStyle = css("--hair-strong"); ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(gx0,gcy); ctx.lineTo(w-8,gcy); ctx.stroke();
-      // cos (grau) und sin (accent) über [0,2π]
-      var span = 2*Math.PI;
-      ctx.strokeStyle = css("--ink-mute"); ctx.lineWidth = 1.4;
-      ctx.beginPath();
-      for (var i=0;i<=gw;i++){ var th=i/gw*span; var yy=gcy-Math.cos(th)*gamp; i?ctx.lineTo(gx0+i,yy):ctx.moveTo(gx0+i,yy); }
-      ctx.stroke();
-      ctx.strokeStyle = css("--accent-deep"); ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      for (var j=0;j<=gw;j++){ var th2=j/gw*span; var yy2=gcy-Math.sin(th2)*gamp; j?ctx.lineTo(gx0+j,yy2):ctx.moveTo(gx0+j,yy2); }
-      ctx.stroke();
-      // Marker bei aktuellem t
-      var tm = ((phT % span)+span)%span, mx = gx0 + tm/span*gw;
-      ctx.strokeStyle = css("--accent"); ctx.setLineDash([2,3]); ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(mx,gcy-gamp); ctx.lineTo(mx,gcy+gamp); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = css("--ink-mute"); ctx.beginPath(); ctx.arc(mx,gcy-Math.cos(tm)*gamp,3.5,0,2*Math.PI); ctx.fill();
-      ctx.fillStyle = css("--accent"); ctx.beginPath(); ctx.arc(mx,gcy-Math.sin(tm)*gamp,3.5,0,2*Math.PI); ctx.fill();
-    }
-    var td = (((phT%(2*Math.PI))+2*Math.PI)%(2*Math.PI));
-    phRead.textContent = "t = "+td.toFixed(2)+" · cos t = "+Math.cos(td).toFixed(2)+" · sin t = "+Math.sin(td).toFixed(2);
-    phRead.textContent = phRead.textContent.replace(/\./g, ",");
-  }
-  function loop(){ if (phPlaying) phT += 0.018; drawPhasor(); requestAnimationFrame(loop); }
-  if (phBtn){ phBtn.addEventListener("click", function(){ phPlaying=!phPlaying; phBtn.textContent = phPlaying?"Pause":"Start"; }); }
-
-  /* ── 3) Spektrum ── */
-  var specCv = document.getElementById("spec");
-  function drawSpec(){
-    if(!specCv) return;
-    var o = fit(specCv), ctx=o.ctx, w=o.w, h=o.h, base=h-34, left=44, top=20;
-    ctx.clearRect(0,0,w,h);
-    // Basislinie
-    ctx.strokeStyle = css("--hair-strong"); ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(left,base); ctx.lineTo(w-10,base); ctx.stroke();
-    var nMax = 13, slots = nMax, gw = (w-left-20)/slots, maxAmp = 4/Math.PI;
-    ctx.font = "11px 'JetBrains Mono', monospace"; ctx.textAlign="center";
-    for (var n=1; n<=nMax; n++){
-      var x = left + (n-0.5)*gw;
-      var amp = (n%2===1) ? 4/(Math.PI*n) : 0;
-      var bh = amp/maxAmp*(base-top);
-      if (amp>0){
-        ctx.fillStyle = css("--accent");
-        ctx.fillRect(x-gw*0.28, base-bh, gw*0.56, bh);
-      }
-      ctx.fillStyle = css("--ink-mute");
-      ctx.fillText(String(n), x, base+16);
-    }
-    ctx.save(); ctx.fillStyle = css("--ink-mute"); ctx.textAlign="left";
-    ctx.fillText("|cₙ|", 8, top+2);
-    ctx.textAlign="right"; ctx.fillText("Frequenz n →", w-12, h-4);
-    ctx.restore();
-  }
-
-  function redrawAll(){ drawSyn(); drawSpec(); }
-  window.addEventListener("resize", redrawAll);
-  window.addEventListener("load", function(){ redrawAll(); requestAnimationFrame(loop); });
-  // Initialer Aufruf (falls load schon durch)
-  redrawAll();
-})();
-</script>
+     viz.js VOR den Zeichnungen: es stellt WB.viz.define bereit.
+     lehrkurs.js ersetzt das nie vorhandene quiz.js — Karteikarten,
+     Kapitelmarkierung, Lesefortschritt. Kein scrollIntoView-Eingriff mehr. -->
+<script src="assets/engine.js"></script>
+<script src="assets/viz.js"></script>
+<script src="assets/viz-fourier.js"></script>
+<script src="assets/lehrkurs.js"></script>
+<!-- audit.js macht die Seite für die Breitenprüfung messbar. Ohne Anker in der
+     URL tut es nichts — ein Lernender merkt davon nie etwas. -->
+<script src="assets/audit.js"></script>
 </body>
 </html>
