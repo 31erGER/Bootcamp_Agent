@@ -41,6 +41,8 @@ Die beiden Beispielblätter sind inhaltlich fachfremd (Elektrotechnik, Mathe 2) 
 
 Erstelle eine `AGENT_Zwischenablage.md`, die dir als eigener **Notizblock** dient. Hier kannst du dir Dinge aufschreiben, mit mir **kommunizieren**, Dinge für mich notieren oder mir Fragen stellen, die ich zwischendurch abzuarbeiten habe. Was eine spätere Sitzung mit neuem Kontext wissen muss, steht hier — sonst fängt sie von vorn an.
 
+**Sie steht in der `.gitignore` und wird nie eingecheckt.** Sie gilt nur für dieses Arbeitsverzeichnis und ist der Ort, an dem Notizen über mich landen; in einem geteilten Repo hat sie nichts zu suchen. Was über das *Verfahren* gelernt wurde und für alle Aufträge gilt, gehört deshalb nicht hierher, sondern in diese Datei oder in einen Skill — siehe *Persistenz*.
+
 `Canvas_Beispiel.canvas` zeigt die Syntax einer Obsidian-Canvas. Nutze sie für Flussdiagramme, Mindmaps und andere visuelle Darstellungen von Daten, wann immer du kannst, um Inhalte zu veranschaulichen, zu strukturieren oder zu organisieren. Canvas-Dateien liegen im Arbeitsverzeichnis, nicht in `Stylevorgabe`.
 
 Keine externen Server- oder Hostingkosten. Das Setup muss lokal, pflegeleicht und einfach zu bedienen bleiben.

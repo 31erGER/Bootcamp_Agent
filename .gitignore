@@ -6,3 +6,10 @@ Nutzereinstellungen.md
 # Frühere Namen derselben Datei, damit ein alter Klon nichts durchlässt.
 Nutzerprofil.md
 Usersettings.md
+
+# ── Arbeitsnotizen des Agenten — bleiben lokal ──────────────────────────────
+# Notizblock und Kanal zum Nutzer. Enthält Zwischenstände, offene Fragen und
+# Notizen über den Nutzer, gilt nur für dieses Arbeitsverzeichnis und hat im
+# geteilten Repo nichts zu suchen.
+AGENT_Zwischenablage.md
+CLAUDE_Zwischenablage.md
