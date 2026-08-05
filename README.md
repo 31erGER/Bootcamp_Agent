@@ -14,7 +14,7 @@ Der Ordner `Stylevorgabe/assets` ist dabei **kein Beispiel zum Abschauen, sonder
 
 ### Schritt 1
 
-Das Projekt in den Ordner des jeweiligen Moduls oder Unterrichtsfachs clonen.
+Das Projekt in den Ordner des jeweiligen Moduls oder Unterrichtsfachs clonen (oder in den Ordner, in dem das neue Thema ausgearbeitet werden soll).
 
 ### Schritt 2
 
