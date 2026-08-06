@@ -3,10 +3,11 @@
 
 Dies ist ein Workflow für einen Agent, um ein Stoffgebiet lernbar auszuarbeiten. Es entsteht ein Bootcamp aus HTML-Seiten mit Aufgaben, Punkten, Fortschritt und Zeichnungen — alles per Doppelklick, ohne Server und ohne Build.
 
-Es gibt zwei Aufträge:
+Es gibt drei Aufträge:
 
 - **Klausurvorbereitung** — im Verzeichnis liegen die Unterlagen eines Moduls, und die Prüfung steht an.
 - **Neues Thema** — es gibt keine Unterlagen, das Thema wird dem Agenten im Prompt genannt.
+- **Portieren** — es gibt schon Lernmaterial, aber im falschen Format: Notizen, handgeschriebene HTML-Blätter, ein früheres Bootcamp.
 
 Der Ordner `Stylevorgabe/assets` ist dabei **kein Beispiel zum Abschauen, sondern ein lauffähiges Rahmenwerk**: Aufgaben-Engine mit neun Aufgabentypen, maschinell geprüfte Redaktionsregeln, Canvas-Zeichenbausteine, Fortschrittsspeicher und ein Prüfwerkzeug. Alles läuft per Doppelklick, ohne Server und ohne Build.
 
@@ -24,7 +25,7 @@ Das Projekt in den Ordner des jeweiligen Moduls oder Unterrichtsfachs clonen (od
 
 ### Schritt 3
 
-AI-Agent losschicken. In Claude Code genügt „bereite mich auf die Klausur in diesem Modul vor" oder „ich will etwas über *Thema* lernen" — die Skills in `.claude/skills/` greifen selbst. Alternativ die Slash-Commands `/klausur` und `/thema <Thema>`, oder bei einem anderen Agenten direkt: „lies [[Klausurvorbereitung]] und [[Rahmenwerk]] und arbeite sie ab" (bzw. [[NeuesThema]]).
+AI-Agent losschicken. In Claude Code genügt „bereite mich auf die Klausur in diesem Modul vor", „ich will etwas über *Thema* lernen" oder „portier das vorhandene Material auf das Rahmenwerk" — die Skills in `.claude/skills/` greifen selbst. Alternativ die Slash-Commands `/klausur`, `/thema <Thema>` und `/portieren <Modul>`, oder bei einem anderen Agenten direkt: „lies [[Klausurvorbereitung]] und [[Rahmenwerk]] und arbeite sie ab" (bzw. [[NeuesThema]] oder [[Portieren]]).
 
 > [!tip] Ohne Plan Mode starten
 > Beide Aufträge haben einen eigenen **Schritt 0**: der Agent legt erst Inventar, Gewichtung und Blattplan vor (Klausurvorbereitung) beziehungsweise Zuschnitt und Landkarte (Neues Thema) und baut erst nach einer Bestätigung. Das leistet dasselbe wie Plan Mode, nur fachlich statt dateibezogen — es fragt nach Gewichtung und Abgrenzung, nicht nach Dateilisten. Beides zu benutzen ist Doppelarbeit und kostet einen zusätzlichen Durchgang.
@@ -55,6 +56,7 @@ Erwartet wird `ERGEBNIS: GRUEN` und Exitcode 0. Das heißt „nichts Kaputtes ge
 | `CLAUDE.md` | gilt automatisch in jeder Sitzung: bindet das Profil ein und sagt, welcher Auftrag wofür da ist |
 | `Rahmenwerk.md` | alle Bauregeln: Aufgabentypen, Redaktion, Zeichnen, Layout, Prüfung, `file://` |
 | `Klausurvorbereitung.md` | Auftrag A — Modul mit Unterlagen, Prüfung steht an |
+| `Portieren.md` | Auftrag C — vorhandenes Material auf das Rahmenwerk umstellen |
 | `NeuesThema.md` | Auftrag B — freies Thema aus dem Prompt, keine Unterlagen |
 | `.claude/skills/`, `.claude/commands/` | die Trigger, damit man den Auftrag nicht jedes Mal beim Namen nennen muss |
 

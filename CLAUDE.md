@@ -12,10 +12,11 @@ Dieses Verzeichnis ist ein Werkzeug, mit dem ein Agent aus einem Stoffgebiet ein
 | `Rahmenwerk.md` | immer, sobald du am Bootcamp baust — Bauregeln, Aufgabentypen, Redaktion, Layout, Prüfung |
 | `Klausurvorbereitung.md` | Auftrag A: In diesem Verzeichnis liegen Modulunterlagen, und ich werde darin geprüft |
 | `NeuesThema.md` | Auftrag B: Ich nenne ein Thema, zu dem es keine Unterlagen gibt, und will es von null lernen |
+| `Portieren.md` | Auftrag C: Zu dem Thema gibt es schon Lernmaterial — Notizen, alte HTML-Blätter, ein früheres Bootcamp — und es soll auf dieses Rahmenwerk |
 
-Die beiden Aufträge schließen sich aus. Ein Auftrag plus `Rahmenwerk.md` ist die vollständige Anweisung — du musst die andere Auftragsdatei nicht lesen.
+Die drei Aufträge schließen sich aus. Ein Auftrag plus `Rahmenwerk.md` ist die vollständige Anweisung — du musst die anderen Auftragsdateien nicht lesen.
 
-Ist unklar, welcher Auftrag gemeint ist, frag nach. Liegen Vorlesungsfolien und Übungen im Ordner, ist es fast immer A; nenne ich ein Thema im Prompt, ist es B.
+Ist unklar, welcher Auftrag gemeint ist, frag nach. Liegen Vorlesungsfolien und Übungen im Ordner, ist es fast immer A; nenne ich ein Thema im Prompt, ist es B; liegt schon ausgearbeitetes Lernmaterial da, das nur das falsche Format hat, ist es C.
 
 ## Was immer gilt
 

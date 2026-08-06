@@ -1,4 +1,4 @@
-<#
+﻿<#
 =============================================================================
  bootcamp-check.ps1 — prüft ein Bootcamp, bevor jemand „fertig" sagt
 -----------------------------------------------------------------------------
@@ -45,7 +45,7 @@
 
 [CmdletBinding()]
 param(
-  # Blätter ohne .html. Leer = alle *.data.js im Stylevorgabe-Ordner.
+  # Blätter ohne .html. Leer = alle *.data.js im Kursordner (siehe $vorl unten).
   [string[]] $Sheets = @(),
   # Zusätzliche Seiten, die nur auf Breite und Klassen geprüft werden.
   [string[]] $Pages = @(),
@@ -56,7 +56,21 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root  = Split-Path -Parent $PSScriptRoot
-$vorl  = Join-Path $root 'Stylevorgabe'
+
+# Der Kursordner wird ERKANNT, nicht festgeschrieben.
+#
+# Vorher stand hier fest `Join-Path $root 'Stylevorgabe'`. In diesem Repo ist
+# das richtig — hier liegt das lauffähige Gerüst in genau diesem Ordner. In
+# einem fertigen Modul ist der Name aber irreführend: „Stylevorgabe" heißt
+# Formatvorlage, und darin läge dann der Produktionsstand. Wer das Verzeichnis
+# öffnet, vermutet Beispielmaterial und findet den echten Kurs.
+#
+# Deshalb: liegt ein Ordner `Stylevorgabe` mit `assets` darin, wird er benutzt
+# (dieses Repo, unverändertes Verhalten). Sonst gilt das Wurzelverzeichnis
+# selbst als Kursordner — das ist die aufgelöste Struktur, die nach dem Klonen
+# empfohlen ist. Beide Layouts laufen mit demselben Skript.
+$vorl = Join-Path $root 'Stylevorgabe'
+if (-not (Test-Path -LiteralPath (Join-Path $vorl 'assets'))) { $vorl = $root }
 $assets = Join-Path $vorl 'assets'
 
 if (-not (Test-Path -LiteralPath $assets)) {

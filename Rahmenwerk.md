@@ -90,6 +90,19 @@ Konkret, weil das sonst Geschmackssache bleibt:
 
 Das gilt für **alles**, was du schreibst: Zettel, Anleitungsseite, Zwischenablage, Fließtext in Fachartikeln, Rückmeldungen und Vertiefungen in Aufgaben. Die Vertiefung einer Aufgabe ist der beste Test: drei dichte Sätze schlagen zwei Absätze, weil ich sie nach einer falschen Antwort tatsächlich lese.
 
+## Der Gegenfehler: dünn statt dicht
+
+Dichte hat zwei Richtungen, und die zweite ist beim Portieren des Homelab-Bootcamps passiert. Aus 379 Zeilen Markdown wurden 454 Zeilen HTML — und dabei fielen **Inhalte** weg statt Wiederholungen: die Anknüpfung an die Elektrotechnik, die Record-Typen-Tabelle, die PTR-Rechnung, fünf Missverständnisse. Das Ergebnis war nicht dichter, sondern **anspruchsvoll und anstrengend**, weil es Vorwissen voraussetzte, das der Text vorher selbst aufgebaut hatte.
+
+Die Prüffrage aus dem vorigen Abschnitt fängt das ab, wenn man sie ernst nimmt: *streiche den Absatz — fehlt danach eine Information?* Bei einer Anknüpfung an Vorwissen lautet die Antwort **immer ja**.
+
+Zwei Auslöser, an denen es konkret schiefging:
+
+- **„Kurze Einheiten mit sichtbarem Ende" heißt nicht „knapp formuliert".** Das ist die Randbedingung aus `Nutzereinstellungen.md`, und sie betrifft die **Portionierung**, nicht die Erklärtiefe. Ein Kapitel darf ausführlich erklären und trotzdem nach zehn Minuten enden. Dreizehn gründliche Kapitel sind besser als neun knappe.
+- **HTML trägt mehr als Markdown.** Was in einer Markdown-Datei ein zäher Absatz war, ist hier eine Tabelle mit fünf Zeilen, ein Merkkasten oder ein aufklappbares `<details>`. **Dieselbe Information, ein Bruchteil der Anstrengung.** Wer beim Portieren die Markdown-Menge als Obergrenze nimmt, kürzt am falschen Ende.
+
+Der Maßstab für einen Fachartikel ist deshalb: **jeder Fachbegriff wird bei seiner ersten Verwendung erklärt, jede Zahl kommt mit ihrer Rechnung, jede Regel mit ihrem Grund.** Was darüber hinaus wiederholt, fällt weg.
+
 ---
 
 # Subagenten und Tokenausbeute
@@ -246,6 +259,26 @@ Deutsche Komposita sind der Regelfall, nicht die Ausnahme. Vier Regeln, jede vom
 
 ---
 
+# Fallstricke in engine.js und lehrkurs.js
+
+Vier Dinge, die man nicht sieht und die still das Falsche tun. Alle vier sind nachgemessen, nicht vermutet.
+
+**`engine.js` leert den ersten `.nav` in der Seitenleiste.** Es holt sich `$('.nav', railEl)` und setzt `innerHTML = ''`. Statisches Markup in diesem Element ist beim Rendern der Aufgabenliste weg. Deshalb gehört ein Wegweiser in einen **klassenlosen `<div>` davor** — klassenlos, weil Prüfung 4 sonst eine Regel für die Klasse verlangt.
+
+**`engine.js` entfernt `is-active` von *allen* `.nav__task`.** Zeile 1469: `$$('.nav__task.is-active').forEach(n => n.classList.remove('is-active'))` — ohne Scope. Ein festverdrahtetes `is-active` außerhalb der Aufgabenliste ist beim ersten Klick gelöscht. Markiere den aktuellen Schritt deshalb über **Text** (`▸` und `<b>`) plus `aria-current="page"`. Das überlebt jedes Skript.
+
+**`lehrkurs.js` fasst nur `.rail .nav__task[href^="#"]` an.** Links auf andere `.html`-Dateien sind sicher — das ist der Grund, warum der Wegweiser überhaupt in derselben Seitenleiste stehen darf.
+
+**`matrix` rendert Radios oder Checkboxen je Zeile, abhängig von der Zahl der richtigen Kreuze.** Eine Zeile mit einem Kreuz wird zu Radios, eine mit mehreren zu Checkboxen. **Gemischte Zeilen verraten damit, welche Zeile mehrere Antworten hat.** Gib entweder allen Zeilen genau ein Kreuz oder allen mehrere.
+
+Dazu zwei Dinge, die kein Skript betreffen, aber dieselbe Sorte Ärger machen:
+
+**Inline-SVG bricht Prüfung 4.** Die Klassen im `<style>`-Block einer eingebetteten SVG zählen als benutzte Klassen und brauchen dann Regeln in `styles.css`. Lege Schemata als **externe Datei** in `assets/img/` und binde sie mit `<img>` ein — dann sind ihre Klassen unsichtbar für die Prüfung. Die Farben kommen dort als Literal aus `colorpalett.css`, weil eine per `img` geladene SVG die CSS-Variablen des Dokuments nicht sieht.
+
+**Ein langes Token in einem `prompt` bricht bei 320 px.** Ein `<code>[/1.168.192.in-addr.arpa/]192.168.1.1</code>` in einem Fließtext hat keine Bruchstelle. Setze ein `<wbr>` an die logische Stelle oder nimm den Wert in einen `.term`-Block, der scrollt.
+
+---
+
 # Prüfen, bevor „fertig" gesagt wird
 
 ```
@@ -286,6 +319,40 @@ Und einmal am Ende: **`assets/` mit einem Blatt eine Ebene höher kopieren und e
 Die **Übersicht** (`index.html`) ist ein Inhaltsverzeichnis und soll ruhig sein: kein Rauschfilm, keine 100-px-Serifen, keine Initiale. Die redaktionelle Anmutung beginnt erst **in** einem Blatt oder Artikel, wo sie den Lesefluss trägt. Wer beides gleich laut macht, nimmt der Lektion ihren Auftritt.
 
 Praktisch: die Übersicht bekommt `<body class="is-hub">`, ein Blatt nicht.
+
+---
+
+# Navigation
+
+Sobald ein Modul aus mehr als einer Seite besteht, muss auf **jeder** davon zwei Fragen ohne Nachdenken beantwortbar sein: *Wo bin ich im Kurs?* und *Wo bin ich in diesem Modul?* Sonst zerfällt das Projekt in lose Seiten, und man weiß nach dem dritten Klick nicht mehr, was noch aussteht.
+
+**Wo bin ich im Kurs** beantwortet die Seitenleiste oben und die Übersicht:
+
+| Stelle | Inhalt |
+|---|---|
+| `brand__mark` | der Kursname, auf allen Seiten gleich |
+| `brand__name` | **die Modulnummer**, nicht das Thema |
+| `brand__sub` | Thema · Modul *n* von *m* |
+| `masthead__rule` links | Modul *n* · Schritt *k* von *j* · Seitentyp |
+| `rail__foot` | ein Link zur Übersicht, beschriftet mit der Position |
+| Übersicht | eine Tabelle **aller** Module mit Stand, das aktuelle markiert |
+
+Auf einem Aufgabenheft ist der Masthead generiert; die Positionszeile kommt dort aus `level` und `kind` der `.data.js` — `level: 'Modul 02 · Schritt 2 von 3'`, `kind: 'Aufgabenheft'`.
+
+**Wo bin ich im Modul** beantwortet ein Wegweiser-Block, der auf allen Seiten des Moduls **bytegleich** ist. Nur der aktive Schritt unterscheidet sich:
+
+```html
+<div>
+  <div class="nav__group">Dein Weg durch Modul 02</div>
+  <a class="nav__task" href="…_Lehrkurs.html"><span class="nav__num">1</span><span class="nav__label">Lehrkurs lesen</span></a>
+  <a class="nav__task" href="…html" aria-current="page"><span class="nav__num">▸</span><span class="nav__label"><b>Aufgaben lösen</b></span></a>
+  <a class="nav__task" href="…_Lab.html"><span class="nav__num">3</span><span class="nav__label">Lab am System</span></a>
+</div>
+```
+
+Zwei Details daran sind nicht Geschmack, sondern Zwang — beide stehen unten bei den Fallstricken: der **klassenlose Wrapper** und die Markierung des aktiven Schritts über **Text statt Klasse**.
+
+Erzeuge den Block **einmal und setze ihn dreimal ein**, statt ihn dreimal zu schreiben. Sonst laufen die Fassungen beim nächsten Modul auseinander, und die Navigation ist genau das, was das nicht verträgt.
 
 **Die Übersicht empfiehlt zu jedem Zeitpunkt genau einen nächsten Schritt.** Vierzehn gleichberechtigte Kacheln sind eine Entscheidung, die ich nicht treffe — und dann mache ich gar nichts.
 

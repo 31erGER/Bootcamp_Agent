@@ -114,6 +114,13 @@ sub, sup { line-height: 0; }
   line-height: .94;
   letter-spacing: -.02em;
   color: var(--ink);
+  /* Layoutregel 1. Gefunden von der Breitenpruefung, nicht von Auge: ein
+     Modulname wie `Namensaufloesung` ist EIN Wort mit 15 Zeichen bei 30px und
+     hat eine min-content-Breite von 267px. Die Seitenleiste ist 187px breit,
+     der Rest wurde abgeschnitten -- unsichtbar, weil ein Flex-Container nicht
+     scrollt. Nie aufgefallen, weil kein Blatt hier ein Kompositum hatte:
+     `Modul 03a` und `Fourier von Grund auf` brechen an ihren Leerzeichen. */
+  overflow-wrap: anywhere;
 }
 .brand__sub {
   font-size: 12px;
@@ -1040,7 +1047,10 @@ button.act--retry:hover { background: var(--ink); }
   font-family: var(--display); font-weight: 800;
   font-size: clamp(26px, 3.4vw, 38px);
   letter-spacing: -.02em; line-height: 1.05; margin: 6px 0 18px;
-  overflow-wrap: break-word;
+  /* war break-word -- das verstiess gegen Layoutregel 1 dieser Datei: nur
+     `anywhere` fliesst in die min-content-Breite ein. Latent, weil bisher jede
+     Kapitelueberschrift Leerzeichen hatte. */
+  overflow-wrap: anywhere;
 }
 .chapter h3 { font-family: var(--display); font-weight: 700; font-size: 21px; margin: 26px 0 10px; }
 .chapter p  { max-width: 66ch; margin-bottom: 14px; }
@@ -1655,3 +1665,81 @@ body.is-hub { background: var(--paper-2); }
   a[href^='http']::after { content: ' (' attr(href) ')'; font-size: 8pt; color: #666; }
 }
 /* @PRINT:END */
+
+/* @LAB:START ==================================================================
+   Kommandobloecke, Etappen-Enden und Bilder in einem .viz-Rahmen.
+
+   ERGAENZT beim Portieren eines Infrastruktur-Bootcamps (Homelab, Modul 02).
+   Das Rahmenwerk sieht Labs ausdruecklich vor, hatte aber keine Regel fuer
+   einen Kommandoblock -- weder fuer `pre` noch als Klasse. Fuer ein Thema wie
+   Netzwerk, Linux oder Storage besteht dagegen JEDER Lab-Schritt aus einem
+   Shell-Befehl und seiner erwarteten Ausgabe.
+
+   Der Beleg, dass die Luecke bekannt war: styles.css enthielt bereits
+   `.task__body code:not(pre code)`. Die Ausnahme fuer `pre code` war da, die
+   Regel fuer `pre` fehlte. Bis hierher blieb nur `.eq`, und das ist fuer
+   Formeln gebaut: mittig, kein Zeilenerhalt, kein Scrollen.
+
+   ZWEI LAYOUTREGELN sind hier angewandt:
+     · Ein Befehl darf NICHT umbrechen -- ein umgebrochener Befehl wird falsch
+       abgetippt. Also waagerecht scrollen, und zwar IM Block. Die Seite selbst
+       scrollt dadurch nie waagerecht, auch nicht bei 320 px.
+     · `min-width: 0`, weil der Block in einem Flex- und Grid-Kontext steht.
+
+   Farben ausschliesslich aus colorpalett.css.
+   ============================================================================ */
+
+.term {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.75;
+  white-space: pre;
+  overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
+  margin: 16px 0;
+  padding: 14px 16px;
+  color: var(--ink);
+  background: var(--surface-2);
+  border: 1px solid var(--hair);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  -webkit-overflow-scrolling: touch;
+}
+
+.term code { font-family: inherit; font-size: inherit; background: none; padding: 0; }
+
+/* Auszeichnungen INNERHALB eines Kommandoblocks. Eigene Namen statt `.c`/`.g`,
+   damit ein einbuchstabiger Klassenname nicht versehentlich anderswo greift. */
+.term__c    { color: var(--ink-mute); }
+.term__key  { color: var(--accent-deep); font-weight: 700; }
+.term__ok   { color: var(--easy); font-weight: 700; }
+.term__warn { color: var(--hard); font-weight: 700; }
+
+/* Das sichtbare Ende eines Abschnitts. Kein eigenes Layout -- nur die
+   Auszeichnung, damit beim Blaettern sofort erkennbar ist, wo eine Einheit
+   aufhoert. Traegt die Randbedingung „kurze Einheiten mit sichtbarem Ende"
+   aus Nutzereinstellungen.md. */
+.etappe-ende {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 22px 0 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hair-strong);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--easy);
+}
+.etappe-ende b { font-family: var(--body); font-size: 13.5px; letter-spacing: 0;
+                 text-transform: none; color: var(--ink); font-weight: 600; }
+
+/* Ein Schema als Bild in einem .viz-Rahmen. Das Rahmenwerk hatte nur
+   `.hot__stage img` -- ausserhalb einer Hotspot-Aufgabe war ein Bild
+   unformatiert und behielt seine Eigenbreite. Damit bricht bei 320 px das
+   Layout. Externe SVG statt inline, weil die Klassen einer inline-SVG sonst in
+   Pruefung 4 als „benutzte Klasse ohne Regel" auflaufen. */
+.viz img { display: block; width: 100%; height: auto; }
+/* @LAB:END */
