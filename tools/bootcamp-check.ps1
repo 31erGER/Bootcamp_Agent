@@ -487,6 +487,58 @@ if (-not (Test-Path -LiteralPath $imgDir)) {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
+# 6 · Kursschluessel
+# ---------------------------------------------------------------------------
+# ERGAENZT 15.08.2026, nach einem gemeldeten Fehler.
+#
+# Der Fund: der localStorage-Schluessel enthielt den VOLLEN PFAD. Wer das
+# Bootcamp verschiebt, umbenennt oder auf einen zweiten Rechner kopiert, verlor
+# lautlos jeden Stand -- die Blaetter meldeten „noch nicht begonnen", die
+# Uebersicht 0 %. Nachgewiesen mit einer identischen Kopie an einem anderen Ort.
+#
+# Seither bildet engine.js den Schluessel aus KURSNAME + DATEINAME:
+#     <meta name="wb-course" content="AuD">   im <head> jeder Seite
+# Fehlt die Angabe, faellt der Speicher still auf den alten Pfadschluessel
+# zurueck -- die Seite laeuft, ist aber wieder unverschiebbar. Genau dieses
+# stille Zurueckfallen prueft dieser Abschnitt.
+#
+# Und: weil der Schluessel nur den DATEINAMEN traegt, duerfen zwei Blaetter
+# eines Kurses nicht gleich heissen -- auch nicht in verschiedenen Unterordnern.
+# ═══════════════════════════════════════════════════════════════════════════
+Head 'KURSSCHLUESSEL FUER DEN LERNSTAND'
+
+$kursNamen = @{}
+$ohneKurs  = @()
+$basisNamen = @{}
+foreach ($f in $htmlFiles) {
+  $txt = Get-Content -LiteralPath $f.FullName -Raw -Encoding UTF8
+  if ($txt -notmatch 'engine\.js') { continue }   # ohne Engine kein Stand
+  $m = [regex]::Match($txt, '<meta\s+name="wb-course"\s+content="([^"]*)"')
+  if (-not $m.Success -or -not $m.Groups[1].Value.Trim()) { $ohneKurs += $f.Name }
+  else { $kursNamen[$m.Groups[1].Value.Trim()] = $true }
+  if ($basisNamen.ContainsKey($f.Name)) { $basisNamen[$f.Name] += 1 } else { $basisNamen[$f.Name] = 1 }
+}
+
+if ($ohneKurs.Count -gt 0) {
+  Write-Host ('  ohne <meta name="wb-course">: ' + $ohneKurs.Count + ' Seite(n)') -ForegroundColor Yellow
+  $ohneKurs | Select-Object -First 8 | ForEach-Object { Write-Host ('    ' + $_) -ForegroundColor Yellow }
+  Note-Warn ($ohneKurs.Count + ' Seite(n) ohne <meta name="wb-course"> — dort faellt der Lernstand auf den Pfadschluessel zurueck und ueberlebt kein Verschieben')
+} else {
+  Write-Host '  jede Seite mit Engine nennt ihren Kurs' -ForegroundColor Green
+}
+if ($kursNamen.Count -gt 1) {
+  Write-Host ('  MEHRERE Kursnamen: ' + (($kursNamen.Keys | Sort-Object) -join ', ')) -ForegroundColor Red
+  Note-Fail ('mehrere Kursnamen in einem Kurs: ' + (($kursNamen.Keys | Sort-Object) -join ', '))
+} elseif ($kursNamen.Count -eq 1) {
+  Write-Host ('  Kurs: ' + ($kursNamen.Keys | Select-Object -First 1)) -ForegroundColor Green
+}
+$doppelt = $basisNamen.Keys | Where-Object { $basisNamen[$_] -gt 1 }
+if ($doppelt) {
+  $doppelt | ForEach-Object { Write-Host ('  DOPPELTER DATEINAME  ' + $_) -ForegroundColor Red }
+  Note-Fail ('Dateiname doppelt vergeben: ' + ($doppelt -join ', ') + ' — beide teilten sich einen Lernstand')
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
 # Zusammenfassung
 # ═══════════════════════════════════════════════════════════════════════════
 Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue

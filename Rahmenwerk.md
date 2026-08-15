@@ -320,7 +320,7 @@ pwsh tools/bootcamp-check.ps1
 pwsh tools/bootcamp-check.ps1 -Pages Fachartikel,index
 ```
 
-Sechs Prüfungen, Exitcode 0 oder 1:
+Sieben Prüfungen, Exitcode 0 oder 1:
 
 0. **Syntaxprobe** — `node --check` über jede `.data.js`, **vor** dem Browser. Ohne sie meldet ein Parse-Fehler nur „kein Blatt angemeldet", und die Ursache ist aus dieser Zeile nicht zu erraten. Fehlt Node, wird übersprungen.
 1. **Selbstlauf** — jedes Blatt löst sich über echte Klicks selbst durch. Erwartet: Höchstpunktzahl, alle Aufgaben gelöst, alle Auszeichnungen, keine Konsolenfehler. Findet falsch hinterlegte Lösungen und kaputte Verdrahtung.
@@ -328,6 +328,7 @@ Sechs Prüfungen, Exitcode 0 oder 1:
 3. **Breiten** — 320 bis 1340 px in echten iframe-Viewports, im ungelösten **und** im aufgelösten Zustand. Der aufgelöste ist der breitere: Rückmeldung, Vertiefung, Zonenlegende und Lösungswerte kommen erst nach dem Prüfen dazu.
 4. **Klassen** — jede im Markup benutzte CSS-Klasse muss eine Regel haben.
 5. **SVG** — jede Datei in `assets/img/` muss wohlgeformtes XML sein, und ein `<style>` ohne `CDATA`-Klammer setzt einen Hinweis. Ein einziges spitzes Zeichen im CSS oder in einem Kommentar sorgt sonst dafür, dass der Browser die Datei **gar nicht** dekodiert und das Bild leer bleibt.
+6. **Kursschlüssel** — jede Seite mit Engine muss `<meta name="wb-course">` tragen, alle denselben Wert, und kein Dateiname darf doppelt vorkommen. Siehe *Der Lernstand überlebt den Umzug*.
 
 **Zwei Fallen im Aufruf, beide sind schon zugeschnappt:**
 
@@ -352,7 +353,44 @@ Was der Exitcode ausdrücklich **nicht** prüft und du selbst ansehen musst:
 - `localStorage`: neu laden, Stand da; zwei Blätter parallel, Stände getrennt
 - im Klausurmodus: der **Zwischenzustand**. Der Selbstlauf beantwortet alles und löst damit die Auto-Abgabe aus — er beweist die Endzustände, nicht den Zustand dazwischen. Dass eine beantwortete Aufgabe ihre Lösung noch verbirgt, muss von Hand oder mit einem Wegwerf-Prüfstand nachgesehen werden. **Fallstrick dabei:** `engine.js` mischt die Antwortoptionen — ein Prüfskript darf die richtige Antwort nicht über den Index der Datenoptionen ansteuern, sondern über den angezeigten Text.
 
-Und einmal am Ende: **`assets/` mit einem Blatt eine Ebene höher kopieren und erneut per Doppelklick öffnen.** Die relativen Pfade müssen unverändert greifen.
+Und einmal am Ende: **`assets/` mit einem Blatt eine Ebene höher kopieren und erneut per Doppelklick öffnen.** Die relativen Pfade müssen unverändert greifen — **und der Lernstand muss mitkommen**, siehe die nächste Regel.
+
+---
+
+# Der Lernstand überlebt den Umzug
+
+*Ergänzt am 15.08.2026 nach einem gemeldeten Fehler. Er hatte zwei Jahre Bestand und ist keinem aufgefallen, weil er nur beim Verschieben zuschlägt.*
+
+**Jede Seite mit Engine nennt ihren Kurs:**
+
+```html
+<meta name="wb-course" content="AuD">
+```
+
+Daraus bildet `engine.js` den Schlüssel `wb:AuD/Modul_01_Grundlagen.html:progress`.
+
+## Warum das nicht der Pfad sein darf
+
+Der Schlüssel enthielt vorher den **vollen Dateipfad**. Das war die Überkorrektur zu einem echten Problem — dieses Rahmenwerk wird in jeden Modulordner geklont, und zwei Kurse mit einem `Modul_01_Grundlagen.html` hätten sich sonst die Stände überschrieben.
+
+Nur baut der volle Pfad einen schlimmeren Fehler: **er macht das Bootcamp unverschiebbar.** Wer den Ordner umbenennt, eine Ebene tiefer legt, auf einen zweiten Rechner kopiert oder ihn über einen anders geschriebenen Pfad öffnet, verliert **lautlos** jeden Stand. Die Blätter melden „noch nicht begonnen", die Übersicht 0 %, und nichts deutet darauf hin, dass die Daten noch da sind.
+
+Nachgewiesen mit einer identischen Kopie desselben Ordners an einem anderen Ort: `readFor(...) = NULL`, Karte „noch nicht begonnen", Balken 0 %. Nach der Umstellung: derselbe Stand, `5 von 14 gelöst`, Balken 29 %.
+
+Kurs + Dateiname löst beides: der Kursname trennt die Kurse, der Dateiname die Blätter, und **keins von beidem hängt am Ablageort**.
+
+## Zwei Bedingungen
+
+- **Zwei Blätter eines Kurses dürfen nicht gleich heißen** — auch nicht in verschiedenen Unterordnern, denn der Schlüssel trägt nur den Dateinamen. `tools/bootcamp-check.ps1` prüft das.
+- **Fehlt die `meta`-Angabe, fällt der Speicher still auf den Pfadschlüssel zurück.** Die Seite läuft, ist aber wieder unverschiebbar. Auch das prüft das Werkzeug — als Hinweis, damit ältere Kurse nicht rot werden.
+
+## Übernahme
+
+Liegt unter dem Kursschlüssel nichts, sucht der Speicher **einmalig** den alten Pfadschlüssel mit demselben Dateinamen und schreibt ihn um. Damit überlebt ein vorhandener Stand sowohl die Umstellung als auch einen Umzug, der ihn bereits verwaist hat.
+
+Gibt es **mehrere** alte Treffer, wird nichts übernommen. Dann lägen Stände zweier Orte vor, und zu raten welcher gemeint ist, wäre schlimmer als der leere Stand. Der alte Eintrag wird nicht gelöscht — er kostet nichts und ist die Sicherheitskopie.
+
+---
 
 ---
 
@@ -453,7 +491,7 @@ Die Blätter werden **per Doppelklick geöffnet** — kein Server, kein npm, kei
 
 1. **Keine ES-Module.** `<script type="module">` scheitert von `file://` an CORS. Alles ist klassisches Skript in einer IIFE mit dem einen Namensraum `window.WB`.
 2. **Kein `fetch`.** Aufgabendaten kommen als `<script src="…data.js">`, das `WB.register()` aufruft — nicht als JSON-Datei.
-3. **`localStorage` teilt auf `file://` einen einzigen Ursprung.** Der Schlüssel muss den Dateinamen enthalten, sonst überschreiben sich zwei Blätter gegenseitig. Alles in `try/catch`: manche Browser sperren `localStorage` auf `file://` ganz. Dann läuft das Blatt weiter und `[data-store-warning]` sagt es.
+3. **`localStorage` teilt auf `file://` einen einzigen Ursprung.** Der Schlüssel muss deshalb Kurs **und** Dateiname enthalten — siehe *Der Lernstand überlebt den Umzug* gleich unten. Alles in `try/catch`: manche Browser sperren `localStorage` auf `file://` ganz. Dann läuft das Blatt weiter und `[data-store-warning]` sagt es.
 4. **Headless-Chromium klemmt `--window-size` bei 478 px fest** (nachgemessen: angefordert 320, bekommen 478), und `@media` reagiert auf das **Fenster**, nicht auf einen Container — eine verengte `.shell` zu messen liefert Unsinn. Schmale Breiten gehen nur über einen echten `<iframe>`-Viewport. Und weil der Ursprung von `file://` opak ist, kann das Elternfenster das iframe-DOM nicht lesen: das Kind misst sich selbst und meldet per `postMessage` nach oben. Das macht `assets/breiten.html`, und es funktioniert — nachgemessen.
 
 Skriptreihenfolge in einem Blatt ist bindend:

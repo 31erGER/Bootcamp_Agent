@@ -298,6 +298,37 @@ window.WB = window.WB || {};
      vor. Aufgefallen beim Kopiertest, bei dem ein Blatt in einem anderen Ordner
      seinen alten Stand mitbrachte.
 
+     ── DER KURSSCHLÜSSEL, 15.08.2026 ─────────────────────────────────────────
+     Der volle Pfad war die Überkorrektur dazu und hat einen eigenen Fehler
+     gebaut: er macht das Bootcamp UNVERSCHIEBBAR. Wer den Ordner umbenennt,
+     eine Ebene tiefer legt, auf einen zweiten Rechner kopiert oder ihn über
+     einen anders geschriebenen Pfad öffnet, verliert jeden Stand — lautlos.
+     Die Blätter zeigen „noch nicht begonnen", die Übersicht 0 %, und nichts
+     deutet darauf hin, dass die Daten noch da sind.
+
+     Nachgewiesen: identische Kopie desselben Ordners an einem anderen Ort,
+     `readFor(...) = NULL`, Karte „noch nicht begonnen", Balken 0 %.
+
+     Deshalb bildet der Schlüssel jetzt KURS + DATEINAME statt des Pfades:
+
+         <meta name="wb-course" content="AuD">   im <head> jeder Seite
+         ⇒ Schlüssel  wb:AuD/Modul_01_Grundlagen.html:progress
+
+     Der Kursname trennt die Kurse voneinander (das war der ursprüngliche
+     Grund für den Pfad), der Dateiname trennt die Blätter — und beides ist
+     vom Ablageort unabhängig. Zwei Blätter EINES Kurses dürfen deshalb nicht
+     gleich heißen, auch nicht in verschiedenen Unterordnern; das prüft
+     tools/bootcamp-check.ps1.
+
+     OHNE die meta-Angabe bleibt alles beim Pfadschlüssel. Ältere Kurse laufen
+     dadurch unverändert weiter — sie erben nur die Unverschiebbarkeit.
+
+     ÜBERNAHME: liegt unter dem neuen Schlüssel nichts, sucht der Speicher
+     einmalig den alten Pfadschlüssel mit demselben Dateinamen und übernimmt
+     ihn. Damit überlebt ein bereits vorhandener Stand die Umstellung UND den
+     Umzug, der ihn verwaist hat. Der alte Eintrag bleibt liegen: er kostet
+     nichts und ist die Sicherheitskopie, falls jemand zurückwechselt.
+
      Alles in try/catch: manche Browser sperren localStorage auf file:// ganz.
      Dann läuft das Blatt weiter, nur der Stand überlebt kein Neuladen — und
      WB.store.blocked sagt das, damit der Hub es anzeigen kann. Als Ausweg gibt
@@ -305,6 +336,20 @@ window.WB = window.WB || {};
 
   const store = {
     blocked: false,
+    _scope: undefined,
+
+    /** Der Kursname aus <meta name="wb-course">, oder null.
+        Einmal gelesen und gemerkt — er ändert sich im Dokument nicht mehr. */
+    scope() {
+      if (this._scope !== undefined) return this._scope;
+      let v = null;
+      try {
+        const m = document.querySelector('meta[name="wb-course"]');
+        if (m && m.content) v = m.content.trim().replace(/^\/+|\/+$/g, '');
+      } catch (e) { /* vor dem <head> aufgerufen — dann eben Pfadschlüssel */ }
+      this._scope = v || null;
+      return this._scope;
+    },
 
     /** Der Dateiname dieses Dokuments, ohne Pfad. */
     file() {
@@ -332,11 +377,56 @@ window.WB = window.WB || {};
       return '/' + out.join('/');
     },
 
-    /** Schlüssel eines BELIEBIGEN Blattes, relativ zu diesem Dokument. Der Hub
-        braucht das: er muss die Stände von Blättern lesen, auf denen er nicht
-        steht. */
+    /** Nur der Dateiname, egal wie das Blatt adressiert wurde. Der Hub schreibt
+        `Klausurphase/Probeklausur.html`, das Blatt selbst kennt sich als
+        `Probeklausur.html` — beide müssen denselben Schlüssel ergeben. */
+    name(file) {
+      return String(file).replace(/\\/g, '/').split('/').pop();
+    },
+
+    /** Schlüssel eines BELIEBIGEN Blattes. Der Hub braucht das: er muss die
+        Stände von Blättern lesen, auf denen er nicht steht. */
     keyFor(file, suffix) {
+      const kurs = this.scope();
+      const basis = kurs ? kurs + '/' + this.name(file) : this.resolve(file);
+      return 'wb:' + basis + (suffix ? ':' + suffix : '');
+    },
+
+    /** Der alte Pfadschlüssel — nur noch für die einmalige Übernahme. */
+    altKeyFor(file, suffix) {
       return 'wb:' + this.resolve(file) + (suffix ? ':' + suffix : '');
+    },
+
+    /** Sucht einen Stand, der noch unter einem PFADSCHLÜSSEL liegt, und
+        schreibt ihn auf den Kursschlüssel um. Gibt den Rohwert zurück.
+
+        Zuerst der Pfad DIESES Dokuments — der trifft den Normalfall „umgestellt,
+        aber nicht verschoben". Sonst jeder alte Schlüssel, der auf denselben
+        Dateinamen endet; das fängt den Umzug. Bei MEHREREN Treffern wird nichts
+        übernommen: dann lägen Stände zweier Orte vor, und zu raten welcher
+        gemeint ist, wäre schlimmer als der leere Stand. */
+    uebernehmen(file, suffix) {
+      if (!this.scope()) return null;
+      try {
+        const direkt = localStorage.getItem(this.altKeyFor(file, suffix));
+        let roh = direkt;
+        if (roh === null) {
+          const endung = '/' + this.name(file) + (suffix ? ':' + suffix : '');
+          const treffer = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            /* `wb:/` — nur ALTE Schlüssel. Ein Kursschlüssel heißt `wb:Name/…`
+               und beginnt nie mit einem Schrägstrich. */
+            if (!k || k.indexOf('wb:/') !== 0) continue;
+            if (k.length >= endung.length && k.slice(-endung.length) === endung) treffer.push(k);
+          }
+          if (treffer.length !== 1) return null;
+          roh = localStorage.getItem(treffer[0]);
+        }
+        if (roh === null) return null;
+        localStorage.setItem(this.keyFor(file, suffix), roh);
+        return roh;
+      } catch (e) { return null; }
     },
 
     key(suffix) { return this.keyFor(this.file(), suffix); },
@@ -345,7 +435,8 @@ window.WB = window.WB || {};
 
     readFor(file, suffix) {
       try {
-        const raw = localStorage.getItem(this.keyFor(file, suffix));
+        let raw = localStorage.getItem(this.keyFor(file, suffix));
+        if (raw === null) raw = this.uebernehmen(file, suffix);
         return raw ? JSON.parse(raw) : null;
       } catch (e) { this.blocked = true; return null; }
     },
