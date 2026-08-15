@@ -163,6 +163,27 @@ if (-not $Sheets -or $Sheets.Count -eq 0) {
       $Sheets += $base
     }
   }
+  # ERGAENZT 14.08.2026: Blätter dürfen auch eine Ebene tiefer liegen.
+  #
+  # Der Anlass: die Probeklausur ist nach Klausurphase/ gezogen. Der Autofund
+  # oben schaut nur in den Kursordner — danach fehlte sie im Standardlauf, OHNE
+  # dass irgendetwas rot geworden wäre. Genau das ist die gefährliche Sorte
+  # Lücke: der Lauf bleibt grün und prüft weniger.
+  #
+  # Gesucht wird nach demselben Muster wie oben: eine *.data.js mit einer
+  # gleichnamigen *.html daneben. Der Blattname trägt dann den Ordner mit
+  # ('Klausurphase/Probeklausur') — jede Stelle, die daraus einen Pfad baut,
+  # ersetzt '/' bereits durch '\' bzw. hängt '../' davor.
+  foreach ($sub in (Get-ChildItem -LiteralPath $vorl -Directory)) {
+    if ($sub.Name -in @('assets', 'tools', 'Code-Aufgaben', '.claude')) { continue }
+    Get-ChildItem -LiteralPath $sub.FullName -Filter '*.data.js' -File | ForEach-Object {
+      $base = $_.Name -replace '\.data\.js$', ''
+      if (Test-Path -LiteralPath (Join-Path $sub.FullName "$base.html")) {
+        $Sheets += ($sub.Name + '/' + $base)
+      }
+    }
+  }
+
   # Der Selbsttest liegt in assets/ und ist immer dabei: er ist die
   # Regressionsprüfung des Rahmenwerks selbst.
   if (Test-Path -LiteralPath (Join-Path $assets 'selbsttest.html')) {
@@ -175,6 +196,48 @@ Write-Host 'BOOTCAMP-CHECK' -ForegroundColor White
 Write-Host ("Browser : " + (Split-Path -Leaf $browser))
 Write-Host ("Blätter : " + ($Sheets -join ', '))
 Write-Host ("Breiten : " + (($Widths | ForEach-Object { $_ }) -join ', ') + ' px')
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 0 · Syntaxprobe der .data.js -- VOR dem Browser
+# ---------------------------------------------------------------------------
+# ERGAENZT 2026-08-07 beim Bau von Modul 04 (AuD-Bootcamp).
+#
+# Der Fund: im Kopfkommentar stand der Pfad `UEB05/*/*.java`. Die Zeichenfolge
+# `*/` darin hat den Blockkommentar VORZEITIG GESCHLOSSEN, der Rest des Kopfes
+# wurde als Code gelesen, und die Datei war ein Syntaxfehler.
+#
+# Der Browserlauf hat das gemerkt -- aber nur als
+#     ! kein Blatt angemeldet
+#     ! Ausnahme: Cannot read properties of undefined (reading 'score')
+# und mit `consoleErrors=keine`, weil ein Parse-Fehler des Skripts vor jedem
+# window.onerror passiert. Aus dieser Meldung ist die Ursache nicht zu erraten.
+#
+# `node --check` nennt Datei, Zeile, Spalte und Token in einer Sekunde. Node ist
+# nicht Voraussetzung: fehlt es, wird die Probe uebersprungen und der Rest laeuft
+# wie bisher.
+# ═══════════════════════════════════════════════════════════════════════════
+$node = (Get-Command node -ErrorAction SilentlyContinue)
+if ($node) {
+  $syntaxFehler = 0
+  foreach ($s in $Sheets) {
+    $df = Join-Path $vorl (($s -replace '/', '\') + '.data.js')
+    if (-not (Test-Path -LiteralPath $df)) { continue }
+    $ausgabe = & $node.Source --check $df 2>&1
+    if ($LASTEXITCODE -ne 0) {
+      if ($syntaxFehler -eq 0) { Head 'SYNTAXFEHLER IN EINER .data.js' }
+      Write-Host ('  ' + (Split-Path -Leaf $df)) -ForegroundColor Red
+      $ausgabe | Select-Object -First 6 | ForEach-Object { Write-Host ('    ' + $_) -ForegroundColor Red }
+      $syntaxFehler++
+    }
+  }
+  if ($syntaxFehler -gt 0) {
+    Note-Fail ('Blätter mit Syntaxfehler: ' + $syntaxFehler)
+    Write-Host ''
+    Write-Host '  Der Browserlauf wird dazu nur „kein Blatt angemeldet" melden.' -ForegroundColor Yellow
+    Write-Host '  Haeufigste Ursache: die Zeichenfolge */ in einem Blockkommentar,' -ForegroundColor Yellow
+    Write-Host '  etwa in einem Pfad wie UEB05/*/*.java.' -ForegroundColor Yellow
+  }
+}
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 1 + 2 · Selbstlauf und Redaktionsregeln
@@ -277,8 +340,20 @@ $erlaubt = @('js-only')
 # Nur Seiten prüfen, die styles.css überhaupt einbinden. breiten.html ist ein
 # Werkzeug mit eigenem <style>-Block; dessen Klassen dort zu vermissen wäre
 # richtig gemeldet und trotzdem falsch.
+#
+# ERGAENZT 14.08.2026: auch die Ordner der Blätter, die tiefer liegen. Ohne das
+# wäre Klausurphase/Probeklausur.html bei dieser Prüfung durchgerutscht und eine
+# Klasse ohne Regel dort nie aufgefallen.
+$ordner = @($vorl, $assets)
+foreach ($s in $Sheets) {
+  if ($s -notmatch '/') { continue }
+  $d = Join-Path $vorl (Split-Path -Parent ($s -replace '/', '\'))
+  if ($ordner -notcontains $d) { $ordner += $d }
+}
+
 $htmlFiles = @()
-foreach ($d in @($vorl, $assets)) {
+foreach ($d in $ordner) {
+  if (-not (Test-Path -LiteralPath $d)) { continue }
   Get-ChildItem -LiteralPath $d -Filter '*.html' -File | ForEach-Object {
     if ((Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8) -match 'styles\.css') {
       $htmlFiles += $_
@@ -324,6 +399,91 @@ if ($offen.Count -eq 0) {
     Write-Host ('  .' + $k) -ForegroundColor Red
   }
   Note-Fail ('Klassen ohne Regel: ' + $offen.Count)
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 5 · SVG als XML
+# ---------------------------------------------------------------------------
+# ERGAENZT 2026-08-07 beim Bau von Modul 02 (AuD-Bootcamp).
+#
+# Der Fund, der diesen Abschnitt ausgeloest hat: SECHS von sieben SVG in
+# assets/img/ waren kein wohlgeformtes XML und wurden vom Browser GAR NICHT
+# dekodiert. Jede Hotspot-Aufgabe in Modul 03, 05, 07, 08 und 02 zeigte ein
+# kaputtes Bild. Nachgewiesen ueber Image.naturalWidth im headless-Chromium: 0.
+#
+# Warum keine der vier bisherigen Pruefungen das gefunden hat:
+#   1 Selbstlauf  fuellt Antworten ueber setAnswer -- die Zonen einer
+#                 hotspot-Aufgabe sind Koordinaten, kein Bildinhalt. Ein
+#                 fehlendes Bild aendert am Ergebnis nichts.
+#   2 Redaktion   prueft die Aufgabendaten, nicht die Datei dahinter.
+#   3 Breiten     misst Layout. Ein kaputtes <img> hat trotzdem seine
+#                 Rahmenbreite und faellt nicht auf.
+#   4 Klassen     liest HTML und JS, keine SVG.
+#
+# Die Ursache war jedes Mal dieselbe: der Kopfkommentar IM <style>-Element
+# nennt das HTML-Element img in spitzen Klammern. Der Inhalt eines
+# style-Elements wird in XML als Markup gelesen, nicht als Text -- damit war
+# ein Element offen, das nie geschlossen wurde. Abhilfe ist die CDATA-Klammer
+# um das Stylesheet; sie steht jetzt in allen sieben Dateien.
+#
+# Diese Pruefung ist rein additiv: sie liest nur Dateien und braucht keinen
+# Browser. Sie laeuft in Millisekunden.
+# ═══════════════════════════════════════════════════════════════════════════
+Head 'SVG · WOHLGEFORMTES XML'
+
+$imgDir = Join-Path $assets 'img'
+if (-not (Test-Path -LiteralPath $imgDir)) {
+  Write-Host '  kein Ordner assets/img — nichts zu pruefen' -ForegroundColor DarkGray
+} else {
+  $svgs = @(Get-ChildItem -LiteralPath $imgDir -Filter '*.svg' -File)
+  if ($svgs.Count -eq 0) {
+    Write-Host '  keine SVG in assets/img' -ForegroundColor DarkGray
+  } else {
+    $svgKaputt = 0
+    foreach ($s in $svgs) {
+      $roh = Get-Content -LiteralPath $s.FullName -Raw -Encoding UTF8
+      try {
+        [void]([xml] $roh)
+        # Zweite, schaerfere Probe: ein <style> OHNE CDATA ist eine tickende
+        # Bombe. Er ist heute wohlgeformt und wird es beim naechsten Kommentar
+        # mit einer spitzen Klammer nicht mehr sein.
+        if ($roh -match '<style>' -and $roh -notmatch '<!\[CDATA\[') {
+          Write-Host ('  HINWEIS  ' + $s.Name + '  — <style> ohne CDATA-Klammer') -ForegroundColor Yellow
+          Note-Warn ($s.Name + ': <style> ohne CDATA — ein spitzes Zeichen im CSS oder in einem Kommentar macht die Datei unlesbar')
+        } else {
+          Write-Host ('  OK       ' + $s.Name) -ForegroundColor Green
+        }
+      } catch {
+        Write-Host ('  KAPUTT   ' + $s.Name) -ForegroundColor Red
+        Write-Host ('           ' + $_.Exception.InnerException.Message) -ForegroundColor Red
+        Write-Host '           Diese Datei wird vom Browser NICHT dargestellt.' -ForegroundColor Red
+        $svgKaputt++
+      }
+    }
+    if ($svgKaputt -gt 0) { Note-Fail ('SVG nicht wohlgeformt: ' + $svgKaputt) }
+
+    # Und: zeigt jede image-Angabe eines Blattes auf eine Datei, die es gibt?
+    $bildFehlt = 0
+    foreach ($sheet in $Sheets) {
+      $dataFile = Join-Path $vorl (($sheet -replace '/', '\') + '.data.js')
+      if (-not (Test-Path -LiteralPath $dataFile)) { continue }
+      # Der Pfad in `image:` ist relativ zur SEITE, nicht zum Kursordner.
+      # assets/selbsttest.data.js schreibt deshalb 'img/…' und ein echtes Blatt
+      # 'assets/img/…'. Ohne diese Unterscheidung meldet der Selbsttest ein
+      # fehlendes Bild, das es gibt.
+      $basis = Split-Path -Parent $dataFile
+      $dtxt = Get-Content -LiteralPath $dataFile -Raw -Encoding UTF8
+      foreach ($m in [regex]::Matches($dtxt, "image\s*:\s*'([^']+)'")) {
+        $rel = $m.Groups[1].Value
+        $ziel = Join-Path $basis ($rel -replace '/', '\')
+        if (-not (Test-Path -LiteralPath $ziel)) {
+          Write-Host ('  FEHLT    ' + $rel + '  (' + $sheet + ')') -ForegroundColor Red
+          $bildFehlt++
+        }
+      }
+    }
+    if ($bildFehlt -gt 0) { Note-Fail ('Bilder aus data.js nicht vorhanden: ' + $bildFehlt) }
+  }
 }
 
 # ═══════════════════════════════════════════════════════════════════════════

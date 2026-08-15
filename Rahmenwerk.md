@@ -157,6 +157,37 @@ Gemeinsame Felder **jeder** Aufgabe: `id` (lückenlos ab 1, über alle Teile hin
 
 Punkte: Basis 10 × Multiplikator (leicht ×1, mittel ×1,5, schwer ×2). Ein Rechenweg zahlt je Schritt und einen Abschlussbonus in Schritthöhe. Ein Zweitversuch zählt halb. Ab der dritten richtigen Antwort hintereinander gibt es 5 Punkte Serienbonus, und der steckt auch in der Höchstpunktzahl — ein fehlerfreier Lauf erreicht genau 100 %.
 
+## Klausurmodus
+
+*Ergänzt am 14.08.2026, gebaut für die Generalprobe des AuD-Bootcamps.*
+
+Ein Feld am Blatt macht aus dem Lernblatt eine Prüfung:
+
+```js
+WB.register({
+  klausur: { minuten: 90, bestehen: 50, gesamt: 100 },
+  parts: [ /* jede Aufgabe braucht dann `punkte: n` */ ]
+});
+```
+
+Fünf Dinge schalten damit gleichzeitig um — **alles opt-in; ohne das Feld verhält sich die Engine unverändert**:
+
+| Schalter | wo in `engine.js` |
+|---|---|
+| `punkte` je Aufgabe statt Basis × Multiplikator | `maxPoints()` |
+| kein Serienbonus (sonst wäre die Höchstzahl `gesamt` + Bonus) | `sheetMaxPoints()`, `settle()` |
+| kein Zweitversuch | `mayRetry` in `renderTask` |
+| Rückmeldung, Lösung und Vertiefung erst nach der Abgabe | `finishTask`, `markRestored`, `aufdecken()`, calc-Zweig |
+| Countdown in der Seitenleiste, startet mit der ersten Antwort | `uhr`-Modul, montiert in `register` |
+
+`validate.js` erzwingt: im Klausurmodus braucht **jede** Aufgabe ein numerisches `punkte`, und die Summe muss `klausur.gesamt` treffen. Fehlt es an einer Stelle, fiele genau diese Aufgabe still auf die Lernblatt-Rechnung zurück — das sähe man der Seite nicht an.
+
+**Die eine Entwurfsentscheidung, die man nicht aufrollen sollte:** die Abgabe passiert **automatisch, sobald die letzte Aufgabe beantwortet ist**, zusätzlich zum Knopf. Nur deshalb läuft der Selbstlauf in `tools/bootcamp-check.ps1` unverändert durch, ohne den Abgabeknopf kennen zu müssen.
+
+Beim `calc`-Typ ist `ok` (der Schritt stimmt) von `erledigt` (der Schritt ist abgehakt) getrennt: in der Klausur geht es auch nach einer falschen Zahl weiter, und die Punkte kommen anteilig erst am Schluss.
+
+**Bekannte Lücke:** wer *vorzeitig* abgibt und danach neu lädt, sieht die Lösungen wieder verborgen. Der Abgabezustand wird beim Wiederherstellen aus „alle Aufgaben beantwortet" abgeleitet und nicht mitgespeichert.
+
 ---
 
 # Die neun Aufgabentypen
@@ -246,12 +277,15 @@ Und der Zwang, der alles überlagert: **`requestAnimationFrame` feuert im Headle
 
 # Layoutregeln
 
-Deutsche Komposita sind der Regelfall, nicht die Ausnahme. Vier Regeln, jede vom Prüfwerkzeug gefunden:
+Deutsche Komposita sind der Regelfall, nicht die Ausnahme. Fünf Regeln, jede vom Prüfwerkzeug gefunden:
 
 1. **`overflow-wrap: anywhere`, nicht `break-word`.** Nur `anywhere` fließt in die `min-content`-Breite ein. `break-word` bricht um, lässt die Spalte aber so breit wie das längste Wort — und schneidet den Rest ab.
 2. **`minmax(0, 1fr)` statt `1fr`** in jedem Raster. Ein `fr`-Track darf nicht unter seinen `min-content` schrumpfen; ein `auto`-Track wird so breit wie die längste Option eines `<select>`.
 3. **`min-width: 0` an jedem Flex- und Grid-Kind, das Text trägt.** Und wenn das Kind **anonym** ist — Text direkt im Flex-Container neben einem `::before` —, kannst du es nicht ansprechen: dann muss der Container ein **Raster** mit `minmax(0, 1fr)` werden. So gefunden an `.reveal > summary`.
 4. **`<select>` braucht `max-width: calc(100% - 2·margin)`.** Ein Auswahlfeld wächst von sich aus auf die Breite seiner längsten Option und kennt keine Obergrenze. Und den Außenabstand abziehen, sonst bleibt genau der als Überstand stehen.
+5. **Jeder Textbehälter braucht die Behandlung, bevor jemand ihn benutzt** — nicht erst, wenn ein Modul auffliegt. `.callout`, `.lead-in` und `.etappe-ende` haben nacheinander denselben Fehler gezeigt: sie standen jahrelang mit Fließtext drin, der an Leerzeichen bricht, und beim ersten langen Token (`ArrayIndexOutOfBoundsException`, `Zusammenhangskomponenten`) schoben sie die Seite waagerecht — unsichtbar, weil ein Flex- oder Grid-Container nicht scrollt. **Ein `<wbr>` im Text ist eine Bitte an den Autor, keine Regel.** Behandle den Behälter.
+
+Regel 5 in einem Satz: **jede der drei Fundstellen war derselbe Fehler**, nur in einer anderen Klasse. Wenn du eine neue Klasse einführst, die Text trägt, gib ihr `min-width: 0` und `overflow-wrap: anywhere` sofort mit.
 
 **Ein Breakpoint darf den Inhalt nicht verengen.** Wächst die Seitenleiste an einer Grenze von 248 auf 312 px, hat der Inhalt jenseits der Grenze *weniger* Platz als davor. Prüfe deshalb immer eine Breite **kurz vor und kurz nach** jedem Breakpoint. Genau dort ist ein Teilkopf abgeschnitten, unsichtbar, weil ein Flex-Container nicht scrollt.
 
@@ -286,12 +320,19 @@ pwsh tools/bootcamp-check.ps1
 pwsh tools/bootcamp-check.ps1 -Pages Fachartikel,index
 ```
 
-Vier Prüfungen, Exitcode 0 oder 1:
+Sechs Prüfungen, Exitcode 0 oder 1:
 
+0. **Syntaxprobe** — `node --check` über jede `.data.js`, **vor** dem Browser. Ohne sie meldet ein Parse-Fehler nur „kein Blatt angemeldet", und die Ursache ist aus dieser Zeile nicht zu erraten. Fehlt Node, wird übersprungen.
 1. **Selbstlauf** — jedes Blatt löst sich über echte Klicks selbst durch. Erwartet: Höchstpunktzahl, alle Aufgaben gelöst, alle Auszeichnungen, keine Konsolenfehler. Findet falsch hinterlegte Lösungen und kaputte Verdrahtung.
 2. **Redaktion** — `validate.js` an jedem Aufgabenobjekt.
 3. **Breiten** — 320 bis 1340 px in echten iframe-Viewports, im ungelösten **und** im aufgelösten Zustand. Der aufgelöste ist der breitere: Rückmeldung, Vertiefung, Zonenlegende und Lösungswerte kommen erst nach dem Prüfen dazu.
 4. **Klassen** — jede im Markup benutzte CSS-Klasse muss eine Regel haben.
+5. **SVG** — jede Datei in `assets/img/` muss wohlgeformtes XML sein, und ein `<style>` ohne `CDATA`-Klammer setzt einen Hinweis. Ein einziges spitzes Zeichen im CSS oder in einem Kommentar sorgt sonst dafür, dass der Browser die Datei **gar nicht** dekodiert und das Bild leer bleibt.
+
+**Zwei Fallen im Aufruf, beide sind schon zugeschnappt:**
+
+- **Der Standardlauf findet nur Blätter, also Seiten mit einer `.data.js`.** Reine Leseseiten — Fachartikel, Labs, Anleitung, Übersicht — müssen über `-Pages` mitgegeben werden, sonst werden sie *stillschweigend nicht geprüft*. Der Lauf bleibt grün und prüft weniger.
+- **Blätter dürfen eine Ebene tiefer liegen** (`Klausurphase/Probeklausur`); der Autofund durchsucht Unterordner mit. Nach jedem Verschieben trotzdem die Zeile `Blätter :` im Kopf lesen und die Blätter zählen. Eine Datei zu verschieben ist billig, sie aus einer Prüfung fallen zu lassen ist teuer und unsichtbar.
 
 Prüfung 4 existiert wegen des schlimmsten Fehlers, den dieses Rahmenwerk hatte: `.frac` wurde im Fachartikel 18-mal benutzt und stand in keinem Stylesheet. Die Fourier-Reihe des Rechtecks las deshalb
 
@@ -309,6 +350,7 @@ Was der Exitcode ausdrücklich **nicht** prüft und du selbst ansehen musst:
 - Zuordnung und Reihenfolge per Touch, dann nur mit der Tastatur
 - Druckvorschau: Seitenleiste und Knöpfe weg, Lösungen aufgeklappt
 - `localStorage`: neu laden, Stand da; zwei Blätter parallel, Stände getrennt
+- im Klausurmodus: der **Zwischenzustand**. Der Selbstlauf beantwortet alles und löst damit die Auto-Abgabe aus — er beweist die Endzustände, nicht den Zustand dazwischen. Dass eine beantwortete Aufgabe ihre Lösung noch verbirgt, muss von Hand oder mit einem Wegwerf-Prüfstand nachgesehen werden. **Fallstrick dabei:** `engine.js` mischt die Antwortoptionen — ein Prüfskript darf die richtige Antwort nicht über den Index der Datenoptionen ansteuern, sondern über den angezeigten Text.
 
 Und einmal am Ende: **`assets/` mit einem Blatt eine Ebene höher kopieren und erneut per Doppelklick öffnen.** Die relativen Pfade müssen unverändert greifen.
 
@@ -355,6 +397,33 @@ Zwei Details daran sind nicht Geschmack, sondern Zwang — beide stehen unten be
 Erzeuge den Block **einmal und setze ihn dreimal ein**, statt ihn dreimal zu schreiben. Sonst laufen die Fassungen beim nächsten Modul auseinander, und die Navigation ist genau das, was das nicht verträgt.
 
 **Die Übersicht empfiehlt zu jedem Zeitpunkt genau einen nächsten Schritt.** Vierzehn gleichberechtigte Kacheln sind eine Entscheidung, die ich nicht treffe — und dann mache ich gar nichts.
+
+## Gruppen auf der Übersicht
+
+*Ergänzt am 14.08.2026, als das AuD-Bootcamp auf 27 Kacheln gewachsen war — man sieht sie alle und erkennt nichts.*
+
+Einträge mit gleichem `group` **in Folge** bilden einen Abschnitt mit eigener Überschrift, eigenem Fortschritt und eigener Zeitsumme:
+
+```js
+WB.hub({
+  groups: {                                    // optional
+    'Vorab':            { label: 'Bevor du anfängst' },
+    'Modul 01 · Thema': { step: true, note: 'Lesen, üben, programmieren' }
+  },
+  entries: [{ file, kind, title, desc, points, minutes, group: 'Vorab' }]
+});
+```
+
+- `step: true` → Kopfzeile „Schritt *n* von *m*", **gezählt nur über die Gruppen mit diesem Feld**. Anleitung, Lernplan und eine Abschlussprüfung sind keine Etappe des Wegs und bekommen ein festes `label`.
+- `note` → ein Satz unter dem Titel. Nutze ihn für den Grund, *warum* die Gruppe an dieser Stelle steht — das ist die Information, die eine Kachelwand nie transportiert.
+- **Fehlt `group` überall, rendert die Seite wie vorher als eine Wand.** Ältere Kurse laufen unverändert; auch keine `index.html` muss angefasst werden.
+
+**Die Bedingung, die den Entwurf bestimmt:** gruppiert wird über *aufeinanderfolgende Läufe*, nicht durch Einsammeln nach Namen. Die Weiter-Karte nimmt `rows.filter(offen)[0]`, und diese Reihenfolge **ist** die empfohlene Lernreihenfolge. Ein `entries.filter(e => e.group === g)` hätte funktioniert und wäre falsch gewesen: es kann einen Eintrag vorziehen, und dann schlägt die Übersicht etwas anderes vor als vorher.
+
+Zwei Nebenwirkungen, die man mitnehmen sollte:
+
+- Die Gruppe trägt den Modulnamen, also **wiederhole ihn nicht in jedem Kacheltitel**. Aus „Modul 05 · Bäume, vom BST bis zu den Collections" wird „Bäume, vom BST bis zu den Collections".
+- Trägt der Host in einer älteren `index.html` noch `class="sheets"`, ist er selbst das Kachelraster. Sobald gruppiert wird, sind seine Kinder aber Abschnitte — `hub.js` setzt die Klasse dann auf `hubgroups` um und legt das Raster eine Ebene tiefer.
 
 ---
 

@@ -2,6 +2,26 @@
      aria-label="Schematisches Verbundnetz mit drei Spannungsebenen: oben eine 380-kV-Sammelschiene mit drei Schaltanlagen, in der Mitte ein Transformator zur 110-kV-Ebene, unten die 20-kV-Ebene mit Abnehmern; links ein Grosskraftwerk mit Generator, rechts eine dezentrale Einspeisung">
   <defs>
     <style>
+      /* CDATA-Klammer, ergaenzt 2026-08-07.
+
+         OHNE sie waren alle SVG dieses Bootcamps kein wohlgeformtes XML und
+         wurden vom Browser GAR NICHT dekodiert -- jede Hotspot-Aufgabe zeigte
+         ein kaputtes Bild. Nachgewiesen ueber Image.naturalWidth im
+         headless-Chromium: 0 bei sechs von sieben Dateien.
+
+         Ursache: der Kommentar unten nennt das HTML-Element img in spitzen
+         Klammern, und der Inhalt eines style-Elements wird in XML als Markup
+         gelesen, nicht als Text. Damit war ein Element offen, das nie
+         geschlossen wurde, und das schliessende style-Tag war ein Mismatch.
+         Eine SVG, die per img-Element geladen wird, MUSS strikt wohlgeformt
+         sein -- Browser sind hier nicht nachsichtig, sie zeigen nichts.
+
+         CDATA ist die uebliche Klammer um ein SVG-Stylesheet und macht den
+         Block gegen spitze Klammern und Ampersands immun.
+
+         DIESER HINWEIS DARF SELBST KEINE SPITZE KLAMMER UND KEIN AMPERSAND
+         ENTHALTEN, denn er steht ausserhalb der Klammer. */
+      <![CDATA[
       /* Bewusst OHNE deutende Beschriftung: die Spannungswerte sind Messdaten
          wie die Druckwerte auf einer Wetterkarte, aber nichts heisst hier
          „Umspannwerk" oder „Verteilnetz" — sonst waere die Hotspot-Aufgabe
@@ -18,6 +38,7 @@
       .lbl   { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; fill: #857b6c;
                paint-order: stroke fill; stroke: #ffffff; stroke-width: 3.5px; stroke-linejoin: round; }
       .grid  { stroke: rgba(28,24,19,.07); stroke-width: 1; }
+    ]]>
     </style>
   </defs>
 

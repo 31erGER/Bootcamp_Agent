@@ -22,6 +22,48 @@ window.WB = window.WB || {};
 
   const BOLD = /<(b|strong)\b/i;
 
+  /* ══════════════════════════════════════════════════════════════════════════
+     AuD-Bootcamp, 2026-08-07: zwei Regeln ergänzt, beide aus echten Fehlern.
+
+     1) normalisiert() — der Fund, der die Regel ausgelöst hat: eine cloze-Lücke
+        mit dem Wert „15 7 11 17 13  und  18 25 20" (zwei Leerzeichen) war
+        UNLÖSBAR. engine.js baut die Optionen über textContent, gelesen wird
+        select.value — und HTMLOptionElement.value fällt auf .text zurück. .text
+        ist laut HTML-Spezifikation der Textinhalt OHNE Rand-Leerzeichen und mit
+        zu EINEM Leerzeichen zusammengefassten Whitespace-Folgen. Der Wert kommt
+        also anders zurück, als er hineingeschrieben wurde, `given === g.answer`
+        scheitert, und die Aufgabe ist nicht lösbar. Am Text sieht man das nicht;
+        gefunden hat es der Selbstlauf, der plötzlich 23 von 24 meldete.
+        Gilt genauso für die select-Felder einer forecast-Aufgabe.
+
+     2) markup() — Begriffe und Beschreibungen einer dnd-Aufgabe, die Optionen
+        eines select und die Elemente einer order-Aufgabe werden über
+        textContent gesetzt. Ein <code> oder ein &lt; erscheint dort als
+        sichtbarer Quelltext. Auch das findet keine der anderen Prüfungen: die
+        Aufgabe bleibt lösbar, sie sieht nur falsch aus.
+     ══════════════════════════════════════════════════════════════════════════ */
+
+  /** true, wenn der Browser diesen Optionswert beim Lesen umschreiben würde. */
+  function normalisiert(s) {
+    const v = String(s === undefined || s === null ? '' : s);
+    return v !== v.trim().replace(/\s+/g, ' ');
+  }
+
+  /** true, wenn der Wert Markup enthält, das als Text angezeigt würde.
+      Die Namensliste ist Absicht: ein generisches `Comparable<T>` oder ein
+      `List<String>` gehört als Text in eine Zuordnung und ist KEIN Markup. Eine
+      Regel, die jede spitze Klammer verbietet, wäre in einem Java-Kurs
+      unbrauchbar — sie hat beim ersten Lauf genau daran falsch angeschlagen. */
+  const TAGS = 'b|strong|i|em|u|s|code|kbd|samp|var|pre|span|div|p|br|wbr|hr|' +
+               'sub|sup|small|mark|a|ul|ol|li|table|tr|td|th|img|svg|details|summary';
+  const TAG_RE = new RegExp('</?(' + TAGS + ')(\\s[^>]*)?/?>', 'i');
+  const ENT_RE = /&(?:[a-zA-Z]{2,10}|#\d{1,5}|#x[0-9a-fA-F]{1,5});/;
+
+  function markup(s) {
+    const v = String(s === undefined || s === null ? '' : s);
+    return TAG_RE.test(v) || ENT_RE.test(v);
+  }
+
   /** Text ohne Markup und ohne Entities — Grundlage jeder Längenmessung. */
   function plain(s) {
     return String(s === undefined || s === null ? '' : s)
@@ -101,6 +143,15 @@ window.WB = window.WB || {};
           if (s.distractors && s.distractors.indexOf(s.answer) >= 0) {
             add('fehler', 'Lücke ' + i + ': Antwort steht doppelt in den Distraktoren');
           }
+          /* AuD-Bootcamp, 2026-08-07: neue Regel, siehe normalisiert() unten. */
+          [s.answer].concat(s.distractors || []).forEach(v => {
+            if (normalisiert(v)) {
+              add('fehler', 'Lücke ' + i + ': „' + v + '" wird vom Browser umgeschrieben');
+            }
+            if (markup(v)) {
+              add('fehler', 'Lücke ' + i + ': „' + v + '" enthält Markup, das als Text erscheint');
+            }
+          });
         });
         break;
       }
@@ -111,12 +162,23 @@ window.WB = window.WB || {};
         if (keys.size !== task.pairs.length) add('fehler', 'doppelte Schlüssel in den Zuordnungen');
         const descr = new Set(task.pairs.map(p => plain(p.description)));
         if (descr.size !== task.pairs.length) add('fehler', 'zwei Zuordnungen mit derselben Beschreibung');
+        /* AuD-Bootcamp, 2026-08-07: Begriff und Beschreibung werden über
+           textContent gesetzt (engine.js: make('div','lbl',p.term) und
+           tk.textContent = p.description). HTML erscheint dort LITERAL. */
+        task.pairs.forEach((p, i) => {
+          if (markup(p.term)) add('fehler', 'Zuordnung ' + (i + 1) + ': Markup im Begriff erscheint als Text');
+          if (markup(p.description)) add('fehler', 'Zuordnung ' + (i + 1) + ': Markup in der Beschreibung erscheint als Text');
+        });
         break;
       }
 
       case 'order': {
         if (task.items.length < 3) add('hinweis', 'nur ' + task.items.length + ' Elemente zu sortieren');
         if (new Set(task.items).size !== task.items.length) add('fehler', 'doppeltes Element in der Reihenfolge');
+        /* AuD-Bootcamp, 2026-08-07: .order__label wird über textContent gesetzt. */
+        task.items.forEach((it, i) => {
+          if (markup(it)) add('fehler', 'Element ' + (i + 1) + ': Markup erscheint als Text');
+        });
         break;
       }
 
@@ -173,6 +235,17 @@ window.WB = window.WB || {};
           if (f.kind === 'number' && f.tol <= 0) add('fehler', 'Feld ' + (i + 1) + ': Toleranz muss größer als 0 sein');
           if (f.kind === 'select' && f.options.indexOf(f.answer) < 0) {
             add('fehler', 'Feld ' + (i + 1) + ': Antwort steht nicht in den Optionen');
+          }
+          /* AuD-Bootcamp, 2026-08-07: dieselbe Falle wie bei cloze, siehe oben. */
+          if (f.kind === 'select') {
+            (f.options || []).forEach(v => {
+              if (normalisiert(v)) {
+                add('fehler', 'Feld ' + (i + 1) + ': „' + v + '" wird vom Browser umgeschrieben');
+              }
+              if (markup(v)) {
+                add('fehler', 'Feld ' + (i + 1) + ': „' + v + '" enthält Markup, das als Text erscheint');
+              }
+            });
           }
         });
         break;
@@ -232,6 +305,43 @@ window.WB = window.WB || {};
         where: id,
         message: 'nur ' + share + ' % schwere Aufgaben (' + hard + ' von ' + tasks.length + ') — gefordert ist die Hälfte'
       });
+    }
+
+    /* ── Klausurmodus ────────────────────────────────────────────────────────
+       Ein Blatt mit `klausur: { minuten, bestehen }` rechnet nicht mit
+       BASE × MULT, sondern mit dem Feld `punkte` je Aufgabe. Fehlt es an einer
+       einzigen Stelle, fällt genau diese Aufgabe still auf die Lernblatt-
+       Rechnung zurück und die Gesamtsumme stimmt nicht mehr — das sieht man
+       der Seite nicht an, deshalb ist es ein FEHLER und kein Hinweis. */
+    if (sheet.klausur) {
+      const ohne = tasks.filter(t => typeof t.punkte !== 'number');
+      ohne.forEach(t => {
+        out.push({
+          level: 'fehler',
+          where: id + ' Aufgabe ' + t.id,
+          message: 'Klausurmodus, aber kein Feld `punkte`'
+        });
+      });
+
+      if (!ohne.length && typeof sheet.klausur.gesamt === 'number') {
+        const summe = tasks.reduce((s, t) => s + t.punkte, 0);
+        if (summe !== sheet.klausur.gesamt) {
+          out.push({
+            level: 'fehler',
+            where: id,
+            message: 'Punktsumme ' + summe + ' weicht von der angekündigten Gesamtpunktzahl '
+                     + sheet.klausur.gesamt + ' ab'
+          });
+        }
+      }
+
+      if (typeof sheet.klausur.bestehen !== 'number' || typeof sheet.klausur.minuten !== 'number') {
+        out.push({
+          level: 'fehler',
+          where: id,
+          message: '`klausur` braucht `minuten` und `bestehen` als Zahlen'
+        });
+      }
     }
 
     /* Ein Blatt aus vier Choice-Aufgaben prüft Wiedererkennen, nicht Können. */

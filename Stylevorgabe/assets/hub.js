@@ -10,8 +10,24 @@
 
      WB.hub({
        kicker, headline, lede,
-       entries: [{ file, kind, title, desc, points, minutes }]
+       groups: {                                  // optional, seit 14.08.2026
+         'Vorab':             { label: 'Bevor du anfängst' },
+         'Modul 01 · Thema':  { step: true, note: 'Lesen, üben, programmieren' },
+         'Abschluss':         { label: 'Zum Schluss' }
+       },
+       entries: [{ file, kind, title, desc, points, minutes, group }]
      });
+
+   GRUPPEN sind optional. Eintraege mit gleichem `group` IN FOLGE bilden einen
+   Abschnitt mit Ueberschrift, Fortschritt und Zeitsumme. Fehlt `group` ueberall,
+   rendert die Seite wie vor dem 14.08.2026 als eine Kachelwand — aeltere Kurse
+   laufen also unveraendert.
+
+   Zu `groups` (Schluessel ist der Gruppenname, alle Felder optional):
+     step  true  ⇒ Kopfzeile „Schritt n von m", gezaehlt nur ueber Gruppen mit
+                   step: true. Fuer die eigentlichen Etappen des Lernwegs.
+     label       ⇒ feste Kopfzeile statt der Schrittzaehlung.
+     note        ⇒ ein Satz unter dem Titel. HTML erlaubt.
 
    Die Stände kommen aus localStorage — je Dateiname getrennt, gelesen über
    WB.store.readFor(). Ein Blatt, das noch nie geöffnet wurde, hat keinen Stand;
@@ -218,10 +234,41 @@ window.WB = window.WB || {};
       panel.appendChild(side);
     }
 
-    /* ── Blattkarten ── */
-    const list = $('[data-hub-sheets]');
-    if (list) {
-      rows.forEach(({ entry, stand, lese }) => {
+    /* ── Blattkarten ──────────────────────────────────────────────────────────
+       ERGAENZT 14.08.2026: Gruppen.
+
+       Vorher wurden alle Karten in eine einzige Wand geschrieben. Bei acht
+       Modulen a drei Karten plus Anleitung, Lernplan und Generalprobe sind das
+       27 Stueck — man sieht sie alle, aber man erkennt nichts.
+
+       Jetzt bilden Eintraege mit gleichem `group` IN FOLGE einen Abschnitt mit
+       eigener Ueberschrift, eigenem Fortschritt und eigener Zeitangabe.
+
+       DIE REIHENFOLGE DER EINTRAEGE BLEIBT UNANGETASTET. Das ist Bedingung,
+       nicht Zufall: die Weiter-Karte oben schlaegt `rows.filter(offen)[0]` vor,
+       und diese Reihenfolge IST die empfohlene Lernreihenfolge. Gruppiert wird
+       deshalb ueber aufeinanderfolgende Laeufe und nicht ueber ein Einsammeln
+       nach Namen — sonst koennte eine Gruppe Eintraege vorziehen.
+
+       Ohne `group` verhaelt sich alles wie vorher: eine Wand. Aeltere Kurse,
+       die hub.js mitbenutzen, laufen dadurch unveraendert weiter.
+       ────────────────────────────────────────────────────────────────────── */
+
+    /** „~85 Min" oder „~4 h 30" — ab anderthalb Stunden liest sich die Stunde besser. */
+    function zeitText(min) {
+      if (!min) return '';
+      if (min < 90) return '~' + min + ' Min';
+      const h = Math.floor(min / 60), m = min % 60;
+      return '~' + h + ' h' + (m ? ' ' + (m < 10 ? '0' + m : m) : '');
+    }
+
+    /** Erledigt heisst beim Blatt „alle Aufgaben beantwortet", beim Lesestoff
+        „durchgelesen". Beides ist derselbe Haken auf der Karte. */
+    function istFertig(r) {
+      return r.entry.points ? !!(r.stand && r.stand.finished) : !!(r.lese && r.lese.done);
+    }
+
+    function karteFuer({ entry, stand, lese }) {
         const card = make('a', 'sheetcard');
         card.href = entry.file;
 
@@ -272,8 +319,90 @@ window.WB = window.WB || {};
         }
         card.appendChild(meta);
 
-        list.appendChild(card);
+        return card;
+    }
+
+    const list = $('[data-hub-sheets]');
+    if (list) {
+      const infos = cfg.groups || {};
+
+      /* Laeufe bilden: solange derselbe Gruppenname kommt, wird angehaengt. */
+      const laeufe = [];
+      rows.forEach(r => {
+        const name = r.entry.group || '';
+        const letzter = laeufe[laeufe.length - 1];
+        if (letzter && letzter.name === name) letzter.rows.push(r);
+        else laeufe.push({ name: name, rows: [r] });
       });
+
+      const gruppiert = laeufe.some(l => l.name);
+
+      if (!gruppiert) {
+        rows.forEach(r => list.appendChild(karteFuer(r)));
+      } else {
+        /* Der Host traegt in aelteren index.html die Klasse `sheets` und ist
+           damit selbst das Kachelraster. Sobald gruppiert wird, sind seine
+           Kinder aber Abschnitte — das Raster gehoert dann eine Ebene tiefer. */
+        list.className = 'hubgroups';
+
+        /* „Schritt n von m" nur ueber die Gruppen, die das ausdruecklich
+           wollen. Anleitung und Generalprobe sind keine Etappe des Wegs. */
+        const etappen = laeufe.filter(l => infos[l.name] && infos[l.name].step);
+
+        laeufe.forEach(lauf => {
+          const info = infos[lauf.name] || {};
+          const gesamt = lauf.rows.length;
+          const fertig = lauf.rows.filter(istFertig).length;
+          const alles = gesamt > 0 && fertig === gesamt;
+
+          const sec = make('section', 'hubgroup' + (alles ? ' is-done' : ''));
+          const kopf = make('div', 'hubgroup__head');
+
+          if (info.step) {
+            kopf.appendChild(make('div', 'hubgroup__label',
+              'Schritt ' + (etappen.indexOf(lauf) + 1) + ' von ' + etappen.length));
+          } else if (info.label) {
+            kopf.appendChild(make('div', 'hubgroup__label', info.label));
+          }
+
+          const h3 = make('h3', 'hubgroup__title');
+          html(h3, lauf.name);
+          kopf.appendChild(h3);
+
+          if (info.note) {
+            const n = make('p', 'hubgroup__note');
+            html(n, info.note);
+            kopf.appendChild(n);
+          }
+
+          const meta = make('div', 'hubgroup__meta');
+          meta.appendChild(make('span', 'hubgroup__state' + (alles ? ' is-done' : ''),
+            alles ? 'fertig · ' + gesamt + ' von ' + gesamt
+                  : fertig + ' von ' + gesamt + ' erledigt'));
+
+          const punkte = lauf.rows.reduce((s, r) => s + (r.entry.points || 0), 0);
+          const minuten = lauf.rows.reduce((s, r) => s + (r.entry.minutes || 0), 0);
+          const rechts = [];
+          if (punkte) rechts.push(punkte + ' Punkte');
+          if (minuten) rechts.push(zeitText(minuten));
+          if (rechts.length) meta.appendChild(make('span', 'hubgroup__facts', rechts.join('  ·  ')));
+          kopf.appendChild(meta);
+
+          const bar = make('div', 'hubgroup__bar' + (alles ? ' is-done' : ''));
+          const fill = make('span');
+          fill.style.width = (gesamt ? Math.round((fertig / gesamt) * 100) : 0) + '%';
+          bar.appendChild(fill);
+          kopf.appendChild(bar);
+
+          sec.appendChild(kopf);
+
+          const raster = make('div', 'sheets');
+          lauf.rows.forEach(r => raster.appendChild(karteFuer(r)));
+          sec.appendChild(raster);
+
+          list.appendChild(sec);
+        });
+      }
     }
 
     /* ── Auszeichnungen über alle Blätter ── */

@@ -494,14 +494,30 @@ sub, sup { line-height: 0; }
 .q .hl { color: var(--accent-deep); font-weight: 600; }
 
 .callout {
-  display: grid; grid-template-columns: auto 1fr; gap: 14px;
+  display: grid;
+  /* AuD-Bootcamp, 2026-08-07: `1fr` war `minmax(auto, 1fr)`, und `auto` heisst
+     als Minimum die MIN-CONTENT-Breite des Inhalts. Ein Callout mit einem
+     langen Token darin -- `ArrayIndexOutOfBoundsException` oder ein
+     eingebetteter `.term`-Block mit `white-space: pre` -- konnte deshalb nicht
+     schmaler werden als dieser Inhalt, und die ganze Seite scrollte waagerecht.
+     Bei 320px waren es 361 statt 271 verfuegbarer Pixel.
+     Derselbe Befund wie bei `.brand__name` weiter oben: unsichtbar, weil ein
+     Grid-Container nicht scrollt. Nie aufgefallen, weil in einem Callout bis
+     jetzt nur Fliesstext stand, der an Leerzeichen bricht.
+     `minmax(0, 1fr)` setzt das Minimum auf 0, `min-width: 0` unten tut
+     dasselbe fuer den Fall, dass jemand die Spalten aendert. */
+  grid-template-columns: auto minmax(0, 1fr); gap: 14px;
   background: var(--accent-tint);
   border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   border-radius: var(--radius);
   padding: 16px 18px; margin: 18px 0; font-size: 14.5px;
 }
 .callout__icon { font-size: 18px; line-height: 1.4; }
-.callout__body { color: var(--ink-soft); }
+/* AuD-Bootcamp, 2026-08-07: min-width und overflow-wrap ergaenzt, siehe oben.
+   `anywhere` bricht einen ueberlangen Bezeichner notfalls mitten im Wort --
+   haesslich, aber lesbar, waehrend Abschneiden unsichtbar falsch ist. Wo die
+   Bruchstelle stimmen soll, gehoert trotzdem ein <wbr> in den Text. */
+.callout__body { color: var(--ink-soft); min-width: 0; overflow-wrap: anywhere; }
 .callout__body b, .callout__body strong { color: var(--ink); }
 .callout--note   { background: var(--accent-tint); }
 .callout--think  { background: var(--med-bg); border-color: color-mix(in srgb, var(--med) 35%, transparent); }
@@ -1032,6 +1048,21 @@ button.act--retry:hover { background: var(--ink); }
 .lead-in {
   font-family: var(--display); font-size: clamp(19px, 2.3vw, 23px); line-height: 1.5;
   color: var(--ink-soft); max-width: 62ch; margin: 8px 0 28px;
+
+  /* AuD-Bootcamp, 2026-08-07: overflow-wrap ergaenzt.
+     Gefunden im Lehrkurs zu Modul 08: das Wort `Zusammenhangskomponenten` in
+     einem .lead-in hatte bei 320px eine min-content-Breite von 299px gegen 273px
+     Inhaltsbreite und hat die ganze Seite waagerecht geschoben -- unsichtbar,
+     weil ein Flex-Container nicht scrollt. Dort erst per <wbr> im Wort umgangen;
+     das ist aber eine Bitte an den Autor und keine Regel. .lead-in ist die
+     Einleitung JEDES Kapitels, in einem deutschen Fachtext also die Stelle mit
+     der hoechsten Kompositumdichte -- eine 19px-Serifenschrift traegt bei 271px
+     Inhaltsbreite rund 21 Zeichen. Ohne diese Zeile ist jedes weitere Modul
+     wieder eine Fundstelle.
+     `anywhere` und nicht `break-word`: nur `anywhere` geht in die
+     min-content-Breite ein, `break-word` bricht um und laesst die Spalte
+     trotzdem so breit wie das laengste Wort. */
+  overflow-wrap: anywhere;
 }
 
 /* ---- Kapitel -------------------------------------------------------------
@@ -1406,6 +1437,59 @@ body.is-hub { background: var(--paper-2); }
 .sheetcard__state.is-done { color: var(--done); }
 .sheetcard__state.is-open { color: var(--med); }
 .sheetcard__stars { color: var(--med); letter-spacing: 1px; }
+
+/* ---- Gruppen auf der Uebersicht ------------------------------------------
+   ERGAENZT 14.08.2026. Bei 27 Kacheln in einer Wand sieht man alles und
+   erkennt nichts. Die Gruppe traegt jetzt, was vorher jede Karte einzeln
+   wiederholt hat: den Modulnamen, den Stand, die Zeit.
+
+   Bewusst LEISER als eine Karte: kein Kasten, keine Schatten, nur eine
+   Haarlinie und Weissraum. Die Ueberschrift soll den Blick fuehren, nicht
+   mit den Karten darunter um Aufmerksamkeit ringen.
+   -------------------------------------------------------------------------- */
+.hubgroups { display: flex; flex-direction: column; gap: 34px; }
+.hubgroup { min-width: 0; }
+.hubgroup__head {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-bottom: 14px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--hair);
+}
+.hubgroup__label {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--accent); font-weight: 700;
+}
+.hubgroup__title {
+  font-family: var(--display); font-weight: 800; font-size: clamp(19px, 2.4vw, 24px);
+  line-height: 1.15; letter-spacing: -.02em; color: var(--ink);
+  overflow-wrap: anywhere; min-width: 0;
+}
+.hubgroup__note {
+  font-size: 13.5px; line-height: 1.55; color: var(--ink-soft);
+  max-width: 68ch; min-width: 0; overflow-wrap: anywhere;
+}
+.hubgroup__meta {
+  display: flex; align-items: baseline; gap: 8px 16px; flex-wrap: wrap;
+  justify-content: space-between; margin-top: 2px;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-mute);
+}
+.hubgroup__state { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--med); }
+.hubgroup__state.is-done { color: var(--done); }
+.hubgroup__facts { min-width: 0; overflow-wrap: anywhere; }
+/* Der Balken ist absichtlich duenner als der auf einer Karte: er fasst
+   zusammen, er misst nicht. */
+.hubgroup__bar {
+  height: 3px; border-radius: 2px; background: var(--hair);
+  overflow: hidden; margin-top: 4px;
+}
+.hubgroup__bar > span {
+  display: block; height: 100%; background: var(--med);
+  transition: width .3s var(--ease);
+}
+.hubgroup__bar.is-done > span { background: var(--done); }
+/* Eine fertige Gruppe tritt zurueck — sie ist erledigt und soll den Blick
+   nicht mehr halten. Die Karten darin bleiben voll lesbar. */
+.hubgroup.is-done .hubgroup__head { opacity: .62; }
+.hubgroup.is-done:hover .hubgroup__head { opacity: 1; }
 /* @HUB:END */
 
 /* @GAME:START ===============================================================
@@ -1720,10 +1804,21 @@ body.is-hub { background: var(--paper-2); }
    Auszeichnung, damit beim Blaettern sofort erkennbar ist, wo eine Einheit
    aufhoert. Traegt die Randbedingung „kurze Einheiten mit sichtbarem Ende"
    aus Nutzereinstellungen.md. */
+/* War `display: flex` mit `align-items: baseline` und `gap: 10px`. Das ist
+   dasselbe Muster, das schon an `.reveal > summary` zugeschlagen hat: ein
+   Flex-Container, dessen Text zum Teil in einem ANONYMEN Kind steckt (der
+   Fliesstext neben dem <b>). Ein anonymes Kind kann man nicht ansprechen, also
+   bekommt es kein `min-width: 0` -- und ein Flex-Item schrumpft nicht unter
+   seine min-content-Breite. Ergebnis: bei 320 px schob der Kasten 32 px ueber
+   den Rand, unsichtbar, weil ein Flex-Container nicht scrollt.
+   Gefunden mit dem ersten Lab (Modul 05), nie vorher aufgefallen, weil noch
+   kein Blatt diese Klasse benutzt hat.
+   `display: block` loest es ohne Umbau: das <b> ist ohnehin inline, der Kasten
+   liest sich als ein Satz, und `overflow-wrap: anywhere` fangt lange
+   Dateinamen wie `Loesungen/M05_BaumLoesung.java` ab. `anywhere` und nicht
+   `break-word` -- nur `anywhere` fliesst in die min-content-Breite ein. */
 .etappe-ende {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+  display: block;
   margin: 22px 0 6px;
   padding-top: 14px;
   border-top: 1px solid var(--hair-strong);
@@ -1731,8 +1826,10 @@ body.is-hub { background: var(--paper-2); }
   font-size: 11px;
   letter-spacing: .1em;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
   color: var(--easy);
 }
+.etappe-ende b { margin-right: 4px; }
 .etappe-ende b { font-family: var(--body); font-size: 13.5px; letter-spacing: 0;
                  text-transform: none; color: var(--ink); font-weight: 600; }
 
@@ -1743,3 +1840,117 @@ body.is-hub { background: var(--paper-2); }
    Pruefung 4 als „benutzte Klasse ohne Regel" auflaufen. */
 .viz img { display: block; width: 100%; height: auto; }
 /* @LAB:END */
+
+/* @KLAUSUR:START ============================================================
+   Klausurmodus. Nur aktiv auf Blaettern, die `klausur: { minuten, bestehen }`
+   mitbringen -- die acht Modulblaetter sehen davon nichts.
+
+   Drei Bausteine: die Uhr in der Seitenleiste, der zurueckgehaltene
+   Rueckmeldekasten, und die Auswertung mit Urteil und Punkten je Block.
+   ========================================================================== */
+
+/* ---- Uhr ---- */
+.klausuruhr {
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--hair-strong);
+  border-radius: var(--radius);
+  text-align: center;
+  min-width: 0;
+}
+.klausuruhr__zeit {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.klausuruhr__sub {
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--ink-mute);
+  overflow-wrap: anywhere;
+}
+/* Letzte zehn Minuten */
+.klausuruhr.is-knapp { border-color: var(--med); background: var(--med-bg); }
+.klausuruhr.is-knapp .klausuruhr__zeit { color: var(--med); }
+/* Zeit vorbei -- gesperrt wird trotzdem nichts, siehe engine.js */
+.klausuruhr.is-aus { border-color: var(--hard); background: var(--hard-bg); }
+.klausuruhr.is-aus .klausuruhr__zeit { color: var(--hard); }
+
+/* ---- Zurueckgehaltene Rueckmeldung ---- */
+.fb--klausur { background: var(--surface-2); border: 1px solid var(--hair-strong); }
+.fb--klausur .head { color: var(--ink-mute); }
+/* Beantwortet, aber noch nicht ausgewertet: neutral, damit die Farbe nichts
+   verraet. Bewusst NICHT gruen oder rot. */
+.task.is-beantwortet { border-color: var(--hair-strong); }
+.task.is-beantwortet .task__status { color: var(--ink-mute); }
+
+/* ---- Abgabe ---- */
+.abgabe {
+  margin: 34px 0 0;
+  padding: 22px 20px;
+  background: var(--surface-2);
+  border: 1px dashed var(--hair-strong);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.act--abgabe { font-size: 15px; padding: 12px 26px; }
+.abgabe__hinweis {
+  margin: 10px auto 0;
+  max-width: 56ch;
+  font-size: 13px;
+  color: var(--ink-mute);
+}
+
+/* ---- Auswertung ---- */
+.done--durchgefallen { background: var(--hard-bg); border-color: var(--hard); }
+.done--durchgefallen .done__check { background: var(--hard); }
+.done--durchgefallen h3 { color: var(--hard); }
+
+.blockpunkte {
+  margin: 20px auto 0;
+  max-width: 46ch;
+  text-align: left;
+  display: grid;
+  gap: 8px;
+}
+/* Grid statt Flex, und minmax(0,1fr) fuer die Leiste: ein langer Blocktitel
+   darf die Zeile nicht ueber den Rand schieben. Derselbe Befund wie bei
+   .callout weiter oben. */
+.blockpunkte__zeile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name wert" "bar bar";
+  gap: 4px 12px;
+  align-items: baseline;
+}
+.blockpunkte__name {
+  grid-area: name;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.blockpunkte__wert {
+  grid-area: wert;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.blockpunkte__bar {
+  grid-area: bar;
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--hair);
+  overflow: hidden;
+}
+.blockpunkte__fill { display: block; height: 100%; background: var(--done); }
+.done--durchgefallen .blockpunkte__fill { background: var(--hard); }
+
+.done__zeit { font-family: var(--mono); font-size: 13px; }
+/* @KLAUSUR:END */

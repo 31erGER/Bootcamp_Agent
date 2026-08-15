@@ -62,11 +62,31 @@ window.WB = window.WB || {};
   const COMBO_EVERY = 3;
   const COMBO_BONUS = 5;
 
+  /* ── KLAUSURMODUS ──────────────────────────────────────────────────────────
+     Ein Blatt, das `klausur: { minuten, bestehen }` mitbringt, wird nicht wie
+     ein Lernblatt bewertet, sondern wie eine Klausur:
+
+       · jede Aufgabe zaehlt ihr eigenes Feld `punkte` statt BASE × MULT,
+       · kein Serienbonus (sonst waere die Hoechstzahl 100 + Bonus),
+       · kein Zweitversuch — eine Klausur hat einen Versuch,
+       · Rueckmeldung, Loesung und Vertiefung bleiben bis zur ABGABE verborgen,
+       · eine Uhr laeuft mit.
+
+     Alles davon ist opt-in: ohne das Feld verhaelt sich die Engine unveraendert.
+     Die Abgabe passiert AUTOMATISCH, sobald die letzte Aufgabe beantwortet ist
+     — nur deshalb laeuft der Selbstlauf in tools/bootcamp-check.ps1 unveraendert
+     durch, ohne den neuen Knopf kennen zu muessen.                            */
+  let klausur = null;        /* { minuten, bestehen } oder null */
+  let abgegeben = false;
+
   function stepPoints(task) {
     return Math.round(STEP_POINTS * MULT[task.difficulty]);
   }
 
   function maxPoints(task) {
+    /* Klausurpunkte haben Vorrang. Bewusst `typeof`, damit eine 0 nicht
+       stillschweigend auf die Lernblatt-Rechnung zurueckfaellt. */
+    if (typeof task.punkte === 'number') return task.punkte;
     const m = MULT[task.difficulty] || 1;
     if (task.type === 'calc') {
       const s = stepPoints(task);
@@ -89,7 +109,10 @@ window.WB = window.WB || {};
 
   function sheetMaxPoints(sheet) {
     const tasks = sheetTasks(sheet);
-    return tasks.reduce((s, t) => s + maxPoints(t), 0) + maxCombo(tasks.length);
+    const summe = tasks.reduce((s, t) => s + maxPoints(t), 0);
+    /* Im Klausurmodus OHNE Serienbonus: die Hoechstzahl ist die Punktzahl der
+       Klausur, sonst stuende auf der Auswertung 100 von 130. */
+    return sheet.klausur ? summe : summe + maxCombo(tasks.length);
   }
 
   WB.BASE_POINTS = BASE_POINTS;
@@ -442,7 +465,9 @@ window.WB = window.WB || {};
         if (ratio >= 1) {
           this.combo++;
           if (this.combo > this.comboBest) this.comboBest = this.combo;
-          if (this.combo % COMBO_EVERY === 0) {
+          /* Im Klausurmodus kein Serienbonus — er stuende nicht im Nenner und
+             wuerde die Punktzahl ueber die Klausursumme heben. */
+          if (!klausur && this.combo % COMBO_EVERY === 0) {
             this.bonus += COMBO_BONUS;
             this.score += COMBO_BONUS;
             toast('Serie ×' + this.combo + '  +' + COMBO_BONUS);
@@ -643,27 +668,54 @@ window.WB = window.WB || {};
       html(fbBody, s);
     }
 
+    /** Alles aufdecken, was der Klausurmodus zurueckgehalten hat. Wird von der
+        Abgabe ueber jede beantwortete Aufgabe gerufen. */
+    function aufdecken() {
+      const st = prog.get(task.id);
+      if (st.state === 'offen') return;
+      art.classList.remove('is-beantwortet');
+      art.classList.add(st.state === 'done' ? 'is-done' : 'is-wrong');
+      status.textContent = st.state === 'done' ? 'Gelöst' : 'Falsch';
+      control.reveal && control.reveal();
+      showFeedback(st.state === 'done' ? 1 : 0, false);
+    }
+
     function finishTask(ratio, pointsOverride) {
       const pts = prog.settle(task, ratio, pointsOverride);
-      art.classList.add(ratio >= 1 ? 'is-done' : 'is-wrong');
-      status.textContent = ratio >= 1 ? 'Gelöst' : 'Falsch';
       btn.disabled = true;
       control.lock && control.lock();
-      control.reveal && control.reveal();
-      showFeedback(ratio, false);
-      if (pts) toast('+' + pts + ' Punkte');
+
+      if (klausur && !abgegeben) {
+        /* Klausur: die Antwort ist festgehalten, mehr erfaehrt man jetzt nicht.
+           Kein Punktetoast — er wuerde die Korrektheit verraten. */
+        art.classList.add('is-beantwortet');
+        status.textContent = 'Beantwortet';
+        fb.className = 'fb show fb--klausur';
+        fbHead.textContent = 'Antwort festgehalten';
+        html(fbBody, 'Die Auswertung kommt nach der Abgabe.');
+      } else {
+        art.classList.add(ratio >= 1 ? 'is-done' : 'is-wrong');
+        status.textContent = ratio >= 1 ? 'Gelöst' : 'Falsch';
+        control.reveal && control.reveal();
+        showFeedback(ratio, false);
+        if (pts) toast('+' + pts + ' Punkte');
+      }
       updateChrome(prog);
     }
 
     btn.addEventListener('click', () => {
       if (prog.get(task.id).state !== 'offen') return;
+      uhr.starte();
       const ratio = control.check();
       const tries = prog.get(task.id).tries;
 
       /* Erster Fehlversuch: nicht abschließen, einmal zurückgeben.
          Beim Schätzen nicht — der Regler steht schon auf dem eigenen Wert, ein
          Zweitversuch wäre reines Ausprobieren. */
-      const mayRetry = ratio < 1 && tries === 0 && task.type !== 'estimate' && task.retry !== false;
+      /* In der Klausur gibt es keinen Zweitversuch — und er waere dort auch
+         sinnlos, weil die Rueckmeldung noch gar nichts verraet. */
+      const mayRetry = !klausur && ratio < 1 && tries === 0
+                       && task.type !== 'estimate' && task.retry !== false;
       if (mayRetry) {
         prog.noteTry(task);
         showFeedback(ratio, true);
@@ -682,12 +734,23 @@ window.WB = window.WB || {};
       /* Für das Selbstlösen und die Wiederherstellung */
       button: btn,
       finishTask,
+      aufdecken,
       markRestored(st) {
-        art.classList.add(st.state === 'done' ? 'is-done' : 'is-wrong');
-        status.textContent = st.state === 'done' ? 'Gelöst' : 'Falsch';
         btn.disabled = true;
         control.lock && control.lock();
         control.showSaved && control.showSaved();
+        if (klausur && !abgegeben) {
+          /* Nach dem Neuladen einer laufenden Klausur bleibt verborgen, was
+             verborgen war. */
+          art.classList.add('is-beantwortet');
+          status.textContent = 'Beantwortet';
+          fb.className = 'fb show fb--klausur';
+          fbHead.textContent = 'Antwort festgehalten';
+          html(fbBody, 'Die Auswertung kommt nach der Abgabe.');
+          return;
+        }
+        art.classList.add(st.state === 'done' ? 'is-done' : 'is-wrong');
+        status.textContent = st.state === 'done' ? 'Gelöst' : 'Falsch';
         control.reveal && control.reveal();
         showFeedback(st.state === 'done' ? 1 : 0, false);
       }
@@ -1264,7 +1327,10 @@ window.WB = window.WB || {};
         const hint = make('div', 'hint', s.hint || '');
         st.appendChild(hint);
         calc.appendChild(st);
-        steps.push({ st, inp, btn, hint, s, tries: 0, ok: false });
+        /* `ok` = der Schritt stimmt · `erledigt` = der Schritt ist abgehakt.
+           Im Lernmodus fallen die zwei zusammen; in der Klausur nicht, denn
+           dort geht es auch nach einer falschen Zahl weiter. */
+        steps.push({ st, inp, btn, hint, s, tries: 0, ok: false, erledigt: false });
       });
       body.appendChild(calc);
 
@@ -1272,8 +1338,31 @@ window.WB = window.WB || {};
 
       steps.forEach((row, i) => {
         row.btn.addEventListener('click', () => {
-          if (row.ok) return;
+          if (row.erledigt) return;
+          uhr.starte();
           const ok = grade.calcStep(row.s, row.inp.value);
+
+          /* ── Klausur: der Schritt wird nur festgehalten ────────────────────
+             Keine Farbe, kein Tipp, kein Toast — und es geht weiter, auch wenn
+             die Zahl falsch ist. Die Punkte kommen erst beim Abschluss ueber
+             settle(), anteilig nach richtigen Schritten. */
+          if (klausur && !abgegeben) {
+            row.ok = ok;
+            row.erledigt = true;
+            row.inp.disabled = true;
+            row.btn.disabled = true;
+            const naechster = steps[i + 1];
+            if (naechster) naechster.st.classList.remove('locked');
+            else {
+              control.done = true;
+              const anteil = steps.filter(r => r.ok).length / steps.length;
+              const holder = allRendered.filter(r => r.task === task)[0];
+              if (holder) holder.finishTask(anteil);
+            }
+            updateChrome(prog());
+            return;
+          }
+
           if (!ok) {
             row.tries++;
             row.inp.classList.add('wrong');
@@ -1281,6 +1370,7 @@ window.WB = window.WB || {};
             return;
           }
           row.ok = true;
+          row.erledigt = true;
           row.inp.classList.remove('wrong');
           row.inp.classList.add('correct');
           row.inp.disabled = true;
@@ -1337,6 +1427,119 @@ window.WB = window.WB || {};
 
   let allRendered = [];
 
+  /* ══════════════════════════════════════════════════════════════════════════
+     Klausuruhr
+     --------------------------------------------------------------------------
+     Laeuft nur im Klausurmodus. Gespeichert wird ausschliesslich der Startzeit-
+     punkt — daraus ergibt sich die Restzeit auch nach einem Neuladen, ohne dass
+     jede Sekunde geschrieben werden muss.
+
+     Der Schluessel enthaelt den Dateinamen, damit zwei Blaetter nebeneinander
+     getrennte Staende haben (dieselbe Regel wie beim Aufgabenstand).
+
+     Laeuft die Zeit ab, wird NICHTS gesperrt. Die Uhr sagt nur Bescheid; wer
+     weitermacht, sieht auf der Auswertung, dass er ueberzogen hat. Eine Sperre
+     waere bevormundend und im Zweifel genau dann im Weg, wenn man kurz vor der
+     Loesung steht.                                                            */
+  const uhr = (function () {
+    const KEY = 'wb-uhr:' + (location.pathname.split('/').pop() || 'blatt');
+    let el = null, label = null, sub = null, timer = null, start = 0, ende = 0;
+
+    function lies() {
+      try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; }
+    }
+    function schreib(o) {
+      try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) { /* file:// ohne Speicher */ }
+    }
+    function mmss(ms) {
+      const s = Math.max(0, Math.round(ms / 1000));
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+      const zwei = n => String(n).padStart(2, '0');
+      return (h ? zwei(h) + ':' : '') + zwei(m) + ':' + zwei(r);
+    }
+
+    function zeichne() {
+      if (!el || !klausur) return;
+      const gesamt = klausur.minuten * 60000;
+      const jetzt = ende || Date.now();
+      const rest = gesamt - (jetzt - start);
+      if (!start) {
+        label.textContent = mmss(gesamt);
+        sub.textContent = 'startet mit der ersten Antwort';
+        return;
+      }
+      el.classList.toggle('is-aus', rest <= 0);
+      el.classList.toggle('is-knapp', rest > 0 && rest <= 10 * 60000);
+      label.textContent = rest > 0 ? mmss(rest) : '+' + mmss(-rest);
+      sub.textContent = ende ? 'abgegeben nach ' + mmss(jetzt - start)
+        : (rest > 0 ? 'von ' + klausur.minuten + ' Minuten' : 'Zeit vorbei');
+    }
+
+    return {
+      /** Baut die Anzeige in die Seitenleiste. */
+      montiere(railEl) {
+        if (!klausur) return;
+        el = make('div', 'klausuruhr');
+        el.setAttribute('role', 'timer');
+        el.setAttribute('aria-label', 'verbleibende Bearbeitungszeit');
+        label = make('div', 'klausuruhr__zeit', '—');
+        sub = make('div', 'klausuruhr__sub', '');
+        el.appendChild(label);
+        el.appendChild(sub);
+        const nachher = $('.progress', railEl) || $('.brand', railEl);
+        if (nachher && nachher.nextSibling) railEl.insertBefore(el, nachher.nextSibling);
+        else railEl.appendChild(el);
+
+        const g = lies();
+        if (g && g.start) { start = g.start; ende = g.ende || 0; }
+        zeichne();
+        if (start && !ende) timer = setInterval(zeichne, 1000);
+      },
+      /** Beim ersten Prüfen. Ein zweiter Aufruf tut nichts. */
+      starte() {
+        if (!klausur || start) return;
+        start = Date.now();
+        schreib({ start: start, ende: 0 });
+        zeichne();
+        timer = setInterval(zeichne, 1000);
+      },
+      stoppe() {
+        if (!klausur || !start || ende) return;
+        ende = Date.now();
+        schreib({ start: start, ende: ende });
+        if (timer) { clearInterval(timer); timer = null; }
+        zeichne();
+      },
+      /** Gebrauchte Zeit in Minuten, gerundet — für die Auswertung. */
+      minutenGebraucht() {
+        if (!start) return 0;
+        return Math.round(((ende || Date.now()) - start) / 60000);
+      },
+      zuruecksetzen() {
+        start = 0; ende = 0;
+        if (timer) { clearInterval(timer); timer = null; }
+        try { localStorage.removeItem(KEY); } catch (e) { /* egal */ }
+        zeichne();
+      }
+    };
+  })();
+
+  /** Abgabe: alles aufdecken, Uhr anhalten, auswerten. Wird vom Knopf gerufen
+      und automatisch, sobald die letzte Aufgabe beantwortet ist. */
+  function abgeben(prog) {
+    if (!abgegeben) {
+      abgegeben = true;
+      uhr.stoppe();
+      allRendered.forEach(r => r.aufdecken && r.aufdecken());
+      const b = $('[data-abgeben]');
+      if (b) { b.disabled = true; b.textContent = 'Abgegeben'; }
+    }
+    /* Bewusst ausserhalb der Klammer: nach dem Neuladen einer abgegebenen
+       Klausur ist `abgegeben` schon true, die Auswertung muss trotzdem
+       erscheinen. showDone ist idempotent. */
+    showDone(prog);
+  }
+
   function buildRail(sheet, prog, railEl) {
     const nav = $('.nav', railEl) || (() => {
       const n = make('nav', 'nav');
@@ -1392,7 +1595,12 @@ window.WB = window.WB || {};
       el.classList.toggle('is-earned', !!prog.badges[el.getAttribute('data-badge')]);
     });
 
-    if (prog.finished) showDone(prog);
+    /* Im Klausurmodus ist die Abgabe der Abschluss — sie deckt auf und ruft
+       showDone selbst. Sie passiert automatisch, sobald die letzte Aufgabe
+       beantwortet ist; genau deshalb braucht das Prüfskript den Abgabeknopf
+       nicht zu kennen. */
+    if (klausur) { if (prog.finished) abgeben(prog); }
+    else if (prog.finished) showDone(prog);
   }
 
   const BADGE_LABEL = {
@@ -1413,6 +1621,56 @@ window.WB = window.WB || {};
     }
     if (el.classList.contains('show')) return;
     el.innerHTML = '';
+
+    /* ── Klausurmodus: Urteil statt Auszeichnungen ────────────────────────── */
+    if (klausur) {
+      const noetig = klausur.bestehen;
+      const bestanden = prog.score >= noetig;
+      el.classList.toggle('done--durchgefallen', !bestanden);
+      el.appendChild(make('div', 'done__check', bestanden ? '✓' : '✗'));
+      el.appendChild(make('h3', null, bestanden ? 'Bestanden' : 'Nicht bestanden'));
+      el.appendChild(make('div', 'big', prog.score + ' / ' + prog.maxScore));
+      el.appendChild(make('p', null,
+        noetig + ' Punkte sind nötig' +
+        (bestanden ? ' — geschafft mit ' + (prog.score - noetig) + ' Punkten Luft.'
+                   : ' — es fehlen ' + (noetig - prog.score) + '.')));
+
+      /* Punkte je Aufgabenblock: die Zeile, an der man sieht, wo man steht. */
+      const tab = make('div', 'blockpunkte');
+      prog.sheet.parts.forEach(part => {
+        const erreicht = part.tasks.reduce((s, t) => s + (prog.get(t.id).points || 0), 0);
+        const moeglich = part.tasks.reduce((s, t) => s + maxPoints(t), 0);
+        const z = make('div', 'blockpunkte__zeile');
+        z.appendChild(make('span', 'blockpunkte__name', part.title));
+        z.appendChild(make('span', 'blockpunkte__wert', erreicht + ' / ' + moeglich));
+        const bar = make('span', 'blockpunkte__bar');
+        const fill = make('span', 'blockpunkte__fill');
+        fill.style.width = (moeglich ? Math.round((erreicht / moeglich) * 100) : 0) + '%';
+        bar.appendChild(fill);
+        z.appendChild(bar);
+        tab.appendChild(z);
+      });
+      el.appendChild(tab);
+
+      const min = uhr.minutenGebraucht();
+      const zeit = make('p', 'done__zeit');
+      html(zeit, min
+        ? 'Gebraucht: <b>' + min + ' Minuten</b> von ' + klausur.minuten +
+          (min > klausur.minuten
+            ? ' — das wäre in der Klausur nicht durchgegangen.'
+            : '.')
+        : 'Ohne laufende Uhr bearbeitet.');
+      el.appendChild(zeit);
+
+      el.appendChild(make('p', null,
+        'In der echten Klausur kommen bis zu 10 Bonuspunkte aus den ' +
+        'Bonuspunktetests dazu; um so viel sinkt die Hürde dort. Die falschen ' +
+        'Aufgaben stehen jetzt mit Begründung und Vertiefung da — die sind der ' +
+        'eigentliche Ertrag dieser Generalprobe.'));
+      el.classList.add('show');
+      return;
+    }
+
     el.appendChild(make('div', 'done__check', '✓'));
     el.appendChild(make('h3', null, 'Blatt abgeschlossen'));
     el.appendChild(make('div', 'stars', '★'.repeat(prog.stars) + '☆'.repeat(5 - prog.stars)));
@@ -1487,6 +1745,11 @@ window.WB = window.WB || {};
 
   WB.register = function register(sheet) {
     WB.sheets.push(sheet);
+
+    /* Klausurmodus scharfschalten, BEVOR irgendetwas gerendert wird — die
+       Punkterechnung, die Rueckmeldung und der Zweitversuch haengen daran. */
+    klausur = sheet.klausur || null;
+    abgegeben = false;
 
     const host = $('[data-sheet]');
     if (!host) {
@@ -1597,11 +1860,35 @@ window.WB = window.WB || {};
       host.appendChild(sec);
     });
 
+    /* ── Abgabeknopf, nur in der Klausur ── */
+    if (sheet.klausur) {
+      const box = make('div', 'abgabe');
+      const ab = make('button', 'act act--abgabe', 'Abgeben und auswerten');
+      ab.type = 'button';
+      ab.setAttribute('data-abgeben', '');
+      box.appendChild(ab);
+      box.appendChild(make('p', 'abgabe__hinweis',
+        'Vorher siehst du keine Lösung und keine Rückmeldung — wie in der Klausur. ' +
+        'Sobald die letzte Aufgabe beantwortet ist, wird automatisch abgegeben.'));
+      host.appendChild(box);
+      ab.addEventListener('click', () => {
+        if (abgegeben) return;
+        const offen = prog.total - prog.solved;
+        if (offen && !confirm(offen + (offen === 1 ? ' Aufgabe ist' : ' Aufgaben sind') +
+            ' noch offen. Trotzdem abgeben? Die Punkte dafür sind dann weg.')) return;
+        abgeben(prog);
+      });
+    }
+
     const railEl = $('.rail');
     if (railEl) buildRail(sheet, prog, railEl);
+    if (railEl) uhr.montiere(railEl);
 
     /* ── Stand wiederherstellen ── */
     if (prog.restore()) {
+      /* War die Klausur schon vollstaendig beantwortet, war sie auch schon
+         abgegeben — sonst blieben nach dem Neuladen alle Loesungen verborgen. */
+      if (klausur && prog.finished) abgegeben = true;
       allRendered.forEach(r => {
         const st = prog.get(r.task.id);
         if (st.state !== 'offen') r.markRestored(st);
@@ -1619,6 +1906,7 @@ window.WB = window.WB || {};
       b.addEventListener('click', () => {
         if (!confirm('Stand dieses Blattes löschen und neu beginnen?')) return;
         prog.reset();
+        uhr.zuruecksetzen();   /* sonst liefe die Klausuruhr weiter */
         location.reload();
       });
     });
