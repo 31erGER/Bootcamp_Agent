@@ -1,18 +1,20 @@
 /* ============================================================================
-   selbsttest.data.js — je eine Aufgabe pro Typ
+   selbsttest.data.js — je eine Aufgabe pro Aufgabenart
    ---------------------------------------------------------------------------
-   Das Regressionsblatt des Rahmenwerks. Es enthält von jedem der neun
-   Aufgabentypen genau eine Instanz. Nach jeder Änderung an engine.js,
+   Das Regressionsblatt des Rahmenwerks. Es enthält von jeder der dreizehn
+   Aufgabenarten genau eine Instanz — zwölf Typen, wobei `choice` zweimal
+   erscheint: einmal als Einfach-, einmal als Mehrfachauswahl. Die beiden
+   nehmen in der Engine verschiedene Wege (radio gegen checkbox, eine richtige
+   Antwort gegen beliebig viele) und müssen deshalb beide laufen. Nach jeder Änderung an engine.js,
    styles.css oder validate.js einmal durchlaufen lassen:
 
      assets/selbsttest.html#pruefen
 
-   Erwartung: 185 von 185 Punkten, alle neun Aufgaben gelöst, alle
-   Auszeichnungen, keine Konsolenfehler, keine Redaktionsfehler.
+   Erwartung seit 11.09.2026: 270 von 270 Punkten, alle dreizehn Aufgaben
+   gelöst, alle Auszeichnungen, keine Konsolenfehler, keine Redaktionsfehler.
 
-   Die 185 setzen sich zusammen aus 170 Aufgabenpunkten (10 · Multiplikator je
-   Aufgabe, der Rechenweg 3 Schritte × 10 + 10 Abschluss) und 15 Serienbonus:
-   neun Aufgaben ohne Fehler ergeben dreimal die Serie ×3.
+   Der Serienbonus steckt in der Summe mit drin — sie ist deshalb nicht die
+   reine Addition der Aufgabenpunkte.
 
    Der Inhalt ist echtes Prüfungswissen zu Verbundnetzen — damit dient die Datei
    gleichzeitig als Vorlage: wer ein neues Blatt schreibt, kopiert sich hier den
@@ -30,11 +32,10 @@ WB.register({
   id: 'SELBSTTEST',
   kind: 'Selbsttest',
   level: 'Rahmenwerk',
-  kicker: 'Selbsttest · alle neun Aufgabentypen',
-  headline: 'Neun Typen,<br><em>ein Durchlauf.</em>',
+  kicker: 'Selbsttest · alle dreizehn Aufgabenarten',
+  headline: 'Elf Typen,<br><em>ein Durchlauf.</em>',
   lede: 'Wenn dieses Blatt die volle Punktzahl erreicht und alle Auszeichnungen vergibt, ' +
         'trägt die Engine. Wenn nicht, sagt die Prüfleiste unten, woran es liegt.',
-  minutes: 20,
   trace: 'M0,34 C60,34 90,30 120,22 S180,6 240,10 S300,30 360,34 C420,36 450,30 480,22 S540,6 600,10 S660,30 720,34 L800,34',
 
   intro: [
@@ -56,8 +57,8 @@ WB.register({
     {
       index: '01',
       eyebrow: 'Teil 1',
-      title: 'Auswahl, Lücke, Zuordnung',
-      count: '3 Aufgaben',
+      title: 'Auswahl, Mehrfachauswahl, Lücke, Zuordnung',
+      count: '4 Aufgaben',
       tasks: [
 
         /* ───────────────────────────────────────────── choice ───────────── */
@@ -129,6 +130,26 @@ WB.register({
           ],
           feedback: 'Die vier Stufen greifen zeitlich gestaffelt ineinander: <b>Trägheit</b> in Millisekunden, <b>Primär</b> in Sekunden, <b>Sekundär</b> in Minuten, <b>Minutenreserve</b> darüber. Jede löst die vorige ab, damit die schnelle Reserve wieder frei wird.',
           deep: 'Die Momentanreserve ist die einzige Stufe ohne Regler — sie ist reine Physik. Genau deshalb ist sie ein Thema der Energiewende: Umrichter-gekoppelte Anlagen wie Wind und Photovoltaik bringen von sich aus keine rotierende Masse mit, und die Trägheit des Netzes sinkt. Sie muss dann nachgebildet werden.'
+        },
+
+        /* ───────────────────────────────────── choice · mehrfach ─────────── */
+        {
+          id: 4,
+          type: 'choice',
+          multi: true,
+          eyebrow: 'Teil 1 · Mehrfachauswahl',
+          title: 'Was gilt für die Primärregelung?',
+          difficulty: 'schwer',
+          prompt: 'Welche Aussagen über die <span class="hl">Primärregelung</span> treffen zu?',
+          options: [
+            { text: 'Sie läuft dezentral in jedem beteiligten Kraftwerk ab', correct: true },
+            { text: 'Sie ist nach etwa dreißig Sekunden vollständig abgerufen', correct: true },
+            { text: 'Sie führt die Frequenz auf genau fünfzig Hertz zurück', correct: false },
+            { text: 'Sie wird zentral vom Regelzonenführer angefordert', correct: false }
+          ],
+          feedback: 'Die Primärregelung ist die Sekundenreserve: <b>dezentral</b> und schnell. Sie hält die Frequenz an, führt sie aber nicht zurück — das übernimmt die Sekundärregelung.',
+          wrongNote: 'Anhalten und Zurückführen sind zwei verschiedene Aufgaben. Bliebe es bei der Primärregelung, liefe das Netz dauerhaft mit einer kleinen Abweichung weiter.',
+          deep: 'Der Typ prüft hier etwas, das eine Einfachauswahl nicht kann: dass mehrere Eigenschaften gleichzeitig gelten und zwei davon leicht verwechselte Nachbarn haben.'
         }
       ]
     },
@@ -141,7 +162,7 @@ WB.register({
 
         /* ───────────────────────────────────────────── order ────────────── */
         {
-          id: 4,
+          id: 5,
           type: 'order',
           eyebrow: 'Teil 2 · Reihenfolge',
           title: 'Der Ablauf eines Kraftwerksausfalls',
@@ -160,7 +181,7 @@ WB.register({
 
         /* ───────────────────────────────────────────── hotspot ─────────── */
         {
-          id: 5,
+          id: 6,
           type: 'hotspot',
           eyebrow: 'Teil 2 · Kartenarbeit',
           title: 'Vier Stellen im Netzschema',
@@ -184,7 +205,7 @@ WB.register({
 
         /* ───────────────────────────────────────────── estimate ─────────── */
         {
-          id: 6,
+          id: 7,
           type: 'estimate',
           eyebrow: 'Teil 2 · Schätzen',
           title: 'Wann ist die Primärregelung ausgeschöpft?',
@@ -204,13 +225,13 @@ WB.register({
     {
       index: '03',
       eyebrow: 'Teil 3',
-      title: 'Raster, Prognose, Rechenweg',
-      count: '3 Aufgaben',
+      title: 'Raster, Prognose, Rechenweg, Umkehrfrage',
+      count: '4 Aufgaben',
       tasks: [
 
         /* ───────────────────────────────────────────── matrix ──────────── */
         {
-          id: 7,
+          id: 8,
           type: 'matrix',
           eyebrow: 'Teil 3 · Raster',
           title: 'Welche Stufe in welchem Zeitbereich?',
@@ -231,7 +252,7 @@ WB.register({
 
         /* ───────────────────────────────────────────── forecast ─────────── */
         {
-          id: 8,
+          id: 9,
           type: 'forecast',
           eyebrow: 'Teil 3 · Lagebeurteilung',
           title: 'Einen Lastfall bewerten',
@@ -254,7 +275,7 @@ WB.register({
 
         /* ───────────────────────────────────────────── calc ────────────── */
         {
-          id: 9,
+          id: 10,
           type: 'calc',
           eyebrow: 'Teil 3 · Rechenweg',
           title: 'Netzleistungszahl aus einem Ausfall bestimmen',
@@ -269,6 +290,7 @@ WB.register({
           steps: [
             {
               label: 'Frequenzabweichung',
+              formula: 'Δf = f<sub>vorher</sub> − f<sub>nachher</sub>',
               answer: 60,
               tol: 2,
               unit: 'mHz',
@@ -293,6 +315,85 @@ WB.register({
           ],
           feedback: '50,000 − 49,940 = 0,060 Hz. Damit λ = 900 / 0,060 = <b>15 000 MW/Hz</b>. Ein Ausfall von 1500 MW ergäbe 1500 / 15 000 = 0,100 Hz, also <b>100 mHz</b> — die Frequenz fiele auf 49,90 Hz.',
           deep: 'Die Netzleistungszahl ist das Maß für die Steifigkeit des Netzes. Für Kontinentaleuropa liegt sie bei 15 000 bis 25 000 MW/Hz — ein einzelner Kraftwerksausfall bewegt die Frequenz deshalb um Millihertz und nicht um Hertz. Ein kleines Inselnetz hat eine viel kleinere Zahl, und dort wirft derselbe Ausfall die Frequenz um ein Vielfaches. Genau darum ist der Verbund mit Nachbarn wertvoller als jede eigene Reserve.'
+        },
+
+        /* quelle: Rahmenwerk-Selbsttest, Regressionsfall vom 11.09.2026 */
+        {
+          id: 11,
+          type: 'reverse',
+          eyebrow: 'Teil 3 · Umkehrfrage',
+          title: 'Zu welcher Frage gehört dieser Wert?',
+          difficulty: 'schwer',
+          prompt: 'Drei Werte ohne ihre Frage. Ordne jedem Wert die <span class="hl">Frage</span> zu, auf die er die Antwort ist.',
+          items: [
+            { answer: '50 Hz',       question: 'Welche Frequenz hält der europäische Verbund?' },
+            { answer: '15 000 MW/Hz', question: 'Wie steif ist das Netz im Rechenbeispiel oben?' },
+            { answer: '30 Sekunden', question: 'Wie schnell steht die Primärregelung vollständig?' }
+          ],
+          pool: [
+            'Wie lange läuft die Sekundärregelung nach einem Ausfall?',
+            'Wie groß war der ausgefallene Kraftwerksblock im Beispiel?'
+          ],
+          feedback: 'Alle drei Werte stammen aus diesem Blatt. Die Umkehrung prüft, ob sie mit ihrer Bedeutung abgelegt wurden und nicht nur als Zahl.',
+          deep: 'Der Typ <code>reverse</code> stellt alle Fragen aller Zeilen in EIN gemeinsames Auswahlfeld. Deshalb lässt sich eine Zeile nicht isoliert raten: was hier gewählt wird, fehlt dort.'
+        }
+      ]
+    },
+    {
+      index: '04',
+      eyebrow: 'Teil 4',
+      title: 'Intensivkurs-Typen',
+      count: '2 Aufgaben',
+      lead: '<b>Musterbeispiel:</b> Intensivkurse können vor einem Aufgabensatz einen kurzen, vollständig gelösten Einstieg zeigen.',
+      tasks: [
+
+        /* quelle: Rahmenwerk-Selbsttest, Regressionsfall vom 27.08.2026 */
+        {
+          id: 12,
+          type: 'result',
+          exam: true,
+          eyebrow: 'Teil 4 · Nur Ergebnisse',
+          title: 'Drei Eingabeformen sicher prüfen',
+          difficulty: 'schwer',
+          prompt: 'Trage ausschließlich die drei <span class="hl">Endergebnisse</span> ein.',
+          given: [
+            { label: 'Dezimalwert', value: '119 / 5' },
+            { label: 'Hexadezimalwert', value: 'AF' },
+            { label: 'STRIDE-Kürzel', value: 'Verfälschung von Daten' }
+          ],
+          fields: [
+            { kind: 'number', label: 'Quotient', answer: 23.8, tol: 0.05 },
+            { kind: 'hex', label: 'Hex-Byte', answer: 'AF' },
+            { kind: 'text', label: 'STRIDE-Kategorie', answer: 'Tampering', aliases: ['T'] }
+          ],
+          solution: [
+            '119 : 5 = 23 Rest 4; 4 : 5 = 0,8. Damit ist der Quotient 23,8.',
+            'Ein Hex-Byte darf mit oder ohne Präfix geschrieben werden: AF = 0xAF.',
+            'Verfälschung heißt in STRIDE Tampering; das Kürzel ist T.'
+          ],
+          feedback: 'Alle drei Endergebnisse werden unabhängig voneinander normalisiert und geprüft.',
+          deep: 'Der Typ <code>result</code> hält die Rechnung vor der Abgabe vollständig verborgen. Erst danach erscheint ein gegengeprüfter Musterweg.'
+        },
+
+        /* quelle: Rahmenwerk-Selbsttest, Regressionsfall vom 27.08.2026 */
+        {
+          id: 13,
+          type: 'paper',
+          exam: true,
+          eyebrow: 'Teil 4 · Papieraufgabe',
+          title: 'Ein Mini-DFD auf Papier prüfen',
+          difficulty: 'schwer',
+          prompt: 'Zeichne auf Papier einen Prozess zwischen externer Entität und Datenspeicher. Bewerte dich danach anhand der Kriterien.',
+          timebox: '3 Minuten',
+          checklist: [
+            'Externe Entität, Prozess und Datenspeicher sind unterscheidbar.',
+            'Jeder Datenfluss ist gerichtet und fachlich beschriftet.'
+          ],
+          solution: {
+            html: '<p><b>Muster:</b> Nutzer → (Anfrage bearbeiten) → Datenspeicher; die Antwort fließt über den Prozess zurück.</p>'
+          },
+          feedback: 'Die Papieraufgabe bewertet nicht die Zeichenkunst, sondern die vollständig angewandten Modellierungsregeln.',
+          deep: 'Für echte DFD-Aufgaben wird die Musterlösung erst nach der eigenen Bearbeitung sichtbar und anschließend Kriterium für Kriterium verglichen.'
         }
       ]
     }

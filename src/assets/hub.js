@@ -6,7 +6,7 @@
    er ist. Genau das ist der Grund, warum ein Bootcamp abgebrochen wird: nicht
    weil es zu schwer ist, sondern weil man den Überblick verliert.
 
-   Aufruf aus index.data.js:
+   Aufruf aus startseite.data.js:
 
      WB.hub({
        kicker, headline, lede,
@@ -15,7 +15,7 @@
          'Modul 01 · Thema':  { step: true, note: 'Lesen, üben, programmieren' },
          'Abschluss':         { label: 'Zum Schluss' }
        },
-       entries: [{ file, kind, title, desc, points, minutes, group }]
+       entries: [{ file, kind, title, desc, points, group }]
      });
 
    GRUPPEN sind optional. Eintraege mit gleichem `group` IN FOLGE bilden einen
@@ -33,6 +33,19 @@
    WB.store.readFor(). Ein Blatt, das noch nie geöffnet wurde, hat keinen Stand;
    dann steht dort „noch nicht begonnen" und nicht „0 %". Der Unterschied ist
    wichtig: 0 % sieht nach Versagen aus, „noch nicht begonnen" nach Vorhaben.
+
+   Korrigiert am 27.08.2026: Fortschrittsbalken zeigen bearbeitete Aufgaben
+   statt des Punktestands oder nur vollständig abgeschlossener Module.
+
+   GEAENDERT AM 10.09.2026: KEINE GESCHAETZTEN ZEITEN MEHR. Der Eintrag kannte
+   ein Feld `minutes`, aus dem hier „~45 Min" wurde. Diese Zahlen waren geraten
+   und lagen regelmäßig daneben — und eine falsche Zeitangabe ist schlimmer als
+   keine: sie macht aus einem normalen Nachmittag ein Versagen. Was die Karte
+   jetzt zeigt, sind nur Tatsachen: Aufgabenzahl, Punkte, Fortschritt. Das Feld
+   wird nirgends mehr gelesen; steht es in einer alten Datei, ist es wirkungslos.
+   Eine vorgeschriebene Zeit ist etwas anderes und bleibt: `klausur.minuten`
+   (die Klausurdauer) und `task.timebox` (die Zeitvorgabe einer Papieraufgabe)
+   sind keine Schätzungen, sondern Teil der Aufgabenstellung.
    ============================================================================ */
 
 window.WB = window.WB || {};
@@ -100,18 +113,32 @@ window.WB = window.WB || {};
     const ids = Object.keys(raw.state);
     const solved = ids.filter(k => raw.state[k].state !== 'offen').length;
     const done = ids.filter(k => raw.state[k].state === 'done').length;
-    const total = raw.total || ids.length;
+    /* Die Index-Metadaten haben Vorrang: Nach einer Kurserweiterung kann ein
+       gespeicherter Stand noch die alte Aufgabenzahl enthalten. */
+    const total = entry.tasks || raw.total || ids.length;
     /* Fällt maxScore aus einem alten Stand heraus, lieber die Angabe aus den
        Hub-Daten nehmen als durch 0 zu teilen. */
     const maxScore = raw.maxScore || entry.points || 0;
     const pct = maxScore ? Math.round((raw.score / maxScore) * 100) : 0;
+    const progress = total ? Math.round((solved / total) * 100) : 0;
 
     return {
       score: raw.score || 0, maxScore, solved, done, total,
-      percent: pct,
+      percent: pct, progress,
       stars: raw.stars !== undefined ? raw.stars : starsFor(pct),
       badges: raw.badges || {},
       finished: total > 0 && solved >= total
+    };
+  }
+
+  /** Bearbeitungsstand eines Aufgabenblatts. `entry.tasks` hält noch nicht
+      begonnene Blätter sowie ältere gespeicherte Stände korrekt im Nenner. */
+  function aufgabenStand(entry, stand) {
+    const total = stand ? stand.total : (entry.tasks || 0);
+    const solved = stand && total ? Math.min(stand.solved, total) : 0;
+    return {
+      solved, total,
+      percent: total ? Math.round((solved / total) * 100) : 0
     };
   }
 
@@ -132,11 +159,15 @@ window.WB = window.WB || {};
     /* ── Stände einsammeln ──
        Ein Eintrag mit `points` ist ein Aufgabenblatt und hat einen Punktestand,
        einer ohne ist Lesestoff und hat einen Lesestand. */
-    const rows = (cfg.entries || []).map(e => ({
-      entry: e,
-      stand: e.points ? standFor(e) : null,
-      lese: e.points ? null : leseStand(e)
-    }));
+    const rows = (cfg.entries || []).map(e => {
+      const stand = e.points ? standFor(e) : null;
+      return {
+        entry: e,
+        stand,
+        lese: e.points ? null : leseStand(e),
+        aufgaben: e.points ? aufgabenStand(e, stand) : null
+      };
+    });
 
     /* Nur bewertbare Blätter zählen in den Gesamtstand. Ein Lehrkurs hat keine
        Punkte, und würde man ihn mitzählen, sänke der Anteil, sobald man ihn
@@ -144,7 +175,14 @@ window.WB = window.WB || {};
     const bewertbar = rows.filter(r => r.entry.points);
     const score = bewertbar.reduce((s, r) => s + (r.stand ? r.stand.score : 0), 0);
     const maxScore = bewertbar.reduce((s, r) => s + (r.stand ? r.stand.maxScore : r.entry.points), 0);
-    const pct = maxScore ? Math.round((score / maxScore) * 100) : 0;
+    const aufgabenGesamt = bewertbar.reduce((s, r) => s + r.aufgaben.total, 0);
+    const aufgabenGeloest = bewertbar.reduce((s, r) => s + r.aufgaben.solved, 0);
+    const alleAufgabenzahlenBekannt = bewertbar.every(r => r.aufgaben.total > 0);
+    const pct = alleAufgabenzahlenBekannt && aufgabenGesamt
+      ? Math.round((aufgabenGeloest / aufgabenGesamt) * 100)
+      : (bewertbar.length
+          ? Math.round(bewertbar.reduce((s, r) => s + r.aufgaben.percent, 0) / bewertbar.length)
+          : 0);
     const fertig = rows.filter(r => r.stand && r.stand.finished).length;
 
     const auszeichnungen = rows.reduce((n, r) => {
@@ -165,7 +203,9 @@ window.WB = window.WB || {};
       main.appendChild(rk);
 
       main.appendChild(make('div', 'userpanel__xp',
-        score + ' von ' + maxScore + ' Punkten  ·  ' + pct + ' %'));
+        alleAufgabenzahlenBekannt
+          ? aufgabenGeloest + ' von ' + aufgabenGesamt + ' Aufgaben  ·  ' + pct + ' % bearbeitet'
+          : pct + ' % bearbeitet'));
 
       const bar = make('div', 'xpbar');
       const fill = make('span');
@@ -222,8 +262,7 @@ window.WB = window.WB || {};
         let meta;
         if (ziel.stand) meta = ziel.stand.solved + ' von ' + ziel.stand.total + ' Aufgaben gelöst';
         else if (ziel.lese) meta = ziel.lese.percent + ' % gelesen';
-        else meta = (ziel.entry.kind || 'Blatt') +
-          (ziel.entry.minutes ? '  ·  ~' + ziel.entry.minutes + ' Min' : '');
+        else meta = ziel.entry.kind || 'Blatt';
         res.appendChild(make('div', 'resume__meta', meta));
         const a = make('a', 'resume__btn', angefangen ? 'Weiter' : 'Öffnen');
         a.href = ziel.entry.file;
@@ -242,7 +281,7 @@ window.WB = window.WB || {};
        27 Stueck — man sieht sie alle, aber man erkennt nichts.
 
        Jetzt bilden Eintraege mit gleichem `group` IN FOLGE einen Abschnitt mit
-       eigener Ueberschrift, eigenem Fortschritt und eigener Zeitangabe.
+       eigener Ueberschrift, eigenem Fortschritt und eigener Punktesumme.
 
        DIE REIHENFOLGE DER EINTRAEGE BLEIBT UNANGETASTET. Das ist Bedingung,
        nicht Zufall: die Weiter-Karte oben schlaegt `rows.filter(offen)[0]` vor,
@@ -253,14 +292,6 @@ window.WB = window.WB || {};
        Ohne `group` verhaelt sich alles wie vorher: eine Wand. Aeltere Kurse,
        die hub.js mitbenutzen, laufen dadurch unveraendert weiter.
        ────────────────────────────────────────────────────────────────────── */
-
-    /** „~85 Min" oder „~4 h 30" — ab anderthalb Stunden liest sich die Stunde besser. */
-    function zeitText(min) {
-      if (!min) return '';
-      if (min < 90) return '~' + min + ' Min';
-      const h = Math.floor(min / 60), m = min % 60;
-      return '~' + h + ' h' + (m ? ' ' + (m < 10 ? '0' + m : m) : '');
-    }
 
     /** Erledigt heisst beim Blatt „alle Aufgaben beantwortet", beim Lesestoff
         „durchgelesen". Beides ist derselbe Haken auf der Karte. */
@@ -288,7 +319,7 @@ window.WB = window.WB || {};
            eine Behauptung über etwas, das noch nicht stattgefunden hat. */
         if (entry.points || lese) {
           const fertig = entry.points ? (stand && stand.finished) : (lese && lese.done);
-          const anteil = entry.points ? (stand ? stand.percent : 0) : lese.percent;
+          const anteil = entry.points ? (stand ? stand.progress : 0) : lese.percent;
           const bar = make('div', 'sheetcard__bar' + (fertig ? ' is-done' : ''));
           const fill = make('span');
           fill.style.width = anteil + '%';
@@ -301,7 +332,7 @@ window.WB = window.WB || {};
         if (!entry.points) {
           if (lese && lese.done) { cls += ' is-done'; txt = 'gelesen'; }
           else if (lese) { cls += ' is-open'; txt = lese.percent + ' % gelesen'; }
-          else txt = entry.minutes ? '~' + entry.minutes + ' Min Lesezeit' : 'zum Lesen';
+          else txt = 'zum Lesen';
         } else if (!stand) {
           cls += ' is-open';
           txt = 'noch nicht begonnen';
@@ -340,7 +371,7 @@ window.WB = window.WB || {};
       if (!gruppiert) {
         rows.forEach(r => list.appendChild(karteFuer(r)));
       } else {
-        /* Der Host traegt in aelteren index.html die Klasse `sheets` und ist
+        /* Der Host traegt in aelteren Startseiten die Klasse `sheets` und ist
            damit selbst das Kachelraster. Sobald gruppiert wird, sind seine
            Kinder aber Abschnitte — das Raster gehoert dann eine Ebene tiefer. */
         list.className = 'hubgroups';
@@ -354,6 +385,11 @@ window.WB = window.WB || {};
           const gesamt = lauf.rows.length;
           const fertig = lauf.rows.filter(istFertig).length;
           const alles = gesamt > 0 && fertig === gesamt;
+          const gruppenAufgaben = lauf.rows.reduce((s, r) => s + (r.aufgaben ? r.aufgaben.total : 0), 0);
+          const gruppenGeloest = lauf.rows.reduce((s, r) => s + (r.aufgaben ? r.aufgaben.solved : 0), 0);
+          const gruppenProzent = gruppenAufgaben
+            ? Math.round((gruppenGeloest / gruppenAufgaben) * 100)
+            : (gesamt ? Math.round((fertig / gesamt) * 100) : 0);
 
           const sec = make('section', 'hubgroup' + (alles ? ' is-done' : ''));
           const kopf = make('div', 'hubgroup__head');
@@ -377,20 +413,18 @@ window.WB = window.WB || {};
 
           const meta = make('div', 'hubgroup__meta');
           meta.appendChild(make('span', 'hubgroup__state' + (alles ? ' is-done' : ''),
-            alles ? 'fertig · ' + gesamt + ' von ' + gesamt
-                  : fertig + ' von ' + gesamt + ' erledigt'));
+            gruppenAufgaben
+              ? (alles ? 'fertig · ' : '') + gruppenGeloest + ' von ' + gruppenAufgaben + ' Aufgaben'
+              : (alles ? 'fertig · ' + gesamt + ' von ' + gesamt
+                       : fertig + ' von ' + gesamt + ' erledigt')));
 
           const punkte = lauf.rows.reduce((s, r) => s + (r.entry.points || 0), 0);
-          const minuten = lauf.rows.reduce((s, r) => s + (r.entry.minutes || 0), 0);
-          const rechts = [];
-          if (punkte) rechts.push(punkte + ' Punkte');
-          if (minuten) rechts.push(zeitText(minuten));
-          if (rechts.length) meta.appendChild(make('span', 'hubgroup__facts', rechts.join('  ·  ')));
+          if (punkte) meta.appendChild(make('span', 'hubgroup__facts', punkte + ' Punkte'));
           kopf.appendChild(meta);
 
           const bar = make('div', 'hubgroup__bar' + (alles ? ' is-done' : ''));
           const fill = make('span');
-          fill.style.width = (gesamt ? Math.round((fertig / gesamt) * 100) : 0) + '%';
+          fill.style.width = gruppenProzent + '%';
           bar.appendChild(fill);
           kopf.appendChild(bar);
 
@@ -424,6 +458,17 @@ window.WB = window.WB || {};
     if (WB.store.blocked) {
       const warn = $('[data-store-warning]');
       if (warn) warn.hidden = false;
+    }
+
+    /* Korrigiert am 27.08.2026: Bei direktem Öffnen per Doppelklick können
+       Moduldateien und Startseite getrennte file://-Speicher besitzen. Die
+       Engine sammelt die Originalstände per postMessage ein. Nur wenn wirklich
+       ein neuer Stand ankam, wird einmal neu geladen und damit neu gerendert. */
+    if (WB.storeBridge && WB.storeBridge.collect) {
+      WB.storeBridge.collect(
+        rows.filter(r => r.entry.points).map(r => r.entry.file),
+        changed => { if (changed) location.reload(); }
+      );
     }
 
     return { score, maxScore, percent: pct, rows };

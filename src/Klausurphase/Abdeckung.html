@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="wb-course" content="Beispielkurs">
+<title>Abdeckung — kommt alles vor? (Dummy)</title>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SHOWCASE · Abdeckungskarte. NUR FÜR DIE KLAUSURPHASE.
+
+     Der Zweck ist eine einzige Frage: kommt jedes Thema, das geprüft werden
+     kann, irgendwo im Bootcamp vor? `Klausurvorbereitung.md` sagt dazu
+     „Lasse trotzdem nichts aus" — der Umfang einer Prüfung ist von außen
+     gesetzt, nicht vom Agenten.
+
+     Die Falle dieser Seite: sie BEHAUPTET Abdeckung. Wird eine Aufgabe später
+     umgeschrieben und der Begriff fällt heraus, sagt die Karte weiter
+     „abgedeckt". Deshalb gibt es die Gegenprobe:
+
+         node tools/exam-coverage-check.mjs
+
+     Sie liest die Begriffe aus `tools/klausurphase.config.mjs`, sucht sie in
+     den Aufgabenobjekten selbst und ist ROT, wenn einer fehlt. Wer hier eine
+     Zeile ergänzt, ergänzt sie dort mit — sonst ist die Zeile eine Behauptung
+     ohne Beweis.
+
+     EIN BOOTCAMP OHNE KLAUSUR HAT DIESE SEITE NICHT: ohne Prüfungsumfang gibt
+     es nichts abzudecken, und der Zuschnitt steht dann in `NeuesThema.md`.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="is-hub">
+
+<div class="hub">
+
+  <header class="hub__head">
+    <div class="masthead__rule">Abdeckungskarte · Dummy · Stand: Showcase</div>
+    <h1>Kommt alles vor,<br><em>was vorkommen kann?</em></h1>
+    <p class="hub__lede">Jedes Thema der Unterlagen, jede Übungsaufgabe, jedes Praktikum und jede
+    Altprüfungsaufgabe — mit dem Blatt, das es abdeckt. Was hier keine Zeile hat, ist im Bootcamp
+    nicht enthalten, und das ist dann eine Entscheidung und kein Versehen.</p>
+  </header>
+
+  <div class="callout callout--think">
+    <div class="callout__icon">!</div>
+    <div class="callout__body">
+      <p><b>Nur in der Klausurphase.</b> Diese Karte vergleicht das Bootcamp mit einem von außen
+      gesetzten Prüfungsumfang. Wird ein Thema aus Interesse aufgearbeitet, gibt es diesen Umfang
+      nicht — dann entfällt die Seite, und <code>tools/klausurphase.config.mjs</code> bleibt leer.</p>
+    </div>
+  </div>
+
+  <div class="hub__section">A · Themen der Unterlagen</div>
+
+  <div class="theorie">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Thema (Dummy)</th><th>Quelle</th><th>abgedeckt durch</th><th>Gewicht</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Regelzonen und Frequenzhaltung</td>
+            <td>VL 01, Übung 1.2</td>
+            <td><a href="../Modul_02_Verbundnetze.html">Modul 03</a>, Aufg. 1–6 ·
+                <a href="Probeklausur.html">Probeklausur</a>, Aufg. 1</td>
+            <td>hoch</td>
+          </tr>
+          <tr>
+            <td>Primär-, Sekundär- und Tertiärregelung</td>
+            <td>VL 01, Praktikum 1</td>
+            <td><a href="../Modul_02_Verbundnetze.html">Modul 03</a>, Aufg. 7–11 ·
+                <a href="Probeklausur.html">Probeklausur</a>, Aufg. 3</td>
+            <td>hoch</td>
+          </tr>
+          <tr>
+            <td>Netzleistungszahl</td>
+            <td>VL 02, Altprüfung Aufg. 2</td>
+            <td><a href="../Modul_02_Verbundnetze.html">Modul 03</a>, Aufg. 12 ·
+                <a href="Probeklausur.html">Probeklausur</a>, Aufg. 1</td>
+            <td>hoch</td>
+          </tr>
+          <tr>
+            <td>Lastgang, Volllaststunden, Benutzungsgrad</td>
+            <td>VL 03, Übung 3.1</td>
+            <td><a href="Intensiv_01_Netzrechnen.html">Intensivkurs</a>, Aufg. 1 ·
+                <a href="Probeklausur.html">Probeklausur</a>, Aufg. 2</td>
+            <td>hoch</td>
+          </tr>
+          <tr>
+            <td>Gleichzeitigkeitsfaktor</td>
+            <td>VL 03, Praktikum 2</td>
+            <td><a href="Intensiv_01_Netzrechnen.html">Intensivkurs</a>, Aufg. 2 ·
+                <a href="Probeklausur.html">Probeklausur</a>, Aufg. 4</td>
+            <td>mittel</td>
+          </tr>
+          <tr>
+            <td>Spannungsfall und Querschnittsbemessung</td>
+            <td>VL 04, Übung 4.3, Altprüfung Aufg. 5</td>
+            <td><a href="Intensiv_01_Netzrechnen.html">Intensivkurs</a>, Aufg. 3, 7 ·
+                <a href="Probeklausur.html">Probeklausur</a>, Aufg. 7</td>
+            <td>hoch</td>
+          </tr>
+          <tr>
+            <td>Selektivität und Schutzorgane</td>
+            <td>VL 05, Praktikum 3</td>
+            <td><a href="Intensiv_01_Netzrechnen.html">Intensivkurs</a>, Aufg. 4–6 ·
+                <a href="Probeklausur.html">Probeklausur</a>, Aufg. 5, 6</td>
+            <td>mittel</td>
+          </tr>
+          <tr>
+            <td>Netzformen TN / TT / IT</td>
+            <td>VL 06</td>
+            <td><a href="Probeklausur.html">Probeklausur</a>, Aufg. 8</td>
+            <td>mittel</td>
+          </tr>
+          <tr>
+            <td>Signale, Spektren, Fourier-Zerlegung</td>
+            <td>VL 07, kein Übungsblatt</td>
+            <td><a href="../Modul_01_Signale_Lehrkurs.html">Lehrkurs</a>, Kapitel 0–9</td>
+            <td>niedrig · nur Verständnis</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="hub__section">B · Bewusst nicht abgedeckt</div>
+
+  <div class="theorie">
+    <p>Eine Abdeckungskarte, in der alles abgedeckt ist, ist meistens keine Karte, sondern eine
+    Behauptung. Diese Zeilen sind Entscheidungen:</p>
+    <ul>
+      <li><b>Oberschwingungen und Netzrückwirkungen</b> — in den Unterlagen erwähnt, in keiner
+      Übung gerechnet, in keiner Altprüfung gefragt. Ein Absatz im Lernzettel, kein Blatt.</li>
+      <li><b>Wirtschaftlichkeitsrechnung über die Nutzungsdauer</b> — nicht Teil des Moduls, taucht
+      nur als Randbemerkung im Intensivkurs auf (Verlustkosten).</li>
+    </ul>
+  </div>
+
+  <div class="hub__section">C · Gegenprobe</div>
+
+  <div class="theorie">
+    <p>Die Zeilen oben sind nur so viel wert wie ihre Prüfung. Zwei Werkzeuge halten sie ehrlich:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Werkzeug</th><th>prüft</th><th>rot, wenn</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>tools/exam-coverage-check.mjs</code></td>
+            <td>ob die in <code>klausurphase.config.mjs</code> genannten Begriffe wirklich in
+            einem Aufgabenobjekt stehen</td>
+            <td>ein Begriff fehlt, weil eine Aufgabe umgeschrieben wurde</td>
+          </tr>
+          <tr>
+            <td><code>tools/probeklausur-quality-check.mjs</code></td>
+            <td>Dauer, Punktsumme, Punkte je Aufgabe, Aufgabenzahl, Mindestabdeckung, keine
+            eingeblendeten Rechenwege</td>
+            <td>die Probeklausur weicht von den Klausurbedingungen ab</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p><a href="../../startseite.html">→ Zur Übersicht</a></p>
+  </div>
+
+</div>
+
+</body>
+</html>

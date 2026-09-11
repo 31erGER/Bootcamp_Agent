@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="wb-course" content="Beispielkurs">
+<title>Modul 01 · Signale und Spektren — Aufgabenheft</title>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SHOWCASE · Aufgabenheft, Schritt 2 von Modul 01.
+     Zeigt die zehn klassischen Aufgabentypen, jeden genau einmal, und eine
+     Visualisierung.
+
+     Das Gerüst ist absichtlich dumm: Marke, Wegweiser, eine Datenzeile. Jede
+     Aufgabe, jeder Text und jede Zahl steht in Modul_01_Signale.data.js.
+     Wer ein neues Heft anlegt, kopiert diese Datei und tauscht genau das.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="brand">
+      <div class="brand__mark">Beispielkurs</div>
+      <div class="brand__name">Modul 01</div>
+      <div class="brand__sub">Signale und Spektren · Modul 1 von 2</div>
+    </div>
+
+    <div class="progress">
+      <div class="progress__ring">
+        <svg width="64" height="64" aria-hidden="true">
+          <circle class="progress__track" cx="32" cy="32" r="28" fill="none" stroke-width="6"></circle>
+          <circle class="progress__arc" data-arc cx="32" cy="32" r="28" fill="none" stroke-width="6"></circle>
+        </svg>
+        <div class="progress__pct" data-progress-pct>0%</div>
+      </div>
+      <div class="progress__meta">
+        <div class="progress__count" data-progress-count><b>0</b> / 0</div>
+        <div class="progress__label">gelöst</div>
+        <div class="progress__score" data-progress-score>0 / 0 Punkte</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="nav__group">Dein Weg durch Modul 01</div>
+      <a class="nav__task" href="Modul_01_Signale_Lehrkurs.html"><span class="nav__num">1</span><span class="nav__label">Lehrkurs lesen</span></a>
+      <a class="nav__task" href="Modul_01_Signale.html" aria-current="page"><span class="nav__num">▸</span><span class="nav__label"><b>Aufgaben lösen</b></span></a>
+      <a class="nav__task" href="Modul_01_Signale_Lab.html"><span class="nav__num">3</span><span class="nav__label">Lab: Ein Spektrum von Hand</span></a>
+    </div>
+
+    <nav class="nav" aria-label="Aufgaben"></nav>
+
+    <div class="rail__foot">
+      <div class="filters" role="group" aria-label="Aufgaben filtern">
+        <button class="filter is-active" type="button" data-filter="alle">Alle</button>
+        <button class="filter" type="button" data-filter="offen">Offen</button>
+        <button class="filter" type="button" data-filter="geloest">Gelöst</button>
+        <button class="filter" type="button" data-filter="leicht">Leicht</button>
+        <button class="filter" type="button" data-filter="mittel">Mittel</button>
+        <button class="filter" type="button" data-filter="schwer">Schwer</button>
+      </div>
+      <div class="note-strip" data-store-warning hidden>
+        <b>Kein Speicher.</b> Dieser Browser sperrt <code>localStorage</code> auf
+        <code>file://</code> — der Stand überlebt kein Neuladen.
+      </div>
+      <div class="filters">
+        <a class="filter" href="../startseite.html">Übersicht · Modul 1 von 2</a>
+        <button class="filter" type="button" data-reset>Stand löschen</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="masthead" data-masthead></header>
+    <section class="intro" data-intro></section>
+    <div class="stats" data-stats></div>
+
+    <figure class="viz" data-viz="rechteck-synthese" data-viz-opts='{"height":320,"params":{"n":3}}'>
+      <div class="viz__title">Aufgabe 12 in Bewegung: ein Rechteck aus Sinusschwingungen</div>
+      <canvas></canvas>
+      <div class="viz__ctrl">
+        <label>Harmonische
+          <input type="range" data-ctl="n" min="1" max="20" value="3">
+          <output class="viz__read" data-out="n" data-digits="0">3</output>
+        </label>
+        <label><input type="checkbox" data-ctl="teile"> Bausteine zeigen</label>
+      </div>
+      <figcaption class="viz__cap">
+        Der Regler steht auf <b>drei</b> Gliedern — genau der Näherung, die im Lab von Hand
+        gezeichnet wird. Häkchen setzen zeigt die Bausteine einzeln: dann sieht man, dass die
+        dritte Harmonische in der Mitte <b>nach unten</b> zieht. Das ist die Delle aus Etappe 2
+        und die Erklärung dafür, warum die Summe bei 90° kleiner ist als bei 30°. Schieb bis 20 —
+        die Zacken an den Kanten bleiben, egal wie viele Glieder du nimmst.
+      </figcaption>
+    </figure>
+
+    <div data-sheet></div>
+
+    <footer class="foot">
+      <span>Modul 01 · Signale und Spektren · Aufgabenheft</span>
+      <span>läuft ohne Server, ohne Build</span>
+    </footer>
+  </main>
+
+</div>
+
+<script src="assets/engine.js"></script>
+<script src="assets/validate.js"></script>
+<script src="Modul_01_Signale.data.js"></script>
+<script src="assets/viz.js"></script>
+<script src="assets/viz-fourier.js"></script>
+<script src="assets/audit.js"></script>
+</body>
+</html>

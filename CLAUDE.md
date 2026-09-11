@@ -21,6 +21,6 @@ Ist unklar, welcher Auftrag gemeint ist, frag nach. Liegen Vorlesungsfolien und 
 ## Was immer gilt
 
 - **Bearbeitungen an Dateien, die du nicht selbst angelegt hast, kündigst du an und kennzeichnest sie im File.** Das gilt für alles in diesem Vault, `Nutzereinstellungen.md` und die Auftragsdateien eingeschlossen.
-- **`Stylevorgabe/assets/` und `tools/` werden nie gelöscht.** Jede gebaute Seite lädt daraus Stylesheet, Engine und Schriften und wäre danach eine leere Seite.
+- **`src/assets/` und `tools/` werden nie gelöscht.** Jede gebaute Seite lädt daraus Stylesheet, Engine und Schriften und wäre danach eine leere Seite.
 - **Keine externen Server- oder Hostingkosten.** Das Setup bleibt lokal, pflegeleicht und per Doppelklick bedienbar.
-- **Farben nur aus `Stylevorgabe/assets/colorpalett.css`.** Kein Farbwert in einer HTML, einem Blatt oder einer Zeichenfunktion.
+- **Farben nur aus `src/assets/colorpalett.css`.** Kein Farbwert in einer HTML, einem Blatt oder einer Zeichenfunktion.

@@ -14,6 +14,10 @@ Die vollständige Anweisung steht in zwei Dateien im Wurzelverzeichnis dieses Re
 
 `Klausurvorbereitung.md` ist der **andere** Auftrag und hier nicht zuständig — lies sie nicht, ihre Regeln zu Vollständigkeit und Folienabgleich gelten für ein Modul mit Unterlagen.
 
+**Jedes Modul ist ein Dreiklang** aus Fachartikel, Aufgabenheft und Lab — das Lab am Schluss, und es fehlt nie. Bei einem praktischen Thema ist mindestens jede dritte Einheit ohnehin ein Lab; die Regel und der Aufbau eines Labs stehen in `Rahmenwerk.md` unter *Ein Modul ist ein Dreiklang*.
+
+**Kein Lernplan, keine Probeklausur, keine Abdeckungskarte.** Diese drei Bestandteile setzen einen Prüfungstermin voraus, den es hier nicht gibt; die vollständige Liste steht in `Rahmenwerk.md` unter *Nur in der Klausurphase*. Lösche die entsprechenden Showcase-Dateien beim Aufräumen mit, statt sie zu füllen — `tools/klausurphase.config.mjs` bleibt dabei leer, aber vorhanden.
+
 **Der erste Schritt ist eine Rückfrage, kein Dateianlegen.** Schritt 0 in `NeuesThema.md` verlangt fünf Fragen und eine bestätigte Landkarte, bevor gebaut wird. Ein Themen-Bootcamp ohne Zuschnitt trifft das falsche Ziel — vollständig, geprüft und nutzlos.
 
 Bevor du „fertig" sagst: `pwsh tools/bootcamp-check.ps1` muss ohne Fehler durchlaufen.

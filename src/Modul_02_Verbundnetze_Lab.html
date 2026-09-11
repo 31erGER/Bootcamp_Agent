@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="wb-course" content="Beispielkurs">
+<title>Modul 02 · Verbundnetze — Lab</title>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SHOWCASE · Lab, Schritt 3 von Modul 02 — der SCHLUSS des Moduls.
+
+     Zweites Beispiel derselben Form wie Modul_01_Signale_Lab.html: Etappen mit
+     der Quelle im `chapter__tag`, Sollwerten in einem `.term`-Block und einem
+     prüfbaren Ende in `.etappe-ende`. Wer ein drittes Lab baut, kopiert eines
+     der beiden.
+
+     Der Unterschied ist inhaltlich, nicht formal: hier kommen die Eingabewerte
+     vom Nutzer selbst (aus seiner Stromrechnung) und nicht aus der Aufgabe.
+     Deshalb prüft die Kontrolle keine ZAHLEN, sondern PLAUSIBILITÄTSBEREICHE —
+     bei eigenen Daten ist das der einzige ehrliche Test, und Etappe 4 macht
+     genau das zur Aufgabe.
+
+     Als reine Leseseite wird es vom Standardlauf nicht gefunden:
+         pwsh tools/bootcamp-check.ps1 -Pages Modul_02_Verbundnetze_Lab
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="brand">
+      <div class="brand__mark">Beispielkurs</div>
+      <div class="brand__name">Modul 02</div>
+      <div class="brand__sub">Verbundnetze und Frequenzhaltung · Modul 2 von 2</div>
+    </div>
+
+    <div class="readbar" data-read-progress role="progressbar"
+         aria-label="Lesefortschritt" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="readbar__head">
+        <span>durchgearbeitet</span>
+        <span class="readbar__val" data-read-label>0%</span>
+      </div>
+      <div class="readbar__track"></div>
+    </div>
+
+    <div>
+      <div class="nav__group">Dein Weg durch Modul 02</div>
+      <a class="nav__task" href="Modul_02_Verbundnetze_Lehrkurs.html"><span class="nav__num">1</span><span class="nav__label">Lehrkurs lesen</span></a>
+      <a class="nav__task" href="Modul_02_Verbundnetze.html"><span class="nav__num">2</span><span class="nav__label">Aufgaben lösen</span></a>
+      <a class="nav__task" href="Modul_02_Verbundnetze_Lab.html" aria-current="page"><span class="nav__num">▸</span><span class="nav__label"><b>Lab: Lastgang mit eigenen Zahlen</b></span></a>
+    </div>
+
+    <div class="note-strip">
+      <b>Keine Punkte hier.</b> Ein Lab ist Handwerk, kein Test. Ob es stimmt, sagt dir
+      die Kontrolle am Ende jeder Etappe.
+    </div>
+
+    <nav class="nav" aria-label="Etappen">
+      <div class="nav__group">Etappen</div>
+      <a class="nav__task" href="#e0"><span class="nav__num">0</span><span class="nav__label">Befund</span></a>
+      <a class="nav__task" href="#e1"><span class="nav__num">1</span><span class="nav__label">Die eigenen Zahlen</span></a>
+      <a class="nav__task" href="#e2"><span class="nav__num">2</span><span class="nav__label">Lastgang zeichnen</span></a>
+      <a class="nav__task" href="#e3"><span class="nav__num">3</span><span class="nav__label">Kennwerte rechnen</span></a>
+      <a class="nav__task" href="#e4"><span class="nav__num">4</span><span class="nav__label">Einordnen</span></a>
+      <a class="nav__task" href="#e5"><span class="nav__num">·</span><span class="nav__label">Ergebnis &amp; Hilfe</span></a>
+    </nav>
+
+    <div class="rail__foot">
+      <div class="nav__group">Weiter</div>
+      <a class="nav__task" href="Modul_02_Verbundnetze.html"><span class="nav__num">←</span><span class="nav__label">Aufgabenheft Modul 02</span></a>
+      <a class="nav__task" href="../startseite.html"><span class="nav__num">←</span><span class="nav__label">Übersicht · Modul 2 von 2</span></a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="masthead">
+      <div class="masthead__rule"><span><span class="dot"></span>Lab · ohne Bewertung</span><span>5 Etappen</span></div>
+      <div class="kicker">Lastgang mit eigenen Zahlen</div>
+      <h1>Rechne es einmal <em>mit deiner Rechnung</em></h1>
+      <p class="lede">Volllaststunden und Benutzungsgrad sind zwei Divisionen. Man versteht sie
+      nicht dadurch, dass man sie liest, sondern dadurch, dass man einmal die eigene
+      Jahresabrechnung hernimmt und feststellt, was dabei herauskommt.</p>
+    </header>
+
+    <!-- ══════════════════════ ETAPPE 0 ══════════════════════ -->
+    <section class="chapter" id="e0">
+      <span class="chapter__tag">Etappe 0 · Voraussetzung</span>
+      <h2>Befund</h2>
+      <p class="lead-in">Ziel: zwei Zahlen finden. <b>Nichts installieren</b> — und wenn die
+      Zahlen nicht auffindbar sind, steht unten ein Ersatz.</p>
+
+      <div class="callout callout--note">
+        <div class="callout__icon">✓</div>
+        <div class="callout__body">
+          <p><b>Papier und ein Stift.</b> Das ist Absicht: eine Kurve, die man selbst zeichnet,
+          merkt man sich, eine Kurve, die ein Programm zeichnet, nicht.</p>
+          <p><b>Zwei Zahlen aus einer Jahresabrechnung</b> — der Jahresverbrauch in Kilowattstunden
+          und, falls angegeben, die höchste gemessene Leistung in Kilowatt.</p>
+          <p><b>Falls die Höchstlast fehlt</b> — bei Haushalten steht sie fast nie auf der
+          Rechnung: rechne mit <span class="keyword">3 500 kWh</span> Jahresverbrauch und
+          <span class="keyword">1,8 kW</span> Höchstlast. Das ist ein plausibler
+          Zwei-Personen-Haushalt.</p>
+        </div>
+      </div>
+
+      <div class="etappe-ende"><b>Etappe 0 ist fertig, wenn</b> beide Zahlen mit ihrer Einheit auf
+      dem Papier stehen — und daneben, woher sie kommen.</div>
+    </section>
+
+    <!-- ══════════════════════ ETAPPE 1 ══════════════════════ -->
+    <section class="chapter" id="e1">
+      <span class="chapter__tag">Etappe 1 · Einheiten</span>
+      <h2>Die eigenen Zahlen</h2>
+      <p class="lead-in">Ziel: die Einheiten sortieren, <b>bevor</b> gerechnet wird. Fast jeder
+      Fehler in einer Lastgangrechnung ist ein Einheitenfehler.</p>
+
+      <p>Notiere die drei Größen untereinander. Steht eine Zahl in einer anderen Einheit — MWh,
+      Watt, Voltampere —, rechne sie <i>jetzt</i> um und streiche die alte durch. Nicht später im
+      Kopf, denn im Kopf verschwinden Faktoren von tausend.</p>
+
+      <div class="term"><span class="term__c">--- Etappe 1: so sieht das Blatt aus -------------</span>
+<span class="term__key">W_a  </span>  3 500 kWh    <span class="term__c">Energie  (Rechnung, Zeile „Verbrauch")</span>
+<span class="term__key">P_max</span>    1,8 kW     <span class="term__c">Leistung (geschaetzt, siehe Etappe 0)</span>
+<span class="term__key">Jahr </span>  8 760 h      <span class="term__c">365 mal 24</span></div>
+
+      <div class="callout callout--think">
+        <div class="callout__icon">?</div>
+        <div class="callout__body">
+          <p><b>Warum die Herkunft mit aufs Blatt gehört.</b> Eine Zahl ohne Herkunft ist in zwei
+          Wochen nicht mehr prüfbar, und bei einer Abweichung weiß man dann nicht, ob die Rechnung
+          falsch war oder die Annahme. In Etappe 4 wird genau das die Frage sein.</p>
+        </div>
+      </div>
+
+      <div class="etappe-ende"><b>Etappe 1 ist fertig, wenn</b> alle drei Zahlen in kWh, kW und h
+      stehen — nicht in MWh, W oder Tagen.</div>
+    </section>
+
+    <!-- ══════════════════════ ETAPPE 2 ══════════════════════ -->
+    <section class="chapter" id="e2">
+      <span class="chapter__tag">Etappe 2 · Handarbeit</span>
+      <h2>Lastgang zeichnen</h2>
+      <p class="lead-in">Ziel: einen Tag als Kurve. Sie muss <b>nicht stimmen</b> — sie muss deine
+      Schätzung sein.</p>
+
+      <p>Zeichne ein Achsenkreuz: waagerecht 24 Stunden, senkrecht die Leistung bis etwas über
+      deine Höchstlast. Trage ein, wann bei dir tatsächlich Strom fließt — Kühlschrank
+      durchgehend, Kaffee am Morgen, Kochen und Waschen abends.</p>
+
+      <ol class="steps-eq">
+        <li>Zeichne den Grundverbrauch als waagerechte Linie über den ganzen Tag.</li>
+        <li>Setze die Spitzen darauf — morgens eine, abends eine höhere.</li>
+        <li>Markiere die höchste Stelle: das ist deine <span class="keyword">Höchstlast</span>.</li>
+        <li>Zeichne ein <b>Rechteck gleicher Fläche</b> über denselben Tag. Seine Höhe ist der
+        Tagesmittelwert.</li>
+      </ol>
+
+      <div class="callout callout--think">
+        <div class="callout__icon">!</div>
+        <div class="callout__body">
+          <p><b>Das Rechteck ist der ganze Trick</b>, und es ist derselbe wie in Modul 01: eine
+          unregelmäßige Kurve wird durch eine gleich große Fläche ersetzt, mit der man rechnen
+          kann. Wer das einmal gezeichnet hat, verwechselt Volllaststunden nie mehr mit
+          Betriebsstunden — der Anschluss ist 24 Stunden in Betrieb, seine Volllaststunden sind
+          trotzdem nur ein Bruchteil davon.</p>
+        </div>
+      </div>
+
+      <div class="etappe-ende"><b>Etappe 2 ist fertig, wenn</b> das Rechteck deutlich flacher ist
+      als die höchste Spitze. Sind beide gleich hoch, ist die Kurve zu glatt geschätzt — kein
+      Haushalt bezieht rund um die Uhr seine Spitzenleistung.</div>
+    </section>
+
+    <!-- ══════════════════════ ETAPPE 3 ══════════════════════ -->
+    <section class="chapter" id="e3">
+      <span class="chapter__tag">Etappe 3 · Lehrkurs Kapitel 5</span>
+      <h2>Kennwerte rechnen</h2>
+      <p class="lead-in">Ziel: zwei Divisionen, <b>auf dem Blatt</b> und nicht im Kopf. Die
+      Einheiten sind die Kontrolle.</p>
+
+      <div class="eq">T<sub>V</sub> = W<sub>a</sub> / P<sub>max</sub><span class="eq__note">kWh / kW = h. Kommen keine Stunden heraus, stimmt eine Einheit nicht.</span></div>
+      <div class="eq">Benutzungsgrad = T<sub>V</sub> / 8 760 h<span class="eq__note">dimensionslos, üblich in Prozent</span></div>
+
+      <p>Schreibe zu jedem Ergebnis einen Satz, was es bedeutet. Wenn dieser Satz nicht gelingt,
+      ist die Zahl noch keine Erkenntnis.</p>
+
+      <div class="term"><span class="term__c">--- Etappe 3: Kontrolle mit den Ersatzzahlen -----</span>
+<span class="term__key">T_V </span>  3 500 kWh / 1,8 kW  = 1 944 h
+<span class="term__key">Grad</span>  1 944 h / 8 760 h   = 0,222 = 22,2 %
+<span class="term__c">Mit eigenen Zahlen: T_V zwischen 500 und 8 000 h.</span>
+<span class="term__warn">Darueber oder darunter</span> <span class="term__c">= Einheitenfehler.</span></div>
+
+      <div class="etappe-ende"><b>Etappe 3 ist fertig, wenn</b> beide Werte auf dem Blatt stehen
+      und die Volllaststunden zwischen 500 und 8 000 liegen. Ein Wert von 1,94 oder 1 944 000
+      bedeutet, dass kWh und MWh oder kW und W vertauscht sind.</div>
+    </section>
+
+    <!-- ══════════════════════ ETAPPE 4 ══════════════════════ -->
+    <section class="chapter" id="e4">
+      <span class="chapter__tag">Etappe 4 · Einordnung</span>
+      <h2>Einordnen</h2>
+      <p class="lead-in">Ziel: entscheiden, ob das Ergebnis plausibel ist — und wenn nicht, ob die
+      <b>Rechnung</b> oder die <b>Annahme</b> schuld war.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Abnehmer</th><th>Volllaststunden</th><th>Benutzungsgrad</th></tr></thead>
+          <tbody>
+            <tr><td>Haushalt</td><td>1 800 … 2 200 h</td><td>21 … 25 %</td></tr>
+            <tr><td>Bürogebäude</td><td>2 000 … 2 500 h</td><td>23 … 29 %</td></tr>
+            <tr><td>Industrie, Einschichtbetrieb</td><td>2 500 … 3 500 h</td><td>29 … 40 %</td></tr>
+            <tr><td>Industrie, Dreischichtbetrieb</td><td>5 000 … 7 000 h</td><td>57 … 80 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Weicht dein Wert stark ab, ist das <b>kein Fehler, sondern ein Befund</b> — und die
+      Herkunftsnotiz aus Etappe 1 sagt jetzt, welcher. War die Höchstlast geschätzt, liegt die
+      Abweichung in der Annahme. Stand sie auf der Rechnung, bist du kein typischer Haushalt, und
+      das ist eine Aussage über dich und nicht über die Formel.</p>
+
+      <div class="etappe-ende"><b>Etappe 4 ist fertig, wenn</b> du in einem Satz sagen kannst, in
+      welche Zeile der Tabelle du gehörst — oder warum in keine.</div>
+    </section>
+
+    <!-- ══════════════════════ ETAPPE 5 ══════════════════════ -->
+    <section class="chapter" id="e5">
+      <span class="chapter__tag">Abschluss · Ergebnis und Hilfe</span>
+      <h2>Ergebnis &amp; Hilfe</h2>
+
+      <p>Du hast eine Kurve, zwei Zahlen und einen Satz dazu. Das ist genau der Weg, den ein
+      Netzplaner geht, nur mit anderen Größenordnungen — und der Grund, warum ein Netz nach der
+      Spitze bemessen wird und nicht nach der Energie.</p>
+
+      <details class="reveal"><summary>Warum kann der Benutzungsgrad nie 100 % erreichen?</summary>
+        <div class="q"><p>Weil er die Höchstlast im Nenner hat. 100 % hieße: die Leistung war das
+        ganze Jahr genau so hoch wie in der Spitze, also überhaupt keine Schwankung. Das gibt es
+        in keinem Netz, weil dann niemand etwas ein- oder ausschalten dürfte.</p></div>
+      </details>
+
+      <details class="reveal"><summary>Zwei Anschlüsse haben dieselbe Jahresenergie, aber einer die doppelte Höchstlast. Wer belastet das Netz mehr?</summary>
+        <div class="q"><p>Der mit der höheren Höchstlast: bemessen wird nach der Spitze, nicht nach
+        der Energie. Genau deshalb wird im Industriestrom ein Leistungspreis getrennt vom
+        Energiepreis abgerechnet — er bezahlt die Bereitstellung, nicht den Verbrauch.</p></div>
+      </details>
+
+      <details class="reveal"><summary>Meine Volllaststunden liegen bei 4 000, obwohl ich ein Haushalt bin.</summary>
+        <div class="q"><p>Dann ist die Höchstlast zu niedrig angesetzt. 4 000 Stunden bedeuten
+        einen sehr gleichmäßigen Bezug — plausibel bei Wärmepumpe oder Nachtspeicher, sonst ein
+        Hinweis, dass die geschätzte Spitze zu klein war. Verdopple sie und rechne noch
+        einmal.</p></div>
+      </details>
+
+      <div class="callout callout--note" style="margin-top:28px">
+        <div class="callout__icon">→</div>
+        <div class="callout__body"><b>Beide Module sind damit durch.</b> Was jetzt noch kommt,
+        gehört nur zur Klausurphase: der <a href="Klausurphase/Lernplan.html">Lernplan</a>, die
+        <a href="Klausurphase/Abdeckung.html">Abdeckungskarte</a>, der
+        <a href="Klausurphase/Intensiv_01_Netzrechnen.html">Intensivkurs</a> und die
+        <a href="Klausurphase/Probeklausur.html">Probeklausur</a>. Ohne Prüfungstermin ist das
+        Bootcamp hier zu Ende.</div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span>Modul 02 · Verbundnetze · Lab</span>
+      <span>läuft ohne Server, ohne Build</span>
+    </footer>
+  </main>
+
+</div>
+
+<script src="assets/engine.js"></script>
+<script src="assets/lehrkurs.js"></script>
+<script src="assets/audit.js"></script>
+</body>
+</html>

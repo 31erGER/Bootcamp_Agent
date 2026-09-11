@@ -36,7 +36,7 @@ Ein Bootcamp zu bauen ist über weite Strecken agentisches Coding mit langen Wer
 | Landkarte und Gewichtung (Auftrag A) · Zuschnitt in Schritt 0 (Auftrag B) | Opus 5 | `xhigh` | teuerster Fehler des Laufs |
 | Aufgaben redigieren, `.data.js` schreiben | Opus 5 | `xhigh` | genau der Fall, für den `xhigh` gedacht ist |
 | **Zahlen gegenrechnen** (`calc`, `estimate`) | Opus 5 | `max` | hier zählt Korrektheit mehr als Kosten — `validate.js` kennt die Form, nicht die Physik |
-| HTML-Gerüste, `index.data.js`, mechanische Seiten | Sonnet 5 | `medium` | Kopieren und Ersetzen |
+| HTML-Gerüste, `startseite.data.js`, mechanische Seiten | Sonnet 5 | `medium` | Kopieren und Ersetzen |
 | Zeichnungen (`viz.js`) | Opus 5 | `xhigh` | Geometrie und Reglerextreme, die fehleranfälligste Stelle im Rahmenwerk |
 | Reparaturen nach dem Prüflauf | Opus 5 | `high` | Debuggen in kurzen Schleifen |
 

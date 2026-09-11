@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="wb-course" content="Beispielkurs">
+<title>Modul 02 · Verbundnetze — Lehrkurs</title>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SHOWCASE · Fachartikel, Schritt 1 von Modul 02.
+
+     Rahmenwerk.md, „Fachartikel": erklärt zusammenhängend, was ein
+     Aufgabenblatt nur abfragt. Aufbau, den die Prüfung „jede Klasse hat eine
+     Regel" trägt:
+
+       <section class="chapter" id="kN">   ein Kapitel
+       <span class="chapter__tag">         die Kapitelmarke oben links
+       <p class="lead-in">                 zwei Sätze Einstieg, Display-Serife
+       <div class="eq">                    ein Formelblock, .eq__note erklärt ihn
+       <span class="keyword">              eine Betonung, die ein Begriff ist
+       <div class="callout callout--think">der Einwand, den man selbst hätte
+       <ol class="steps-eq">               ein Rechenweg in Schritten
+       <div class="cards"> + .card3d       Karteikarten, klick- UND tastaturfähig
+       <details class="reveal">            Kontrollfragen am Kapitelende
+
+     `lehrkurs.js` macht die Karten umdrehbar, markiert das gelesene Kapitel in
+     der Seitenleiste und speichert den Lesestand. Ohne diesen Lesestand würde
+     die Übersicht den Artikel für immer als „als nächstes" vorschlagen: ein
+     Artikel bekommt nie einen Aufgabenstand.
+
+     Skriptreihenfolge ist bindend — engine.js (nur wegen des Speichers), dann
+     viz.js, dann die Zeichnungen, dann lehrkurs.js, dann audit.js.
+
+     Als reine Leseseite wird er vom Standardlauf nicht gefunden:
+         pwsh tools/bootcamp-check.ps1 -Pages Modul_02_Verbundnetze_Lehrkurs
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="brand">
+      <div class="brand__mark">Beispielkurs</div>
+      <div class="brand__name">Modul 02</div>
+      <div class="brand__sub">Verbundnetze und Frequenzhaltung · Modul 2 von 2</div>
+    </div>
+
+    <div class="readbar" data-read-progress role="progressbar"
+         aria-label="Lesefortschritt" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="readbar__head">
+        <span>gelesen</span>
+        <span class="readbar__val" data-read-label>0%</span>
+      </div>
+      <div class="readbar__track"></div>
+    </div>
+
+    <div>
+      <div class="nav__group">Dein Weg durch Modul 02</div>
+      <a class="nav__task" href="Modul_02_Verbundnetze_Lehrkurs.html" aria-current="page"><span class="nav__num">▸</span><span class="nav__label"><b>Lehrkurs lesen</b></span></a>
+      <a class="nav__task" href="Modul_02_Verbundnetze.html"><span class="nav__num">2</span><span class="nav__label">Aufgaben lösen</span></a>
+      <a class="nav__task" href="Modul_02_Verbundnetze_Lab.html"><span class="nav__num">3</span><span class="nav__label">Lab: Lastgang mit eigenen Zahlen</span></a>
+    </div>
+
+    <div class="note-strip">
+      Lies von oben nach unten. <b>Zieh am Regler in Kapitel 3</b> — er zeigt in fünf Sekunden,
+      was drei Absätze nicht erklären. Punkte gibt es hier nicht, nur einen Lesestand.
+    </div>
+
+    <nav class="nav" aria-label="Kapitel">
+      <div class="nav__group">Kapitel</div>
+      <a class="nav__task" href="#k0"><span class="nav__num">0</span><span class="nav__label">Das kennst du schon</span></a>
+      <a class="nav__task" href="#k1"><span class="nav__num">1</span><span class="nav__label">Warum ein Verbund?</span></a>
+      <a class="nav__task" href="#k2"><span class="nav__num">2</span><span class="nav__label">Die Frequenz als Waage</span></a>
+      <a class="nav__task" href="#k3"><span class="nav__num">3</span><span class="nav__label">Die Netzleistungszahl</span></a>
+      <a class="nav__task" href="#k4"><span class="nav__num">4</span><span class="nav__label">Drei Stufen der Regelung</span></a>
+      <a class="nav__task" href="#k5"><span class="nav__num">5</span><span class="nav__label">Lastgang und Kennwerte</span></a>
+      <a class="nav__task" href="#k6"><span class="nav__num">6</span><span class="nav__label">Selbstcheck</span></a>
+    </nav>
+
+    <div class="rail__foot">
+      <div class="note-strip" data-store-warning hidden>
+        <b>Kein Speicher.</b> Dieser Browser sperrt <code>localStorage</code> auf
+        <code>file://</code> — der Stand überlebt kein Neuladen.
+      </div>
+      <div class="filters">
+        <a class="filter" href="../startseite.html">Übersicht · Modul 2 von 2</a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="masthead">
+      <div class="masthead__rule"><span><span class="dot"></span>Lehrkurs · Modul 02 · Schritt 1 von 3</span><span>7 Kapitel</span></div>
+      <div class="kicker">Verbundnetze</div>
+      <h1>Ein Kontinent, <em>eine Frequenz</em></h1>
+      <p class="lede">Von Portugal bis Polen läuft jeder Generator im Gleichschritt — und keiner
+      von ihnen weiß, was die anderen tun. Wie das ohne zentrale Steuerung funktioniert, ist die
+      ganze Geschichte dieses Moduls.</p>
+    </header>
+
+    <!-- ══════════════════════ KAPITEL 0 ══════════════════════ -->
+    <section class="chapter" id="k0">
+      <span class="chapter__tag">Kapitel 0 · Anknüpfung</span>
+      <h2>Das kennst du schon — aus Modul 01</h2>
+      <p class="lead-in">Bevor es losgeht: die 50 Hz aus dem letzten Modul sind hier keine
+      Rechengröße mehr, sondern eine <b>Regelgröße</b>. Das ist der ganze Unterschied.</p>
+
+      <p>In Modul 01 war die Frequenz eine Eigenschaft des Signals: gegeben, ablesbar, konstant.
+      Im Verbundnetz ist sie das Ergebnis eines Kräftegleichgewichts, das sich jede Sekunde neu
+      einstellt — und deshalb ist sie <span class="keyword">nicht</span> konstant, sondern
+      schwankt im Millihertz-Bereich um ihren Sollwert.</p>
+
+      <div class="callout callout--note">
+        <div class="callout__icon">⚡</div>
+        <div class="callout__body">
+          <p><b>Aus Modul 01 mitgenommen:</b> die Netzspannung ist eine Sinusschwingung mit 50 Hz.
+          Ihre Periode ist damit <span class="math">T = 1/50 s = 20 ms</span>.</p>
+          <p><b>Neu in Modul 02:</b> steigt die Last, wird diese Periode ein winziges Stück länger
+          — die Generatoren werden langsamer. Die Frequenz ist damit ein <b>Messwert für das
+          Gleichgewicht</b> zwischen Erzeugung und Verbrauch, und zwar der einzige, der überall im
+          Netz gleichzeitig verfügbar ist.</p>
+        </div>
+      </div>
+
+      <p>Merke dir diesen Satz als roten Faden: <b>Die Frequenz ist die einzige Information, die
+      jeder Teilnehmer im Netz ohne Kommunikation hat.</b> Alles, was in diesem Modul kommt, ist
+      eine Folge davon.</p>
+    </section>
+
+    <!-- ══════════════════════ KAPITEL 1 ══════════════════════ -->
+    <section class="chapter" id="k1">
+      <span class="chapter__tag">Kapitel 1 · Motiv</span>
+      <h2>Warum ein Verbund?</h2>
+      <p class="lead-in">Ein einzelnes Kraftwerk müsste für seine Spitzenlast gebaut sein und
+      hätte für den Ausfallfall keine Reserve. Beides löst der Verbund — mit demselben Argument.</p>
+
+      <p>Der Grund ist derselbe wie beim Gleichzeitigkeitsfaktor aus dem Lab: <b>nicht alle
+      Spitzen fallen zusammen.</b> Ein Netz aus vielen Abnehmern hat eine Höchstlast, die deutlich
+      unter der Summe der Einzelspitzen liegt, und ein Netz aus vielen Kraftwerken braucht deshalb
+      weniger Reserve als die Summe der Einzelreserven.</p>
+
+      <ol class="steps-eq">
+        <li><b>Ausgleich der Last.</b> Der Morgenpeak in Warschau liegt zeitlich vor dem in
+        Lissabon; dieselbe Erzeugungskapazität deckt beide.</li>
+        <li><b>Gemeinsame Reserve.</b> Fällt ein Block mit 1 200 MW aus, teilen ihn hunderte
+        Maschinen auf — jede übernimmt ein paar Megawatt und bemerkt es kaum.</li>
+        <li><b>Ausgleich der Erzeugung.</b> Wenn in Norddeutschland kein Wind weht, weht er
+        vielleicht in Spanien. Ohne Verbund müsste jede Region ihre eigene Flaute überbrücken.</li>
+      </ol>
+
+      <div class="callout callout--think">
+        <div class="callout__icon">?</div>
+        <div class="callout__body">
+          <p><b>Der naheliegende Einwand:</b> Wenn alle zusammenhängen, breitet sich ein Fehler
+          doch auch überall aus. Das stimmt — und genau deshalb ist der Verbund in Regelzonen
+          unterteilt, die im Notfall getrennt werden können. Der Zusammenschluss bringt Reserve,
+          die Trennbarkeit bringt Sicherheit, und die Auslegung ist der Kompromiss zwischen
+          beidem.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════ KAPITEL 2 ══════════════════════ -->
+    <section class="chapter" id="k2">
+      <span class="chapter__tag">Kapitel 2 · Kernidee</span>
+      <h2>Die Frequenz als Waage</h2>
+      <p class="lead-in">Erzeugung und Verbrauch müssen in jedem Augenblick gleich groß sein. Wer
+      die Differenz ausgleicht, wenn beide nicht passen, ist die <b>Drehzahl der Läufer</b>.</p>
+
+      <p>Strom lässt sich im Netz nicht speichern. Wird mehr verbraucht als erzeugt, muss die
+      Differenz irgendwoher kommen — und sie kommt aus der Bewegungsenergie der drehenden Massen.
+      Die Generatoren werden dadurch langsamer, und weil ihre Drehzahl die Netzfrequenz
+      <i>ist</i>, sinkt die Frequenz.</p>
+
+      <div class="eq center">Erzeugung &gt; Verbrauch → Frequenz steigt &nbsp;·&nbsp; Erzeugung &lt; Verbrauch → Frequenz sinkt<span class="eq__note">Die Frequenz ist der Zeiger der Waage, nicht ihr Gewicht.</span></div>
+
+      <p>Das ist der Grund, warum 50 Hz überall im Netz denselben Wert haben: es ist nicht
+      abgestimmt, sondern <span class="keyword">physikalisch erzwungen</span>. Alle
+      synchron gekuppelten Maschinen drehen mit derselben Drehzahl, weil sie über das Netz
+      magnetisch aneinander gebunden sind.</p>
+
+      <div class="callout callout--note">
+        <div class="callout__icon">⚙</div>
+        <div class="callout__body">
+          <p><b>Die Momentanreserve</b> ist keine Anlage, die man bauen könnte, sondern eine
+          Nebenwirkung: die Schwungmasse der Läufer. Sie wirkt in den ersten Sekundenbruchteilen,
+          ohne dass irgendetwas geregelt wird — und sie ist der Grund, warum der Frequenzeinbruch
+          in Kapitel 3 eine <i>Delle</i> ist und kein Sprung.</p>
+          <p>Umrichtergekoppelte Erzeuger — Photovoltaik, Windkraft, Batterien — bringen diese
+          Masse nicht mit. Deshalb ist die Momentanreserve in einem Netz mit hohem Umrichteranteil
+          eine Größe, die aktiv nachgebildet werden muss.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════ KAPITEL 3 ══════════════════════ -->
+    <section class="chapter" id="k3">
+      <span class="chapter__tag">Kapitel 3 · Die eine Zahl</span>
+      <h2>Die Netzleistungszahl</h2>
+      <p class="lead-in">Sie beantwortet die praktische Frage: <b>Wie viel Frequenz kostet ein
+      Megawatt?</b> Und sie ist die Kennzahl, an der man die Robustheit eines Netzes abliest.</p>
+
+      <p>Fällt eine Leistung <span class="math">ΔP</span> aus, stellt sich die Frequenz auf einem
+      neuen, niedrigeren Wert ein. Das Verhältnis der beiden Größen ist die
+      <span class="keyword">Netzleistungszahl</span> λ:</p>
+
+      <div class="eq">λ = ΔP / Δf<span class="eq__note">in MW/Hz. Groß heißt steif: viel Leistungsausfall für wenig Frequenzabweichung.</span></div>
+
+      <p>Für Kontinentaleuropa liegt λ bei 15 000 bis 25 000 MW/Hz. Ein Ausfall von 1 200 MW
+      kostet damit rund <span class="math">1200 / 20000 = 0,06 Hz</span> — sechzig Millihertz,
+      also gut ein Promille. Ein Inselnetz mit λ = 200 MW/Hz würde derselbe Ausfall um 6 Hz
+      einbrechen lassen, und das überlebt kein Netz.</p>
+
+      <figure class="viz" data-viz="frequenzeinbruch" data-viz-opts='{"height":330}'>
+        <div class="viz__title">Frequenz nach einem Kraftwerksausfall</div>
+        <canvas></canvas>
+        <div class="viz__ctrl">
+          <label>Ausgefallene Leistung
+            <input type="range" data-ctl="dp" min="300" max="3000" step="100" value="1200">
+            <output class="viz__read" data-out="dp">1200 MW</output>
+          </label>
+          <label>Netzleistungszahl
+            <input type="range" data-ctl="lam" min="8000" max="25000" step="1000" value="15000">
+            <output class="viz__read" data-out="lam">15000 MW/Hz</output>
+          </label>
+        </div>
+        <figcaption class="viz__cap">
+          Der Tiefpunkt liegt <b>unter</b> dem Wert, auf dem die Frequenz danach stehen bleibt:
+          die Trägheit der Läufer lässt sie durchschwingen, bevor die Primärregelung sie fängt.
+          Stehen bleibt sie bei 50&nbsp;Hz minus ΔP/λ — und erst die Sekundärregelung holt sie
+          zurück. Zieh die Netzleistungszahl herunter, und du siehst, warum ein kleines Netz
+          gefährdet ist.
+        </figcaption>
+      </figure>
+
+      <div class="callout callout--think">
+        <div class="callout__icon">!</div>
+        <div class="callout__body">
+          <p><b>Der Fehler, den fast jeder einmal macht:</b> λ als Multiplikation zu lesen. Wer
+          <span class="math">ΔP · Δf</span> rechnet, erhält aus 1 200 MW und 0,02 Hz die Zahl 24
+          — und 24 MW/Hz wäre ein Netz, das bei jedem Toaster zusammenbricht. Die Einheit ist die
+          Kontrolle: Megawatt <i>je</i> Hertz ist ein Bruch.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════ KAPITEL 4 ══════════════════════ -->
+    <section class="chapter" id="k4">
+      <span class="chapter__tag">Kapitel 4 · Arbeitsteilung</span>
+      <h2>Drei Stufen der Regelung</h2>
+      <p class="lead-in">Die Frequenz wird nicht von einer Instanz gehalten, sondern von drei —
+      und jede hat ihre eigene <b>Zeitskala</b> und ihre eigene Aufgabe.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Stufe</th><th>wirkt nach</th><th>Aufgabe</th><th>wer löst aus</th></tr></thead>
+          <tbody>
+            <tr><td>Momentanreserve</td><td>sofort</td><td>den Einbruch abflachen</td><td>niemand — Physik</td></tr>
+            <tr><td>Primärregelung</td><td>Sekunden</td><td>die Frequenz abfangen</td><td>jede Maschine für sich</td></tr>
+            <tr><td>Sekundärregelung</td><td>Minuten</td><td>auf 50 Hz zurückführen</td><td>der Regelzonenführer</td></tr>
+            <tr><td>Tertiärregelung</td><td>eine Viertelstunde</td><td>die Reserve wieder freimachen</td><td>der Fahrplan</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Der entscheidende Punkt an dieser Tabelle ist die Spalte rechts. Die Primärregelung wird
+      <span class="keyword">nicht abgerufen</span>: jede beteiligte Maschine reagiert selbst auf
+      die gemessene Frequenz, ohne Anweisung und ohne zu wissen, wo der Ausfall war. Deshalb wirkt
+      sie in allen Regelzonen gleichzeitig und deshalb ist sie so schnell.</p>
+
+      <p>Sie führt die Frequenz aber <b>nicht zurück</b> — sie stabilisiert sie auf einem neuen
+      Wert. Das ist kein Mangel, sondern Voraussetzung: eine Regelung, die den Sollwert exakt
+      wiederherstellt, braucht einen Integrator, und ein Integrator braucht Zeit. Diese Zeit
+      übernimmt die Sekundärregelung, und sie tut es nur in der Zone, in der der Ausfall
+      tatsächlich passiert ist.</p>
+
+      <div class="callout callout--note">
+        <div class="callout__icon">↻</div>
+        <div class="callout__body">
+          <p><b>Warum die Reserve wieder freigemacht werden muss.</b> Solange die Primärreserve
+          den Ausfall trägt, ist sie verbraucht — der nächste Ausfall träfe ein Netz ohne
+          Puffer. Die Tertiärregelung ersetzt sie deshalb durch geplante Erzeugung und stellt den
+          Ausgangszustand wieder her. Wer eine Stufe wegnimmt, verliert nicht Bequemlichkeit,
+          sondern die Fähigkeit, den <i>zweiten</i> Ausfall zu überstehen.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════ KAPITEL 5 ══════════════════════ -->
+    <section class="chapter" id="k5">
+      <span class="chapter__tag">Kapitel 5 · Bemessung</span>
+      <h2>Lastgang und Kennwerte</h2>
+      <p class="lead-in">Ein Netz wird nicht nach der Energie bemessen, die durch es fließt,
+      sondern nach der <b>Spitze</b>. Drei Kennwerte übersetzen zwischen beidem.</p>
+
+      <p>Der Lastgang ist die Leistung über der Zeit. Weil er unregelmäßig ist, arbeitet man mit
+      Kennwerten, die ihn auf ein Rechteck zusammenfassen — dieselbe Idee wie die Fourier-Näherung
+      aus Modul 01, nur in der Zeitrichtung statt in der Frequenzrichtung.</p>
+
+      <div class="eq">T<sub>V</sub> = W<sub>a</sub> / P<sub>max</sub><span class="eq__note">Volllaststunden: wie lange das Netz bei Vollausnutzung gelaufen wäre</span></div>
+      <div class="eq">m = T<sub>V</sub> / 8 760 h<span class="eq__note">Benutzungsgrad: derselbe Wert, bezogen auf das ganze Jahr</span></div>
+      <div class="eq">P<sub>max</sub> = g · ΣP<sub>A</sub><span class="eq__note">Gleichzeitigkeitsfaktor: von der Anschlussleistung zur Höchstlast</span></div>
+
+      <p>Die drei hängen zusammen: <span class="math">g</span> sagt, wie hoch die Spitze wird,
+      <span class="math">T<sub>V</sub></span> sagt, wie gleichmäßig sie ausgenutzt wird, und
+      <span class="math">m</span> ist dasselbe in Prozent. Ein Haushalt kommt auf rund 2 000
+      Volllaststunden, ein Dreischichtbetrieb auf über 5 000 — bei gleicher Höchstlast bezieht der
+      zweite also die zweieinhalbfache Energie.</p>
+
+      <div class="callout callout--think">
+        <div class="callout__icon">€</div>
+        <div class="callout__body">
+          <p><b>Warum das in der Rechnung getrennt auftaucht.</b> Im Industriestrom gibt es einen
+          Leistungspreis und einen Energiepreis. Der Leistungspreis bezahlt die
+          <i>Bereitstellung</i> — Leitungen und Transformatoren, die für die Spitze gebaut sind —,
+          der Energiepreis den Verbrauch. Zwei Anschlüsse mit derselben Jahresenergie zahlen
+          deshalb unterschiedlich viel, wenn ihre Spitzen unterschiedlich hoch sind. Im Lab dieses
+          Moduls rechnest du das an deiner eigenen Rechnung nach.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════ KAPITEL 6 ══════════════════════ -->
+    <section class="chapter" id="k6">
+      <span class="chapter__tag">Kapitel 6 · Selbstcheck</span>
+      <h2>Selbstcheck</h2>
+      <p class="lead-in">Zuerst die Karten — <b>klick</b> oder Leertaste dreht sie um. Danach vier
+      Fragen, deren Antwort im Text steht.</p>
+
+      <div class="cards">
+        <div class="card3d"><div class="card3d__inner">
+          <div class="card3d__face card3d__front"><span class="card3d__tag">Idee</span><span class="card3d__q">Warum haben 50 Hz überall im Netz denselben Wert?</span><span class="card3d__hint">klick</span></div>
+          <div class="card3d__face card3d__back"><span class="card3d__tag">Antwort</span><span class="card3d__a">Nicht durch Absprache, sondern physikalisch: alle synchron gekuppelten Maschinen sind über das Netz magnetisch gebunden und drehen deshalb mit derselben Drehzahl.</span></div>
+        </div></div>
+        <div class="card3d"><div class="card3d__inner">
+          <div class="card3d__face card3d__front"><span class="card3d__tag">Formel</span><span class="card3d__q">Wie lautet die Netzleistungszahl?</span><span class="card3d__hint">klick</span></div>
+          <div class="card3d__face card3d__back"><span class="card3d__tag">Antwort</span><span class="card3d__a"><span class="math">λ = ΔP / Δf</span> in MW/Hz. Ein Bruch — die Einheit ist die Kontrolle gegen das versehentliche Multiplizieren.</span></div>
+        </div></div>
+        <div class="card3d"><div class="card3d__inner">
+          <div class="card3d__face card3d__front"><span class="card3d__tag">Abgrenzung</span><span class="card3d__q">Was macht die Primärregelung <i>nicht</i>?</span><span class="card3d__hint">klick</span></div>
+          <div class="card3d__face card3d__back"><span class="card3d__tag">Antwort</span><span class="card3d__a">Sie führt die Frequenz nicht auf 50 Hz zurück. Sie fängt sie auf einem neuen Wert ab; das Zurückführen ist Aufgabe der Sekundärregelung.</span></div>
+        </div></div>
+        <div class="card3d"><div class="card3d__inner">
+          <div class="card3d__face card3d__front"><span class="card3d__tag">Kennwert</span><span class="card3d__q">Was sagen Volllaststunden?</span><span class="card3d__hint">klick</span></div>
+          <div class="card3d__face card3d__back"><span class="card3d__tag">Antwort</span><span class="card3d__a">Jahresenergie geteilt durch Höchstlast — wie lange das Netz gelaufen wäre, hätte es die ganze Zeit die Spitzenleistung geliefert. Keine Betriebsdauer.</span></div>
+        </div></div>
+      </div>
+
+      <details class="reveal"><summary>Ein Netz hat λ = 20 000 MW/Hz. Ein Block mit 1 000 MW fällt aus. Wo bleibt die Frequenz stehen?</summary>
+        <div class="q"><p>Bei <span class="math">50 − 1000/20000 = 50 − 0,05 = 49,95 Hz</span>. Der
+        Tiefpunkt während des Einbruchs liegt darunter, aber stehen bleibt sie bei 49,95 Hz — bis
+        die Sekundärregelung greift.</p></div>
+      </details>
+
+      <details class="reveal"><summary>Warum bemerkt ein Verbraucher in Portugal einen Kraftwerksausfall in Polen?</summary>
+        <div class="q"><p>Weil die Frequenz eine gemeinsame Größe des ganzen Synchrongebiets ist.
+        Er bemerkt sie messtechnisch, nicht praktisch: 50 Millihertz merkt kein Gerät. Genau diese
+        Kleinheit ist der Zweck des Verbunds.</p></div>
+      </details>
+
+      <details class="reveal"><summary>Ein Anschluss hat 2 000 Volllaststunden. Ist das viel oder wenig?</summary>
+        <div class="q"><p>Für einen Haushalt normal, für einen Industriebetrieb wenig. Die Zahl
+        allein sagt nichts — sie braucht die Abnehmerklasse als Bezug. Die Tabelle dazu steht im
+        Lab, Etappe 4.</p></div>
+      </details>
+
+      <details class="reveal"><summary>Warum bringt Photovoltaik keine Momentanreserve mit?</summary>
+        <div class="q"><p>Weil zwischen Erzeuger und Netz ein Umrichter sitzt und keine drehende
+        Masse. Es gibt also keine Schwungenergie, aus der das Netz in den ersten
+        Sekundenbruchteilen schöpfen könnte. Ein Umrichter kann dieses Verhalten nachbilden, aber
+        er muss dafür ausdrücklich so gebaut und parametriert sein.</p></div>
+      </details>
+
+      <div class="callout callout--note" style="margin-top:28px">
+        <div class="callout__icon">→</div>
+        <div class="callout__body"><b>Nächster Schritt:</b> Jetzt anwenden — ein Lehrkurs wird erst
+        durch das Aufgabenheft zu Wissen. Weiter mit
+        <a href="Modul_02_Verbundnetze.html">Aufgabenheft Modul 02</a>, danach schließt das
+        <a href="Modul_02_Verbundnetze_Lab.html">Lab</a> das Modul ab.</div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span>Modul 02 · Verbundnetze · Lehrkurs</span>
+      <span>läuft ohne Server, ohne Build</span>
+    </footer>
+  </main>
+
+</div>
+
+<script src="assets/engine.js"></script>
+<script src="assets/viz.js"></script>
+<script src="assets/viz-verbundnetz.js"></script>
+<script src="assets/lehrkurs.js"></script>
+<script src="assets/audit.js"></script>
+</body>
+</html>

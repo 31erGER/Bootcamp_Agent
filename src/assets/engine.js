@@ -154,6 +154,28 @@ window.WB = window.WB || {};
     return a;
   }
 
+  /** Mischt so, dass KEIN Element an seiner Ausgangsstelle liegen bleibt.
+      Ergänzt am 11.09.2026.
+
+      `shuffled()` ist ehrlicher Zufall — und ehrlicher Zufall liefert bei drei
+      Elementen in einem von sechs Fällen die Ausgangsreihenfolge zurück. Bei
+      einer Zuordnungsaufgabe heißt das: die Beschreibungen stehen genau neben
+      ihren Begriffen, die Aufgabe ist geschenkt und der Lernende hat nichts
+      geprüft. Bei vier Elementen passiert das noch in jedem 24. Aufruf.
+
+      Deshalb wird hier nachgebessert, bis keine Position mehr mit ihrer
+      Ausgangsposition übereinstimmt (eine „fixpunktfreie Permutation"). Nach
+      zwölf Versuchen wird stattdessen rotiert — das ist garantiert
+      fixpunktfrei und beendet die Schleife auch im Pathologiefall. */
+  function versetzt(arr) {
+    if (arr.length < 2) return arr.slice();
+    for (let versuch = 0; versuch < 12; versuch++) {
+      const a = shuffled(arr);
+      if (a.every((x, i) => x !== arr[i])) return a;
+    }
+    return arr.slice(1).concat(arr.slice(0, 1));
+  }
+
   /** Erlaubtes Inline-HTML in Prosafeldern. Die Inhalte stammen ausschließlich
       aus den .data.js-Dateien dieses Ordners, nie aus einer Eingabe. */
   function html(el, s) { el.innerHTML = s === undefined || s === null ? '' : String(s); }
@@ -174,6 +196,25 @@ window.WB = window.WB || {};
      Jede gibt einen Anteil zwischen 0 und 1 zurück. 1 heißt vollständig richtig.
      Teilpunkte gibt es nur dort, wo Teilwissen echtes Wissen ist: beim Schätzen
      und bei mehrfeldrigen Aufgaben. Bei einer Auswahl ist halb richtig falsch.  */
+
+  /* Infosec-Bootcamp, 27.08.2026: Ergebnisfelder der Intensivkurse werden
+     bewusst ohne sichtbaren Rechenweg bewertet. Die Normalisierung bleibt
+     hier als reine Funktion testbar; die Herleitung zeigt erst der Renderer. */
+  function resultFieldCorrect(field, given) {
+    if (field.kind === 'number') {
+      const n = parseNumber(given);
+      return Number.isFinite(n) && Math.abs(n - field.answer) <= (field.tol || 0);
+    }
+    if (field.kind === 'hex') {
+      const norm = v => String(v === undefined || v === null ? '' : v)
+        .trim().replace(/^0x/i, '').toUpperCase();
+      return norm(given) !== '' && norm(given) === norm(field.answer);
+    }
+    const got = String(given === undefined || given === null ? '' : given)
+      .trim().toLocaleLowerCase('de-DE');
+    return [field.answer].concat(field.aliases || []).some(v =>
+      got !== '' && got === String(v).trim().toLocaleLowerCase('de-DE'));
+  }
 
   const grade = {
     /** answer: Array der angekreuzten Indizes. */
@@ -258,6 +299,27 @@ window.WB = window.WB || {};
       return task.fields.length ? hit / task.fields.length : 0;
     },
 
+    /** Umgekehrte Zuordnung: Anteil der Zeilen, in denen die gewählte Frage zur
+        vorgegebenen Antwort gehört. Anteilig und nicht alles-oder-nichts, weil
+        jede Zeile für sich eine Entscheidung ist — wie bei `forecast`. */
+    reverse(task, answer) {
+      let hit = 0;
+      task.items.forEach((item, i) => { if (String(answer[i]) === item.question) hit++; });
+      return task.items.length ? hit / task.items.length : 0;
+    },
+
+    /** Anteil korrekter Endergebnisse; Lösungswege gehören nicht zur Eingabe. */
+    result(task, answer) {
+      const hit = task.fields.filter((field, i) => resultFieldCorrect(field, answer[i])).length;
+      return task.fields.length ? hit / task.fields.length : 0;
+    },
+
+    /** Selbstbewertung einer Zeichnung: Anteil der erfüllten Prüfkriterien. */
+    paper(task, answer) {
+      if (!Array.isArray(answer) || answer.length !== task.checklist.length) return 0;
+      return answer.filter(Boolean).length / task.checklist.length;
+    },
+
     /** Ein einzelner Rechenschritt. */
     calcStep(step, given) {
       return Math.abs(parseNumber(given) - step.answer) <= step.tol;
@@ -276,6 +338,9 @@ window.WB = window.WB || {};
       case 'estimate': return task.answer;
       case 'matrix':   return task.rows.map(r => r.correct.slice());
       case 'forecast': return task.fields.map(f => f.answer);
+      case 'reverse':  return task.items.map(i => i.question);
+      case 'result':   return task.fields.map(f => f.answer);
+      case 'paper':    return task.checklist.map(() => true);
       case 'calc':     return task.steps.map(s => s.answer);
       default:         return null;
     }
@@ -284,12 +349,27 @@ window.WB = window.WB || {};
   WB.grade = grade;
   WB.solutionFor = solutionFor;
 
+  /* Lernmodule geben nach einem Fehlversuch genau eine zweite Chance. Die
+     klausurnahen Ergebnisfelder sind dabei weiterhin Lernaufgaben; erst der
+     blattweite Klausurmodus schaltet die zweite Chance ab. Andere explizit als
+     exam markierte Aufgaben sowie Papier-Selbstbewertungen bleiben einmalig. */
+  function allowsRetry(task, ratio, tries, klausurActive) {
+    if (klausurActive || ratio >= 1 || tries !== 0 || task.retry === false) return false;
+    if (task.type === 'estimate' || task.type === 'paper') return false;
+    if (task.exam && task.type !== 'result') return false;
+    return true;
+  }
+
+  WB.allowsRetry = allowsRetry;
+
   /* ══════════════════════════════════════════════════════════════════════════
      4 · Stand speichern
      ══════════════════════════════════════════════════════════════════════════
-     localStorage, Schlüssel aus dem VOLLEN Dateipfad. Auf file:// teilen sich
-     ALLE Dokumente einen Ursprung — es gibt keinen Ursprung je Ordner, keinen
-     je Laufwerk, einen für alles.
+     localStorage, Schlüssel aus dem VOLLEN Dateipfad. Bei file:// ist das
+     Verhalten des Speichers browserabhängig: insbesondere Chromium kann jede
+     Datei in einen eigenen, opaken Ursprung legen. Deshalb reicht ein korrekt
+     gebildeter Schlüssel allein nicht; der Speichertransport weiter unten
+     sammelt die Modulstände für die Übersicht per postMessage ein.
 
      Der Schlüssel enthielt zuerst nur den Dateinamen, und das war falsch: dieses
      Repo wird in JEDEN Modulordner geklont. Zwei Module mit einem
@@ -441,12 +521,14 @@ window.WB = window.WB || {};
       } catch (e) { this.blocked = true; return null; }
     },
 
-    write(suffix, value) {
+    writeFor(file, suffix, value) {
       try {
-        localStorage.setItem(this.key(suffix), JSON.stringify(value));
+        localStorage.setItem(this.keyFor(file, suffix), JSON.stringify(value));
         return true;
       } catch (e) { this.blocked = true; return false; }
     },
+
+    write(suffix, value) { return this.writeFor(this.file(), suffix, value); },
 
     clear(suffix) {
       try { localStorage.removeItem(this.key(suffix)); } catch (e) { /* egal */ }
@@ -478,6 +560,127 @@ window.WB = window.WB || {};
   };
 
   WB.store = store;
+
+  /* ── FILE-SPEICHERBRÜCKE, 27.08.2026 ─────────────────────────────────────
+     Fehlerbild: Modul 01 zeigt 14/16, die Startseite weiterhin „nicht begonnen".
+
+     Ursache ist nicht der Schlüssel, sondern file:// selbst. Chromium behandelt
+     lokale Dateien als opake Ursprünge; dadurch kann die Startseite den Speicher von
+     Modul_01_Grundbegriffe.html nicht direkt lesen. Dass postMessage zwischen
+     solchen Seiten funktioniert, nutzt die Breitenprüfung bereits zuverlässig.
+
+     Die Übersicht lädt deshalb jedes Aufgabenblatt kurz unsichtbar als iframe.
+     Das Blatt liest seinen EIGENEN Speicher und meldet ihn mit einem einmaligen
+     Token an den Eltern-Index. Der Index prüft Token, Fenster, Kurs und Dateiname,
+     bevor er den Stand in seinen eigenen Speicher übernimmt. Nullstände löschen
+     nie etwas: ein leerer oder gesperrter Modul-Speicher darf einen bereits
+     importierten Stand auf der Übersicht nicht vernichten.                    */
+
+  const STORE_BRIDGE_PREFIX = '#wb-store-bridge=';
+
+  function storeBridgeToken() {
+    const hash = String(location.hash || '');
+    if (hash.indexOf(STORE_BRIDGE_PREFIX) !== 0) return null;
+    try { return decodeURIComponent(hash.slice(STORE_BRIDGE_PREFIX.length)); }
+    catch (e) { return null; }
+  }
+
+  function sameJSON(a, b) {
+    try { return JSON.stringify(a) === JSON.stringify(b); }
+    catch (e) { return false; }
+  }
+
+  WB.storeBridge = {
+    /** Sammelt Fortschrittsstände aus den tatsächlichen Datei-Ursprüngen ein.
+        done(changed) wird genau einmal aufgerufen. */
+    collect(files, done) {
+      const liste = (files || []).filter(Boolean);
+      if (!liste.length || !document.body || window.parent !== window) {
+        if (done) done(false);
+        return;
+      }
+
+      const token = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+      const slots = [];
+      let changed = false;
+      let finished = false;
+      let timer = null;
+
+      function finish() {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timer);
+        window.removeEventListener('message', receive);
+        slots.forEach(s => {
+          const frame = s.frame;
+          if (frame && frame.parentNode) frame.parentNode.removeChild(frame);
+        });
+        if (done) done(changed);
+      }
+
+      function receive(event) {
+        const data = event && event.data;
+        if (!data || data.kind !== 'wb-store-bridge' || data.token !== token) return;
+        const slot = slots.find(s => s.frame.contentWindow === event.source);
+        /* KORRIGIERT AM 11.09.2026 — verglichen wird der DATEINAME, nicht der Pfad.
+           Das Kind meldet sich als `store.file()`, und das ist per Definition der
+           blanke Dateiname aus `location.pathname`. Die Startseite kennt dasselbe
+           Blatt aber als `src/Modul_01_Signale.html`, seit sie eine Ebene höher
+           liegt als die Blätter. Ein Vergleich der beiden Zeichenketten scheiterte
+           damit AUSNAHMSLOS: jede Meldung wurde verworfen, die Brücke lief
+           vollständig durch und meldete am Ende `changed = false`.
+           Sichtbar war das nur als Symptom — eine gelöste Aufgabe, die auf der
+           Startseite nicht ankommt —, und nur bei echtem Doppelklick, weil nur
+           dort die Ursprünge getrennt sind.
+           `store.name()` ist genau der Normalisierer, den `keyFor()` ohnehin
+           benutzt: der Schlüssel eines Blattes hängt am Dateinamen und nie am
+           Pfad. Der Vergleich folgt jetzt derselben Regel — und deshalb verlangt
+           `bootcamp-check.ps1` auch, dass kein Dateiname zweimal vorkommt. */
+        if (!slot || slot.done || data.course !== store.scope() ||
+            store.name(data.file) !== store.name(slot.file)) return;
+        slot.done = true;
+
+        if (data.progress && data.progress.state) {
+          const before = store.readFor(slot.file, 'progress');
+          if (!sameJSON(before, data.progress)) {
+            if (store.writeFor(slot.file, 'progress', data.progress)) changed = true;
+          }
+        }
+
+        if (slots.every(s => s.done)) finish();
+      }
+
+      window.addEventListener('message', receive);
+      liste.forEach(file => {
+        const frame = document.createElement('iframe');
+        frame.hidden = true;
+        frame.tabIndex = -1;
+        frame.setAttribute('aria-hidden', 'true');
+        frame.src = file + STORE_BRIDGE_PREFIX + encodeURIComponent(token);
+        slots.push({ file, frame, done: false });
+        document.body.appendChild(frame);
+      });
+
+      /* Lokale Dateien antworten praktisch sofort. Der Timeout verhindert,
+         dass ein fehlendes oder beschädigtes Blatt die Übersicht festhält. */
+      timer = setTimeout(finish, 1800);
+    }
+  };
+
+  /* Im Kindfenster steht der Speicher bereits nach engine.js bereit; die
+     Aufgabendatei und der Renderer müssen für den Transport nicht erst laufen. */
+  const requestedStoreBridgeToken = storeBridgeToken();
+  if (requestedStoreBridgeToken && window.parent !== window) {
+    try {
+      window.parent.postMessage({
+        kind: 'wb-store-bridge',
+        token: requestedStoreBridgeToken,
+        course: store.scope(),
+        file: store.file(),
+        progress: store.read('progress')
+      }, '*');
+    } catch (e) { /* Ein blockierter Dateiframe lässt die Seite sonst weiterlaufen. */ }
+  }
 
   /* ══════════════════════════════════════════════════════════════════════════
      5 · Fortschritt
@@ -796,6 +999,10 @@ window.WB = window.WB || {};
 
     btn.addEventListener('click', () => {
       if (prog.get(task.id).state !== 'offen') return;
+      if (control.isReady && !control.isReady()) {
+        toast('Bitte zuerst alle Kriterien bewerten');
+        return;
+      }
       uhr.starte();
       const ratio = control.check();
       const tries = prog.get(task.id).tries;
@@ -805,8 +1012,7 @@ window.WB = window.WB || {};
          Zweitversuch wäre reines Ausprobieren. */
       /* In der Klausur gibt es keinen Zweitversuch — und er waere dort auch
          sinnlos, weil die Rueckmeldung noch gar nichts verraet. */
-      const mayRetry = !klausur && ratio < 1 && tries === 0
-                       && task.type !== 'estimate' && task.retry !== false;
+      const mayRetry = allowsRetry(task, ratio, tries, !!klausur);
       if (mayRetry) {
         prog.noteTry(task);
         showFeedback(ratio, true);
@@ -848,7 +1054,12 @@ window.WB = window.WB || {};
     };
   }
 
-  /* ── Die neun Typen ──────────────────────────────────────────────────────── */
+  /* ── Die Aufgabentypen ───────────────────────────────────────────────────
+     Zehn klassische für Lernblätter (choice, cloze, dnd, order, hotspot,
+     estimate, matrix, forecast, reverse, calc) und zwei klausurnahe (result,
+     paper). Jeder Eintrag bekommt `(task, body)` und gibt ein `control`-Objekt
+     zurück: read, check, lock, reveal, setAnswer — und optional isReady.
+     ──────────────────────────────────────────────────────────────────────── */
 
   const TYPE = {
 
@@ -968,8 +1179,11 @@ window.WB = window.WB || {};
         targets[p.key] = { el: t, lbl, pair: p };
       });
 
+      /* `versetzt` statt `shuffled`: keine Beschreibung darf neben ihrem
+         eigenen Begriff landen — sonst ist die Zuordnung schon gemacht.
+         Regel vom 11.09.2026, siehe Rahmenwerk.md, *Redaktionsregeln*. */
       const tokens = [];
-      shuffled(task.pairs).forEach(p => {
+      versetzt(task.pairs).forEach(p => {
         const tk = make('button', 'token');
         tk.type = 'button';
         tk.draggable = true;
@@ -1377,6 +1591,219 @@ window.WB = window.WB || {};
       };
     },
 
+    /* ── `reverse` — die Antwort steht, die Frage wird gesucht ──────────────
+       Ergaenzt am 11.09.2026.
+
+       Jede andere Aufgabe fragt vorwaerts: Frage oben, Antwort gesucht. Das
+       prueft, ob man von der Frage zur Antwort findet — und genau das ist die
+       Richtung, die man beim Lernen ohnehin staendig uebt. Die Gegenrichtung
+       ist die haertere und die naehere an der Pruefung: vor einem Messwert,
+       einer Kennzahl oder einem Begriff zu stehen und zu wissen, WOFUER er die
+       Antwort ist.
+
+       Aufbau: mehrere Zeilen, links die Antwort, rechts ein Auswahlfeld mit
+       allen Fragen des Blocks plus den Distraktoren aus `pool`. Ein gemeinsamer
+       Pool ist Absicht — mit einem eigenen Feld je Zeile waere jede Zeile eine
+       kleine choice-Aufgabe; so muessen die Zeilen gegeneinander abgewogen
+       werden. Die Optionen sind gemischt, und zwar EINMAL fuer alle Zeilen, weil
+       eine je Zeile neu gewuerfelte Reihenfolge das Vergleichen erschwert, ohne
+       etwas zu pruefen.
+
+       Bewertet wird anteilig: jede richtige Zeile zaehlt. */
+    reverse(task, body) {
+      const wrap = make('div', 'rev');
+      const optionen = shuffled(task.items.map(i => i.question).concat(task.pool || []));
+      const rows = [];
+
+      task.items.forEach((item, i) => {
+        const row = make('div', 'rev__row');
+        const a = make('div', 'rev__answer');
+        html(a, item.answer);
+        row.appendChild(a);
+
+        const sel = document.createElement('select');
+        sel.className = 'rev__pick';
+        sel.appendChild(make('option', null, '— wählen —'));
+        optionen.forEach(o => sel.appendChild(make('option', null, o)));
+        sel.setAttribute('aria-label', 'Passende Frage zu: ' + String(item.answer).replace(/<[^>]+>/g, ''));
+        row.appendChild(sel);
+
+        const truth = make('div', 'rev__truth', '');
+        row.appendChild(truth);
+        wrap.appendChild(row);
+        rows.push({ row, sel, truth, item });
+      });
+      body.appendChild(wrap);
+
+      return {
+        read: () => rows.map(r => (r.sel.value === '— wählen —' ? '' : r.sel.value)),
+        check() { return grade.reverse(task, this.read()); },
+        /* Der Pruefknopf bleibt gesperrt, solange eine Zeile leer ist: ein
+           versehentliches Abgeben mit halb gefuellter Tabelle verbraucht sonst
+           den ersten Versuch. */
+        isReady() { return this.read().every(v => v !== ''); },
+        softReset() { rows.forEach(r => { r.sel.value = '— wählen —'; r.row.classList.remove('correct', 'wrong'); r.truth.textContent = ''; }); },
+        lock() { rows.forEach(r => { r.sel.disabled = true; }); },
+        reveal() {
+          const given = this.read();
+          rows.forEach((r, i) => {
+            const ok = String(given[i]) === r.item.question;
+            r.row.classList.add(ok ? 'correct' : 'wrong');
+            r.truth.textContent = ok ? 'richtig' : 'gehört zu: ' + r.item.question;
+          });
+        },
+        setAnswer(vals) { rows.forEach((r, i) => { r.sel.value = vals[i]; }); }
+      };
+    },
+
+    /* Infosec-Bootcamp, 27.08.2026: Klausurnahe Aufgaben nehmen nur die
+       Endergebnisse entgegen. Der geprüfte Rechenweg wird erst in reveal()
+       erzeugt und ist damit vor der Abgabe nicht einmal im DOM vorhanden. */
+    result(task, body) {
+      const wrap = make('div', 'result-work');
+
+      if (task.given && task.given.length) {
+        const tbl = make('table', 'given');
+        const tb = document.createElement('tbody');
+        task.given.forEach(g => {
+          const tr = document.createElement('tr');
+          const a = document.createElement('td'); html(a, g.label);
+          const b = document.createElement('td'); html(b, g.value);
+          tr.appendChild(a); tr.appendChild(b); tb.appendChild(tr);
+        });
+        tbl.appendChild(tb);
+        wrap.appendChild(tbl);
+      }
+
+      const fieldHost = make('div', 'result-fields');
+      const fields = task.fields.map((field, i) => {
+        const row = make('div', 'result-field');
+        const label = make('label', 'result-field__label');
+        label.setAttribute('for', 'result-' + task.id + '-' + i);
+        html(label, field.label);
+        const input = document.createElement('input');
+        input.id = 'result-' + task.id + '-' + i;
+        input.type = 'text';
+        input.inputMode = field.kind === 'number' ? 'decimal' : 'text';
+        input.placeholder = field.unit || (field.kind === 'hex' ? 'hex' : 'Ergebnis');
+        input.setAttribute('aria-label', field.label);
+        const truth = make('div', 'result-field__truth');
+        row.appendChild(label); row.appendChild(input); row.appendChild(truth);
+        fieldHost.appendChild(row);
+        return { field, row, input, truth };
+      });
+      wrap.appendChild(fieldHost);
+      body.appendChild(wrap);
+
+      let solutionShown = false;
+      const control = {
+        read: () => fields.map(x => x.input.value),
+        check() { return grade.result(task, this.read()); },
+        softReset() { fields.forEach(x => { x.input.value = ''; }); },
+        lock() { fields.forEach(x => { x.input.disabled = true; }); },
+        reveal() {
+          const answers = this.read();
+          fields.forEach((x, i) => {
+            const ok = resultFieldCorrect(x.field, answers[i]);
+            x.row.classList.add(ok ? 'correct' : 'wrong');
+            x.truth.textContent = ok ? 'richtig' : '→ ' + x.field.answer + (x.field.unit ? ' ' + x.field.unit : '');
+          });
+          if (solutionShown) return;
+          solutionShown = true;
+          const solution = make('div', 'worked-solution');
+          solution.appendChild(make('div', 'worked-solution__title', 'Geprüfter Musterweg'));
+          const steps = make('ol', 'worked-solution__steps');
+          task.solution.forEach(step => { const li = document.createElement('li'); html(li, step); steps.appendChild(li); });
+          solution.appendChild(steps);
+          wrap.appendChild(solution);
+        },
+        setAnswer(values) {
+          fields.forEach((x, i) => { x.input.value = values[i]; });
+        }
+      };
+      return control;
+    },
+
+    /* Infosec-Bootcamp, 27.08.2026: Blank-Paper-Workflow für DFD/STRIDE.
+       Die Musterlösung wird erst nach ausdrücklichem Abschluss aufgebaut. */
+    paper(task, body) {
+      const work = make('div', 'paper-work');
+      work.appendChild(make('div', 'paper-work__timebox', 'Zeitvorgabe: ' + task.timebox));
+      const done = make('button', 'act paper-work__done', 'Eigene Bearbeitung abgeschlossen');
+      done.type = 'button';
+      work.appendChild(done);
+      const comparison = make('div', 'paper-work__comparison');
+      comparison.hidden = true;
+      work.appendChild(comparison);
+      body.appendChild(work);
+
+      let opened = false;
+      let rows = [];
+      function openComparison() {
+        if (opened) return;
+        opened = true;
+        done.disabled = true;
+        const solution = make('div', 'worked-solution');
+        solution.appendChild(make('div', 'worked-solution__title', 'Geprüfte Musterlösung'));
+        if (task.solution.image) {
+          const img = document.createElement('img');
+          img.src = task.solution.image;
+          img.alt = task.solution.alt || 'Musterlösung der Papieraufgabe';
+          img.className = 'paper-work__image';
+          solution.appendChild(img);
+        }
+        if (task.solution.html) {
+          const prose = make('div', 'paper-work__solution');
+          html(prose, task.solution.html);
+          solution.appendChild(prose);
+        }
+        comparison.appendChild(solution);
+        const check = make('div', 'paper-check');
+        check.appendChild(make('div', 'paper-check__title', 'Vergleiche deine Lösung Kriterium für Kriterium'));
+        rows = task.checklist.map((criterion, i) => {
+          const row = make('fieldset', 'paper-check__row');
+          const legend = make('legend', 'paper-check__criterion');
+          html(legend, criterion);
+          row.appendChild(legend);
+          const choices = make('div', 'paper-check__choices');
+          const yesLabel = make('label', 'paper-check__choice');
+          const yes = document.createElement('input');
+          yes.type = 'radio'; yes.name = 'paper-' + task.id + '-' + i; yes.value = 'yes';
+          yesLabel.appendChild(yes); yesLabel.appendChild(make('span', null, 'erfüllt'));
+          const noLabel = make('label', 'paper-check__choice');
+          const no = document.createElement('input');
+          no.type = 'radio'; no.name = yes.name; no.value = 'no';
+          noLabel.appendChild(no); noLabel.appendChild(make('span', null, 'abweichend'));
+          choices.appendChild(yesLabel); choices.appendChild(noLabel);
+          row.appendChild(choices); check.appendChild(row);
+          return { row, yes, no };
+        });
+        comparison.appendChild(check);
+        comparison.hidden = false;
+      }
+      done.addEventListener('click', openComparison);
+
+      const control = {
+        read() {
+          if (!opened || rows.some(r => !r.yes.checked && !r.no.checked)) return null;
+          return rows.map(r => r.yes.checked);
+        },
+        isReady() { return Array.isArray(this.read()); },
+        check() { return grade.paper(task, this.read()); },
+        softReset() { rows.forEach(r => { r.yes.checked = false; r.no.checked = false; }); },
+        lock() { done.disabled = true; rows.forEach(r => { r.yes.disabled = true; r.no.disabled = true; }); },
+        reveal() {
+          openComparison();
+          rows.forEach(r => r.row.classList.add(r.yes.checked ? 'correct' : 'wrong'));
+        },
+        setAnswer(values) {
+          openComparison();
+          rows.forEach((r, i) => { r.yes.checked = !!values[i]; r.no.checked = !values[i]; });
+        }
+      };
+      return control;
+    },
+
     calc(task, body) {
       const calc = make('div', 'calc');
 
@@ -1398,11 +1825,12 @@ window.WB = window.WB || {};
       task.steps.forEach((s, i) => {
         const st = make('div', 'step' + (i === 0 ? '' : ' locked'));
         st.appendChild(make('div', 'slbl', (i + 1) + '. ' + s.label));
-        if (s.formula) {
-          const f = make('div', 'formula');
-          html(f, s.formula);
-          st.appendChild(f);
-        }
+        /* GEAENDERT AM 11.09.2026: die Formel steht NICHT mehr von Anfang an da.
+           Vorher war sie ueber dem Eingabefeld sichtbar — damit war die Aufgabe
+           kein Rechnen mehr, sondern Einsetzen. Jetzt erscheint sie wie der
+           Tipp erst nach einem Fehlversuch, und sie wird DANN ERST gebaut: ein
+           Blick in den Seitenquelltext soll sie vorher nicht finden. Dieselbe
+           Regel wie beim Typ `result`, aus demselben Grund. */
         const inrow = make('div', 'inrow');
         const inp = document.createElement('input');
         inp.type = 'text';
@@ -1421,9 +1849,19 @@ window.WB = window.WB || {};
         /* `ok` = der Schritt stimmt · `erledigt` = der Schritt ist abgehakt.
            Im Lernmodus fallen die zwei zusammen; in der Klausur nicht, denn
            dort geht es auch nach einer falschen Zahl weiter. */
-        steps.push({ st, inp, btn, hint, s, tries: 0, ok: false, erledigt: false });
+        steps.push({ st, inp, btn, hint, s, inrow, tries: 0, ok: false, erledigt: false });
       });
       body.appendChild(calc);
+
+      /** Baut die Formel eines Schrittes und haengt sie ueber das Eingabefeld.
+          Idempotent: mehrfaches Aufrufen ergibt genau ein Element. */
+      function zeigeFormel(row) {
+        if (!row.s.formula || row.formelEl) return;
+        const f = make('div', 'formula');
+        html(f, row.s.formula);
+        row.st.insertBefore(f, row.inrow);
+        row.formelEl = f;
+      }
 
       let earned = 0;
 
@@ -1458,6 +1896,7 @@ window.WB = window.WB || {};
             row.tries++;
             row.inp.classList.add('wrong');
             row.hint.classList.add('show');   /* Tipp erst nach Fehlversuch */
+            zeigeFormel(row);                 /* Formel ebenso — siehe oben */
             return;
           }
           row.ok = true;
@@ -1496,6 +1935,7 @@ window.WB = window.WB || {};
           steps.forEach(r => {
             r.st.classList.remove('locked');
             r.hint.classList.add('show');
+            zeigeFormel(r);
             if (!r.ok) {
               r.inp.classList.add('wrong');
               const s = make('span', 'unit', '→ ' + num(r.s.answer, 2));
@@ -1835,6 +2275,11 @@ window.WB = window.WB || {};
   };
 
   WB.register = function register(sheet) {
+    /* Als unsichtbarer Speicherlieferant braucht das Blatt weder Aufgaben-DOM
+       noch Visualisierungen; die Meldung wurde direkt nach Aufbau des Stores
+       bereits verschickt. */
+    if (requestedStoreBridgeToken && window.parent !== window) return null;
+
     WB.sheets.push(sheet);
 
     /* Klausurmodus scharfschalten, BEVOR irgendetwas gerendert wird — die
@@ -1860,7 +2305,16 @@ window.WB = window.WB || {};
       left.appendChild(make('span', 'dot'));
       left.appendChild(make('span', null, (sheet.level || '') + (sheet.level && sheet.kind ? ' · ' : '') + (sheet.kind || 'Übungsblatt')));
       rule.appendChild(left);
-      rule.appendChild(make('span', null, '~' + (sheet.minutes || 45) + ' Min'));
+      /* Rechts im Kopf stand bis zum 10.09.2026 „~45 Min" aus `sheet.minutes`.
+         Die Zahl war geraten — und fehlte sie, erfand diese Zeile 45 Minuten
+         dazu. Jetzt steht dort eine Tatsache: die vorgeschriebene Klausurdauer,
+         wenn es eine Klausur ist, sonst Aufgabenzahl und Punkte. Wer wissen
+         will, wie lange er braucht, sieht es am Fortschritt, nicht an einer
+         Schätzung. */
+      rule.appendChild(make('span', null, klausur && klausur.minuten
+        ? klausur.minuten + ' Minuten'
+        : prog.total + (prog.total === 1 ? ' Aufgabe' : ' Aufgaben')
+          + '  ·  ' + prog.maxScore + ' Punkte'));
       mast.appendChild(rule);
       if (sheet.kicker) mast.appendChild(make('p', 'kicker', sheet.kicker));
       const h1 = document.createElement('h1');
@@ -1941,6 +2395,11 @@ window.WB = window.WB || {};
       head.appendChild(titles);
       head.appendChild(make('div', 'part__count', part.count || (part.tasks.length + ' Aufgaben')));
       sec.appendChild(head);
+      if (part.lead) {
+        const lead = make('div', 'lead-in intensive-example');
+        html(lead, part.lead);
+        sec.appendChild(lead);
+      }
       const list = make('div', 'tasks');
       part.tasks.forEach(t => {
         const r = renderTask(t, prog);

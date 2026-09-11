@@ -24,25 +24,46 @@ Wähle dafür **nicht** das erste Modul des Kurses, sondern eines mit möglichst
 git clone <repo> <Zielordner>
 ```
 
-Danach **die Struktur auflösen**. Im Repo heißt der Kursordner `Stylevorgabe`, weil er dort das Gerüst ist. In einem fertigen Modul ist der Name irreführend — wer ihn öffnet, vermutet Beispielmaterial und findet den Produktionsstand.
+Danach **die Struktur auflösen**. Im Repo heißt der Kursordner `src`, weil er dort das Gerüst trägt; `startseite.html` liegt schon im Wurzelverzeichnis. In einem fertigen Modul ist die Trennung überflüssig — dort liegen Blätter und `assets/` neben der Übersicht, so wie in AuD und Homelab.
 
-Verschiebe deshalb `assets/`, `index.html`, `index.data.js` eine Ebene hoch und lösche `Stylevorgabe`. `tools/bootcamp-check.ps1` erkennt beide Layouts von selbst; du musst nichts anpassen.
+Verschiebe deshalb den Inhalt von `src/` eine Ebene hoch (auch `startseite.data.js`), lösche `src`, und streiche in `startseite.data.js` das `src/` vor jedem `file`. `tools/bootcamp-check.ps1` erkennt alle drei Layouts von selbst — `src`, `Stylevorgabe` und das aufgelöste; am Werkzeug ist nichts anzupassen.
 
 `Nutzereinstellungen.md` steht in der `.gitignore` und kommt beim Klonen **nicht** mit. Kopiere sie von Hand, sonst gilt das Profil nicht.
 
 ## Was gelöscht wird und was nicht
 
+`src` ist seit dem 10.09.2026 ein vollständiges Dummy-Bootcamp („Showcase"): zwei Module als Dreiklang und dahinter die Klausurphase. Beim Portieren wird es **komplett zu Demo-Material** — nichts davon ist Produktionsstand.
+
 | Datei | |
 |---|---|
-| `Modul_03_Verbundnetze.*`, `Fourier_Lehrkurs.html`, `Canvas_Beispiel.canvas` | dürfen weg, sobald eigene Blätter da sind |
-| `assets/viz-fourier.js` | weg mit dem Fourier-Artikel |
+| beide `Modul_0*`-Dreiklänge (je Lehrkurs, Heft, Lab), `Anleitung.html`, `Canvas_Beispiel.canvas` (alle in `src/`) | dürfen weg, sobald eigene Module da sind. `Anleitung.html` wird durch die **eigene** Anleitungsseite ersetzt, nicht einfach gelöscht. |
+| der ganze Ordner `Klausurphase/` | nur behalten, wenn es einen Prüfungstermin gibt — siehe `Rahmenwerk.md`, *Nur in der Klausurphase* |
+| `assets/viz-fourier.js` | weg mit dem Lehrkurs von Modul 01 |
 | **`assets/viz-verbundnetz.js`** | **bleibt** — `selbsttest.data.js` lädt es |
 | **`assets/img/schema-verbundnetz.svg`** | **bleibt** — die Hotspot-Aufgabe des Selbsttests |
+| `assets/img/schema-spektrum.svg` | weg mit dem Aufgabenheft von Modul 01 |
 | `assets/selbsttest.*`, `tools/`, `index.*` | bleiben immer |
+| **`tools/klausurphase.config.mjs`** | **bleibt** — auch ohne Klausur. Dann leeren, nicht löschen: sonst brechen zwei Prüfungen mit einem Importfehler ab, statt grün zu enden. |
 
-Die zwei fett markierten Zeilen sind die Falle: Wer beim Aufräumen alles Fachfremde löscht, nimmt dem Rahmenwerk seine Regressionsprüfung — und merkt es erst, wenn der nächste Prüflauf rot ist.
+Die drei fett markierten Zeilen sind die Falle: Wer beim Aufräumen alles Fachfremde löscht, nimmt dem Rahmenwerk seine Regressionsprüfung — und merkt es erst, wenn der nächste Prüflauf rot ist.
 
-**Der Selbsttest gehört nicht in `index.data.js`.** Er ist ein Entwicklerwerkzeug, kein Lernstoff, und die Übersicht soll genau einen nächsten Schritt empfehlen. Die Datei bleibt, das Prüfwerkzeug findet sie von selbst.
+**Der Selbsttest gehört nicht in `startseite.data.js`.** Er ist ein Entwicklerwerkzeug, kein Lernstoff, und die Übersicht soll genau einen nächsten Schritt empfehlen. Die Datei bleibt, das Prüfwerkzeug findet sie von selbst. Im Showcase steht er deshalb ebenfalls nicht in der Übersicht, sondern nur in `src/Anleitung.html` verlinkt.
+
+## Was aus dem Rahmenwerk mitkommen muss
+
+Ein altes Bootcamp hat oft eine ältere `assets/`. Kopiere beim Portieren **immer die aktuellen** Dateien über die alten und verlasse dich nicht darauf, dass „es ja läuft" — die folgenden Merkmale gibt es sonst nicht, und man merkt ihr Fehlen nicht am Aussehen:
+
+| Datei | was seit 08/2026 dazugekommen ist |
+|---|---|
+| `assets/engine.js` | die Aufgabentypen `result` und `paper`, `WB.allowsRetry`, `part.lead`, die Speicherbrücke über `file://` |
+| **Modulstruktur** | jedes Modul als Dreiklang aus Lehrkurs, Aufgabenheft und **Lab am Schluss**, alle drei mit demselben Präfix und in einer `group`. Ein portiertes Modul ohne Lab ist nicht fertig portiert — siehe `Rahmenwerk.md`, *Ein Modul ist ein Dreiklang*. |
+| `assets/validate.js` | die Redaktionsregeln für beide neuen Typen und für `part.lead` |
+| `assets/hub.js` | Fortschritt über **bearbeitete Aufgaben** statt Punkte, `entry.tasks` als Nenner, Abholen der Modulstände |
+| `assets/styles.css` | die Stile beider neuen Typen, `.theorie`, `.plan`/`.plantile`, `.exam-reference`/`.refgrid` — und rund zehn Überlauf-Korrekturen, die bei 320 px zugeschlagen haben |
+| `assets/selbsttest.*` | je eine Aufgabe pro Aufgabenart. Erwartung: **270 von 270** Punkten, dreizehn Aufgaben |
+| `tools/` | sechs Node-Prüfungen und `bootcamp-check.ps1`, der sie aufruft |
+
+Danach `startseite.data.js` des portierten Kurses um `tasks` je bewertbarem Blatt ergänzen. Ohne dieses Feld zeigt die Übersicht keinen Aufgabenstand, sondern fällt auf einen Mittelwert zurück — grün, plausibel und falsch.
 
 ---
 
@@ -62,7 +83,7 @@ pwsh tools/bootcamp-check.ps1
 
 Es ist der Teil, an dem sich das Rahmenwerk am stärksten von handgeschriebenem Material unterscheidet: Aufgaben sind Datenobjekte, es gibt neun Typen statt der gewohnten drei, und `validate.js` prüft mit. Wer hier durch ist, hat den Rest verstanden.
 
-Danach der Fachartikel, dann das Lab, zuletzt `index.data.js`.
+Danach der Fachartikel, dann das Lab, zuletzt `startseite.data.js`.
 
 Prüfe nach **jedem** Schritt, nicht am Ende:
 
@@ -94,7 +115,7 @@ Praktisch beim Portieren:
 
 # Schritt 5 · Labs aus einer Anleitung
 
-Eine Markdown-Anleitung ist meist ein Block. Schneide sie in **Etappen von 20 bis 25 Minuten**, jede mit eigenem Ziel und sichtbarem Ende — die Randbedingung aus `Nutzereinstellungen.md`.
+Eine Markdown-Anleitung ist meist ein Block. Schneide sie in **Etappen, die in einer Sitzung zu schaffen sind**, jede mit eigenem Ziel und sichtbarem Ende — die Randbedingung aus `Nutzereinstellungen.md`. Der Zuschnitt ist deine Entscheidung; **eine Dauer steht nicht im `chapter__tag`** (siehe `Rahmenwerk.md`, *Keine geschätzten Zeiten*).
 
 Sortiere die Etappen nach **Eingriffstiefe**: erst die, die nur lesen, dann die, die verändern. Wer nach der zweiten aufhört, hat gemessen und nichts angefasst.
 

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="wb-course" content="Beispielkurs">
+<title>Anleitung — Showcase des Rahmenwerks</title>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SHOWCASE · Anleitungsseite. Zwei Aufgaben in einer Datei:
+
+     1. Sie ist die Vorlage für die Anleitungsseite, die `Klausurvorbereitung.md`
+        am Ende jedes Auftrags verlangt: was gebaut wurde, in welcher Reihenfolge
+        es durchgegangen wird, wie der Fortschritt funktioniert, was von Hand
+        nachzusehen bleibt.
+
+     2. Sie ist der Wegweiser durch diesen Showcase selbst: welche Seite welches
+        Merkmal des Rahmenwerks vorführt. Wer ein neues Merkmal baut, ergänzt es
+        hier — sonst ist es in drei Monaten gebaut und unbekannt.
+
+     Eine Leseseite hat keine Engine und keine Aufgaben. Sie wird deshalb NICHT
+     vom Standardlauf gefunden, sondern muss mitgegeben werden:
+
+         pwsh tools/bootcamp-check.ps1 -Pages index,Anleitung
+
+     Prosa steht in `<div class="theorie">` — dem Prosablock des Rahmenwerks.
+     Ohne ihn hätte ein Absatz keinen Abstand: `styles.css` setzt `* {margin:0}`.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body class="is-hub">
+
+<div class="hub">
+
+  <header class="hub__head">
+    <div class="hub__kicker">Beispielkurs · Showcase</div>
+    <h1>Was hier liegt<br><em>und wozu es da ist.</em></h1>
+    <p class="hub__lede">Dieser Ordner ist kein Kurs, sondern der Vorführstand des Rahmenwerks:
+    zwei vollständige Module und dahinter alles, was nur eine Klausurphase braucht. Wer vor dem
+    nächsten Bootcamp wissen will, was die Vorlage inzwischen kann, klickt sich hier durch.</p>
+  </header>
+
+  <div class="callout callout--note">
+    <div class="callout__icon">i</div>
+    <div class="callout__body">
+      <p><b>Alle Inhalte sind Dummy-Daten.</b> Das Fachthema ist erfunden und heißt absichtlich
+      „Beispielkurs". Die Zahlen sind gegengerechnet, damit die Blätter fehlerfrei durchlaufen —
+      als Lernmaterial ist hier trotzdem nichts gemeint.</p>
+    </div>
+  </div>
+
+  <div class="hub__section">Ein Modul ist ein Dreiklang</div>
+
+  <div class="theorie">
+    <p><b>Jedes normale Lehr- oder Lernmodul besteht aus drei Teilen</b>, und zwar aus diesen drei,
+    in dieser Reihenfolge:</p>
+
+    <ol>
+      <li><b>Fachartikel</b> (<code>Modul_NN_Thema_Lehrkurs.html</code>) — erklärt zusammenhängend,
+      was ein Aufgabenblatt nur abfragt. Keine Punkte, ein Lesestand.</li>
+      <li><b>Aufgabenheft</b> (<code>Modul_NN_Thema.html</code> + <code>.data.js</code>) — prüft,
+      ob die Begriffe tragen. Punkte, Rückmeldung, zweiter Versuch.</li>
+      <li><b>Lab</b> (<code>Modul_NN_Thema_Lab.html</code>) — lässt machen. Keine Punkte, kein
+      Prüfknopf, dafür Etappen mit einem prüfbaren Ende.</li>
+    </ol>
+
+    <p><b>Das Lab steht immer am Schluss</b>, und es fehlt nie. Lesen und Ankreuzen erzeugen
+    Wiedererkennen; Können entsteht erst, wenn man etwas selbst gemacht hat. Ein Modul ohne Lab
+    ist deshalb kein vollständiges Modul, sondern ein Modul mit einer Lücke am wichtigsten Ende.</p>
+
+    <p>Alle drei Dateien tragen dasselbe Präfix <code>Modul_NN_Thema</code>. Das ist keine
+    Kosmetik: es macht sie im Verzeichnis als Einheit sichtbar, und es ist die Bedingung dafür,
+    dass der Wegweiser in der Seitenleiste jeder Modulseite gleich aussieht.</p>
+
+    <div class="callout callout--think">
+      <div class="callout__icon">!</div>
+      <div class="callout__body">
+        <p><b>Hinweis für den Agenten, der das nächste Bootcamp baut.</b> Der Dreiklang gilt für
+        jedes Modul, ohne Ausnahme. Wenn ein Thema zu klein für drei Teile scheint, ist es meist
+        kein eigenes Modul, sondern ein Kapitel im Nachbarmodul — das ist die richtige Antwort,
+        nicht ein Modul ohne Lab. Und wenn ein Lab nicht einfällt: ein Lab muss nichts
+        Programmieren sein. Etwas von Hand zeichnen, eine Messreihe auswerten, einen Rechenweg auf
+        eigenen Zahlen wiederholen — das sind Labs, und beide Beispiele hier sind genau das.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="hub__section">Reihenfolge</div>
+
+  <div class="theorie">
+    <p>Die <a href="../startseite.html">Übersicht</a> empfiehlt zu jedem Zeitpunkt genau einen nächsten
+    Schritt und gruppiert die Seiten so, wie sie durchzugehen sind. Der Weg <i>innerhalb</i> eines
+    Moduls steht außerdem in der Seitenleiste jeder Modulseite — bytegleich auf allen drei Seiten,
+    nur der aktive Schritt ist markiert.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Schritt</th><th>Modul 01 · Signale und Spektren</th><th>Modul 02 · Verbundnetze</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1 · Fachartikel</td>
+            <td><a href="Modul_01_Signale_Lehrkurs.html">Fourier von Grund auf</a></td>
+            <td><a href="Modul_02_Verbundnetze_Lehrkurs.html">Das Verbundnetz von Grund auf</a></td>
+          </tr>
+          <tr>
+            <td>2 · Aufgabenheft</td>
+            <td><a href="Modul_01_Signale.html">Periode, Frequenz, Spektrum</a></td>
+            <td><a href="Modul_02_Verbundnetze.html">Regelzonen und Frequenzhaltung</a></td>
+          </tr>
+          <tr>
+            <td>3 · Lab</td>
+            <td><a href="Modul_01_Signale_Lab.html">Ein Spektrum von Hand</a></td>
+            <td><a href="Modul_02_Verbundnetze_Lab.html">Lastgang mit eigenen Zahlen</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="hub__section">Welche Seite führt was vor</div>
+
+  <div class="theorie">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Seite</th><th>Merkmal des Rahmenwerks</th><th>gilt für</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="../startseite.html">startseite.html</a><br><span class="quelle">Wurzelverzeichnis</span></td>
+            <td><code>groups</code> mit <code>step: true</code>, Gruppenfortschritt, Weiter-Karte,
+                <code>tasks</code> je Eintrag als verbindlicher Nenner, Speicherbrücke über
+                <code>file://</code></td>
+            <td>jedes Bootcamp</td>
+          </tr>
+          <tr>
+            <td><a href="Modul_01_Signale_Lehrkurs.html">Modul_01_Signale_Lehrkurs.html</a></td>
+            <td>Fachartikel: Kapitel, Formelblöcke, Karteikarten, Kontrollfragen, Lesestand,
+                drei Zeichnungen mit Regler</td>
+            <td>jedes Modul, Schritt 1</td>
+          </tr>
+          <tr>
+            <td><a href="Modul_01_Signale.html">Modul_01_Signale.html</a></td>
+            <td>Aufgabenheft mit allen <b>elf Aufgabenarten</b> eines Lernblatts, <b>jeder genau
+                einmal</b>: Einfachauswahl, Mehrfachauswahl, Lückentext, Zuordnung, Reihenfolge,
+                Bildarbeit, Schätzen, Raster, Prognose, Rechenweg und Umkehrfrage. Dazu der
+                Redaktionsstandard „Prüfbericht völlig leer"</td>
+            <td>jedes Modul, Schritt 2</td>
+          </tr>
+          <tr>
+            <td><a href="Modul_01_Signale_Lab.html">Modul_01_Signale_Lab.html</a></td>
+            <td>Lab mit festen Sollwerten: Etappen, <code>.term</code>-Blöcke,
+                <code>.etappe-ende</code> als prüfbares Ende</td>
+            <td>jedes Modul, Schritt 3</td>
+          </tr>
+          <tr>
+            <td><a href="Modul_02_Verbundnetze_Lehrkurs.html">Modul_02_Verbundnetze_Lehrkurs.html</a></td>
+            <td>derselbe Aufbau als <b>zweites</b> Beispiel — wer ein drittes Modul baut, kopiert
+                eines der beiden und sieht am Vergleich, was Form und was Inhalt ist</td>
+            <td>jedes Modul, Schritt 1</td>
+          </tr>
+          <tr>
+            <td><a href="Modul_02_Verbundnetze.html">Modul_02_Verbundnetze.html</a></td>
+            <td>dieselben elf Aufgabenarten am zweiten Thema — am Vergleich sieht man, was Form
+                und was Inhalt ist. Dazu Visualisierung im Heft, Filter nach Schwierigkeit,
+                Auszeichnungen</td>
+            <td>jedes Modul, Schritt 2</td>
+          </tr>
+          <tr>
+            <td><a href="Modul_02_Verbundnetze_Lab.html">Modul_02_Verbundnetze_Lab.html</a></td>
+            <td>Lab mit <b>eigenen</b> Eingabewerten: geprüft wird gegen Plausibilitätsbereiche,
+                nicht gegen Zahlen</td>
+            <td>jedes Modul, Schritt 3</td>
+          </tr>
+          <tr>
+            <td><a href="assets/selbsttest.html">assets/selbsttest.html</a></td>
+            <td>Regressionsblatt: von jeder der <b>dreizehn</b> Aufgabenarten genau eine
+                Instanz. Erwartung 270 von 270 Punkten. <b>Steht nicht in der Übersicht</b> — es
+                ist Werkzeug und kein Lernstoff.</td>
+            <td>Prüfstand des Rahmenwerks</td>
+          </tr>
+          <tr>
+            <td>Canvas_Beispiel.canvas<br><span class="quelle">nur für den Agenten</span></td>
+            <td>die Syntax einer Obsidian-Canvas: Knoten, Gruppen, Kanten, Farbindizes. Liegt
+                bewusst hier und nicht im Wurzelverzeichnis — eine Canvas, die <b>für den Kurs</b>
+                entsteht, legt der Agent dagegen nach oben neben <code>startseite.html</code> und sagt
+                dazu, dass sie mit <b>Obsidian</b> geöffnet werden muss.</td>
+            <td>Vorlage für den Agenten</td>
+          </tr>
+          <tr>
+            <td><a href="Klausurphase/Lernplan.html">Klausurphase/Lernplan.html</a></td>
+            <td>Kachelplan je Tag mit allen vier Kachelarten, <code>.ics</code> daneben</td>
+            <td><b>nur Klausurphase</b></td>
+          </tr>
+          <tr>
+            <td><a href="Klausurphase/Abdeckung.html">Klausurphase/Abdeckung.html</a></td>
+            <td>Abdeckungskarte Thema → Blatt, gegengeprüft von
+                <code>tools/exam-coverage-check.mjs</code></td>
+            <td><b>nur Klausurphase</b></td>
+          </tr>
+          <tr>
+            <td><a href="Klausurphase/Intensiv_01_Netzrechnen.html">Klausurphase/Intensiv_01…html</a></td>
+            <td>Theorieblock über <code>part.lead</code>, Aufgabentyp <code>result</code>,
+                Aufgabentyp <code>paper</code>, unabhängige Nachrechnung über <code>verify</code></td>
+            <td><b>nur Klausurphase</b></td>
+          </tr>
+          <tr>
+            <td><a href="Klausurphase/Probeklausur.html">Klausurphase/Probeklausur.html</a></td>
+            <td>Klausurmodus: Countdown, Punkte je Aufgabe, keine Rückmeldung vor der Abgabe</td>
+            <td><b>nur Klausurphase</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="hub__section">Was nur die Klausurphase braucht</div>
+
+  <div class="theorie">
+    <p>Die vier Seiten in <code>src/Klausurphase/</code> setzen etwas voraus, das es nur bei einer
+    Prüfung gibt: einen <b>von außen gesetzten Umfang</b> und einen <b>Termin</b>. Ein Bootcamp,
+    das nach <code>NeuesThema.md</code> ein Thema aus Interesse aufarbeitet, hat beides nicht.</p>
+
+    <div class="callout callout--think">
+      <div class="callout__icon">!</div>
+      <div class="callout__body">
+        <p><b>Hinweis für den Agenten:</b> Ohne Prüfungstermin wird der Ordner
+        <code>src/Klausurphase/</code> als Ganzes gelöscht, die vier Einträge fallen aus
+        <code>src/startseite.data.js</code> heraus, und <code>tools/klausurphase.config.mjs</code> bleibt
+        <b>leer, aber vorhanden</b>. Die beiden klausurbezogenen Prüfungen melden dann „keine
+        Erwartungen hinterlegt" und enden grün; <code>tools/bootcamp-check.ps1</code> läuft
+        unverändert durch.</p>
+        <p>Baue sie nicht „vorsichtshalber" mit. Ein Lernplan ohne Termin erfindet Druck, den es
+        nicht gibt, und eine Probeklausur ohne Klausur prüft gegen eine Prüfung, die es nicht gibt
+        — beides untergräbt genau das Vertrauen in die Struktur, von dem ein Themen-Bootcamp lebt.
+        Die vollständige Liste steht in <code>Rahmenwerk.md</code> unter <i>Nur in der
+        Klausurphase</i>.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="hub__section">Wie der Fortschritt funktioniert</div>
+
+  <div class="theorie">
+    <p>Der Stand liegt im <code>localStorage</code> dieses Browsers, unter einem Schlüssel aus
+    Kursname und Dateiname. Er überlebt das Neuladen und das Verschieben des Ordners, aber er
+    wandert nicht auf einen anderen Rechner und nicht in einen anderen Browser.</p>
+
+    <ul>
+      <li><b>Aufgabenhefte</b> haben Punkte und einen Balken über die <i>bearbeiteten Aufgaben</i>
+      — nicht über den Punktestand. Ein Balken, der beim ersten Fehler zurückfällt, entmutigt
+      genau dann, wenn Ermutigung nötig wäre.</li>
+      <li><b>Fachartikel und Labs</b> haben keine Punkte, sondern einen Lesestand. Ab 90 %
+      durchgescrollt gelten sie als fertig — deshalb zählen sie nicht in den Punktestand und
+      verwässern ihn nicht.</li>
+      <li><b>Diese Anleitung</b> hat beides nicht und bleibt in der Übersicht unmarkiert. Das ist
+      Absicht: ein Wegweiser ist kein Schritt des Wegs.</li>
+      <li><b>Bei Doppelklick auf eine Datei</b> kann jede Seite einen eigenen, abgeschotteten
+      Speicher bekommen — Chromium behandelt lokale Dateien als getrennte Ursprünge. Die Übersicht
+      sammelt die Modulstände deshalb einmal beim Öffnen unsichtbar über <code>iframe</code> und
+      <code>postMessage</code> ein. Wenn ein Modul 14 von 16 zeigt und die Übersicht kurz darauf
+      nachzieht, ist genau das passiert.</li>
+    </ul>
+  </div>
+
+  <div class="hub__section">Warum jede Aufgabenart nur einmal vorkommt</div>
+
+  <div class="theorie">
+    <p>Die beiden Aufgabenhefte haben je <b>elf</b> Aufgaben — eine pro Aufgabenart, keine
+    doppelt. Das ist eine Regel für <b>diese Vorlage</b> und nicht für einen echten Kurs:
+    <code>src/</code> ist Kopiervorlage, und ein zweites Beispiel derselben Art zeigt nichts, was
+    das erste nicht gezeigt hat — es verlängert nur, was man durchliest, bevor man anfängt.</p>
+
+    <p>Elf und nicht zehn, weil <b>Einfach- und Mehrfachauswahl getrennt zählen</b>. Sie teilen
+    sich den Typnamen <code>choice</code>, aber für den Lernenden sind es zwei verschiedene
+    Aufgaben: bei der einen ist genau eine Aussage wahr und Ausschließen führt zum Ziel, bei der
+    anderen weiß man vorher nicht einmal, wie viele wahr sind — jede Option muss einzeln
+    beurteilt werden. Beide stehen deshalb in <b>jedem</b> der beiden Hefte.</p>
+
+    <div class="callout callout--think">
+      <div class="callout__icon">!</div>
+      <div class="callout__body">
+        <p><b>Hinweis für den Agenten:</b> In einem echten Heft entscheidet der <i>Stoff</i> über
+        die Zahl der Aufgaben, nicht die Vollständigkeit der Liste. Nimm mehrere Aufgaben je Art,
+        wo das Thema es hergibt — aber mindestens sechs verschiedene Typen je Blatt,
+        <code>validate.js</code> meldet unter vier.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="hub__section">Warum nirgends eine Zeit steht</div>
+
+  <div class="theorie">
+    <p>Kein Seitenkopf sagt „~45 Min", keine Lab-Etappe nennt Minuten, keine Lernplan-Kachel eine
+    Dauer. Das ist keine Lücke, sondern eine Entscheidung vom 10.09.2026: diese Zahlen waren
+    <b>geraten</b> und lagen regelmäßig daneben — und eine falsche Zeitangabe ist schlimmer als
+    keine. Wer für die angekündigte Dreiviertelstunde zwei Stunden braucht, hört auf, weil er sich
+    für langsam hält, und nicht, weil die Schätzung falsch war.</p>
+
+    <p>Rechts im Seitenkopf steht deshalb eine <b>Tatsache</b>: beim Aufgabenheft Aufgabenzahl und
+    Punkte, beim Fachartikel die Kapitelzahl, beim Lab die Zahl der Etappen. Wie lange es dauert,
+    sagt der Fortschritt, während man arbeitet.</p>
+
+    <div class="callout callout--think">
+      <div class="callout__icon">!</div>
+      <div class="callout__body">
+        <p><b>Hinweis für den Agenten:</b> Das Feld <code>minutes</code> ist aus dem Rahmenwerk
+        heraus. <code>hub.js</code> und <code>engine.js</code> lesen es nicht mehr, und
+        <code>validate.js</code> meldet es, wenn es wieder auftaucht — was es tut, sobald ein
+        älteres Blatt als Vorlage dient.</p>
+        <p><b>Eine vorgeschriebene Zeit ist etwas anderes und bleibt:</b>
+        <code>klausur.minuten</code> ist die Dauer der echten Prüfung,
+        <code>task.timebox</code> die Zeitvorgabe einer Papieraufgabe. Beides sagt nicht „so lange
+        wirst du brauchen", sondern „so lange hast du" — und gehört damit zur Aufgabenstellung.
+        Dasselbe gilt für Zeiten, die fachlicher <i>Inhalt</i> sind: „die Sekundärregelung greift
+        innerhalb von Minuten" ist eine Antwort, keine Ankündigung.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="hub__section">Was von Hand nachzusehen bleibt</div>
+
+  <div class="theorie">
+    <p>Ein grüner Prüflauf heißt „nichts Kaputtes gefunden", nicht „gut". Diese Punkte kann kein
+    Exitcode beantworten:</p>
+
+    <ul>
+      <li>Zuordnung und Reihenfolge einmal nur mit der Tastatur bedienen.</li>
+      <li>Die Papieraufgabe im Intensivkurs: erscheint die Musterlösung wirklich erst nach dem
+      Knopf, und blockiert der Prüfknopf, solange ein Kriterium unbewertet ist?</li>
+      <li>Die Probeklausur im <i>Zwischenzustand</i> — eine Aufgabe beantworten und nachsehen, dass
+      Rückmeldung und Lösung noch verborgen sind. Der Selbstlauf beweist nur die Endzustände.</li>
+      <li>Druckvorschau: Seitenleiste und Knöpfe weg, Lösungen aufgeklappt.</li>
+      <li>Den Ordner samt <code>assets/</code> eine Ebene höher kopieren, erneut per Doppelklick
+      öffnen — die relativen Pfade müssen greifen und der Lernstand mitkommen.</li>
+    </ul>
+
+    <p><a href="../startseite.html">→ Zur Übersicht</a></p>
+  </div>
+
+</div>
+
+</body>
+</html>

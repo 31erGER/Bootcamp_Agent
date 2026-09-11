@@ -1,0 +1,47 @@
+# ── Zeilenenden ─────────────────────────────────────────────────────────────
+# Der Anlass: beim Abgleich der Vorlage mit vier Bootcamp-Instanzen wichen 41
+# Dateien voneinander ab — inhaltlich verschieden waren ZEHN. Die übrigen 31
+# unterschieden sich ausschließlich in den Zeilenenden (Instanzen CRLF, Vorlage
+# LF), weil Windows-Editoren und PowerShell CRLF schreiben und Node und die
+# Werkzeuge LF. Solche Phantomdiffs sind teuer: sie verstecken die echten
+# Unterschiede, sie machen `git diff` unlesbar, und sie kosten beim Vergleich
+# zweier Klone jedes Mal einen halben Arbeitsgang.
+#
+# `text=auto eol=lf` heißt: Git erkennt Textdateien selbst und legt sie im
+# Repository IMMER mit LF ab. Im Arbeitsverzeichnis bleiben sie ebenfalls LF —
+# jeder Editor, der hier in Frage kommt (VS Code, Obsidian, Notepad ab
+# Windows 10) kommt damit zurecht, und alles läuft aus dem Browser über
+# `file://`, wo Zeilenenden ohnehin keine Rolle spielen.
+* text=auto eol=lf
+
+# ── Die eine Ausnahme ───────────────────────────────────────────────────────
+# PowerShell 5.1 (das `powershell.exe`, das auf jedem Windows liegt) bricht
+# bei einem Skript mit LF-Zeilenenden an Here-Strings ab. Das Prüfwerkzeug ist
+# genau das Skript, das im Zweifel auch ohne installiertes pwsh laufen soll —
+# deshalb bleibt es CRLF, und zwar erzwungen und nicht zufällig.
+*.ps1 text eol=crlf
+
+# ── Binäres ─────────────────────────────────────────────────────────────────
+# Ohne diese Zeilen würde `text=auto` in seltenen Fällen falsch raten und eine
+# Datei beim Einchecken umschreiben. Schriften liegen im Rahmenwerk base64 in
+# fonts.css, aber ein portierter Kurs darf echte Dateien mitbringen.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.pdf  binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.zip   binary
+*.ico   binary
+
+# ── Text, der wie Binäres aussieht ──────────────────────────────────────────
+# SVG und .canvas sind XML bzw. JSON und sollen diffbar bleiben. .ics ist nach
+# RFC 5545 CRLF-terminiert — ein Kalender mit LF wird von manchen Programmen
+# nicht eingelesen.
+*.svg    text
+*.canvas text
+*.ics    text eol=crlf

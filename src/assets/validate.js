@@ -91,6 +91,24 @@ window.WB = window.WB || {};
     return [...forms].some(f => f.length >= 2 && h.indexOf(f.replace(/\s/g, '')) >= 0);
   }
 
+  /** Antwortlängen einer Optionsliste. Wer nichts weiß, klickt die längste —
+      das darf nicht funktionieren. Als eigene Funktion, weil `choice` und
+      `reverse` dieselbe Regel brauchen und eine zweite Abschrift auseinander
+      läuft. `richtig` darf fehlen, wenn es keine ausgezeichnete Option gibt. */
+  function pruefeAntwortlaengen(texte, add, was, richtig) {
+    const lens = texte.map(t => plain(t).length);
+    if (!lens.length) return;
+    const min = Math.min(...lens);
+    const max = Math.max(...lens);
+    if (min > 0 && max > min * 1.7) {
+      add('hinweis', was + 'längen ' + min + '–' + max + ' Zeichen — Spreizung zu groß');
+    }
+    const longest = lens.indexOf(max);
+    if (typeof richtig === 'function' && richtig(longest) && max > min * 1.35) {
+      add('hinweis', 'die längste ' + was.toLowerCase() + 'möglichkeit ist die richtige');
+    }
+  }
+
   function checkTask(task, where, out) {
     const add = (level, message) => out.push({ level, where, message });
 
@@ -119,16 +137,8 @@ window.WB = window.WB || {};
 
         /* Regel: ähnlich lange Antworten. Wer die längste anklickt, soll damit
            nicht systematisch richtig liegen. */
-        const lens = task.options.map(o => plain(o.text).length);
-        const min = Math.min(...lens);
-        const max = Math.max(...lens);
-        if (min > 0 && max > min * 1.7) {
-          add('hinweis', 'Antwortlängen ' + min + '–' + max + ' Zeichen — Spreizung zu groß');
-        }
-        const longest = lens.indexOf(max);
-        if (task.options[longest] && task.options[longest].correct && max > min * 1.35) {
-          add('hinweis', 'die längste Antwortmöglichkeit ist die richtige');
-        }
+        pruefeAntwortlaengen(task.options.map(o => o.text), add, 'Antwort',
+          i => !!(task.options[i] && task.options[i].correct));
         break;
       }
 
@@ -251,6 +261,81 @@ window.WB = window.WB || {};
         break;
       }
 
+      /* ── reverse, 11.09.2026 ──────────────────────────────────────────────
+         Die Antwort steht, die Frage wird aus einem Auswahlfeld gewählt. Alle
+         Optionen aller Zeilen kommen aus EINEM Topf: den Fragen der Zeilen plus
+         den Distraktoren in `pool`. Daraus folgen die Regeln: keine Frage darf
+         doppelt vorkommen (sonst gibt es zwei richtige Optionen für dieselbe
+         Zeile), und kein Pooleintrag darf eine der Fragen wiederholen. */
+      case 'reverse': {
+        const items = task.items || [];
+        if (items.length < 2) add('fehler', 'Umkehraufgabe braucht mindestens zwei Zeilen');
+        if (items.length > 6) add('hinweis', items.length + ' Zeilen — ein Auswahlfeld mit so vielen Optionen wird unübersichtlich');
+
+        const fragen = items.map(i => plain(i.question));
+        if (new Set(fragen).size !== fragen.length) add('fehler', 'zwei Zeilen mit derselben Frage');
+        const antworten = items.map(i => plain(i.answer));
+        if (new Set(antworten).size !== antworten.length) add('fehler', 'zwei Zeilen mit derselben Antwort');
+
+        items.forEach((it, i) => {
+          if (!plain(it.answer)) add('fehler', 'Zeile ' + (i + 1) + ' ohne Antwort');
+          if (!plain(it.question)) add('fehler', 'Zeile ' + (i + 1) + ' ohne Frage');
+        });
+
+        const pool = task.pool || [];
+        if (pool.length < 2) add('hinweis', 'nur ' + pool.length + ' Distraktoren — mit so wenigen bleibt am Ende nur eine Option übrig');
+        pool.forEach((q, i) => {
+          if (fragen.indexOf(plain(q)) >= 0) {
+            add('fehler', 'Distraktor ' + (i + 1) + ' wiederholt eine der Fragen');
+          }
+        });
+
+        /* Die Optionen eines <select> werden über textContent gesetzt: Markup
+           erschiene literal, und der Browser schreibt Whitespace um. Dieselbe
+           Falle wie bei cloze und forecast. */
+        const alle = items.map(i => i.question).concat(pool);
+        alle.forEach(v => {
+          if (normalisiert(v)) add('fehler', '„' + v + '" wird vom Browser umgeschrieben');
+          if (markup(v)) add('fehler', '„' + v + '" enthält Markup, das als Text erscheint');
+          if (BOLD.test(v)) add('fehler', 'Fettdruck in einer Frage — er verrät sie');
+        });
+        pruefeAntwortlaengen(alle, add, 'Frage');
+        break;
+      }
+
+      /* Infosec-Bootcamp, 27.08.2026: Regeln für reine Endergebnis-Aufgaben. */
+      case 'result': {
+        if (!task.fields || !task.fields.length) add('fehler', 'Ergebnisaufgabe ohne Feld');
+        (task.fields || []).forEach((f, i) => {
+          if (!['number', 'hex', 'text'].includes(f.kind)) {
+            add('fehler', 'Feld ' + (i + 1) + ': unbekannte Art "' + f.kind + '"');
+          }
+          if (f.kind === 'number') {
+            if (!Number.isFinite(f.answer)) add('fehler', 'Feld ' + (i + 1) + ': Ergebnis ist keine endliche Zahl');
+            if (typeof f.tol !== 'number' || f.tol < 0) add('fehler', 'Feld ' + (i + 1) + ': numerische Toleranz fehlt');
+          }
+          if ((f.kind === 'hex' || f.kind === 'text') && !String(f.answer || '').trim()) {
+            add('fehler', 'Feld ' + (i + 1) + ': leeres Ergebnis');
+          }
+        });
+        if (!task.solution || !task.solution.length) add('fehler', 'ohne geprüften Musterweg');
+        if (task.exam && (task.hint || task.formula)) {
+          add('fehler', 'Mini-Klausur verrät vor der Abgabe einen Tipp oder eine Formel');
+        }
+        break;
+      }
+
+      /* Infosec-Bootcamp, 27.08.2026: Papierlösung plus prüfbare Selbstkontrolle. */
+      case 'paper': {
+        if (!task.timebox || !String(task.timebox).trim()) add('fehler', 'Papieraufgabe ohne Zeitvorgabe');
+        if (!task.checklist || task.checklist.length < 2) add('fehler', 'Papieraufgabe braucht mindestens zwei Prüfkriterien');
+        if (!task.solution) add('fehler', 'Papieraufgabe ohne Musterlösung');
+        if (task.solution && !task.solution.image && !plain(task.solution.html)) {
+          add('fehler', 'Musterlösung braucht Bild oder Text');
+        }
+        break;
+      }
+
       case 'calc': {
         if (!task.steps.length) add('fehler', 'Rechenweg ohne Schritt');
         task.steps.forEach((s, i) => {
@@ -263,6 +348,20 @@ window.WB = window.WB || {};
         if (/=/.test(plain(task.prompt)) && task.steps.some(s => s.formula)) {
           add('hinweis', 'die Aufgabenstellung enthält ein Gleichheitszeichen — verrät sie die Formel?');
         }
+        /* VERSCHÄRFT AM 11.09.2026: die Formel erscheint seither erst nach einem
+           Fehlversuch (engine.js, `zeigeFormel`). Damit ist ein Schritt OHNE
+           `formula` kein sauberer, sondern ein leerer Zweitversuch: der
+           Lernende bekommt beim zweiten Anlauf nichts, woran er sich aufrichten
+           kann. Ein `label`, das die Formel im Klartext enthält, hebelt die
+           Regel dagegen von vorn wieder aus. */
+        task.steps.forEach((s, i) => {
+          if (!String(s.formula || '').trim()) {
+            add('hinweis', 'Schritt ' + (i + 1) + ' ohne Formel — beim Fehlversuch gibt es dann nur den Tipp');
+          }
+          if (/=/.test(plain(s.label))) {
+            add('fehler', 'Schritt ' + (i + 1) + ': die Beschriftung enthält die Formel — sie soll erst nach einem Fehlversuch erscheinen');
+          }
+        });
         break;
       }
 
@@ -294,6 +393,74 @@ window.WB = window.WB || {};
     });
 
     tasks.forEach(t => checkTask(t, id + ' Aufgabe ' + t.id + ' (' + t.type + ')', out));
+
+    /* Infosec-Bootcamp, 27.08.2026: optionale Musterbeispiele vor einem Teil. */
+    sheet.parts.forEach((part, i) => {
+      if (Object.prototype.hasOwnProperty.call(part, 'lead') && !plain(part.lead)) {
+        out.push({ level: 'fehler', where: id + ' Teil ' + (i + 1), message: 'leerer Musterbeispiel-Block' });
+      }
+    });
+
+    /* ── Keine Leiterform, 11.09.2026 ─────────────────────────────────────
+       Der klassische Blattfehler: Aufgabe 1 hat A, Aufgabe 2 hat B, Aufgabe 3
+       hat C. Wer das Muster einmal bemerkt, löst den Rest ohne Fachwissen —
+       und wer es nicht bemerkt, lernt trotzdem nichts daraus.
+
+       `engine.js` mischt die Optionen zwar bei jedem Laden neu, die Leiter ist
+       auf dem Bildschirm also gar nicht zu sehen. Gemeldet wird sie trotzdem,
+       und zwar aus zwei Gründen: sie steht in der DATEI, wo der Autor sie liest
+       und für Absicht hält, und sie ist das sichere Zeichen dafür, dass die
+       Aufgaben mechanisch aus einem Muster erzeugt und nicht einzeln
+       durchdacht wurden. Dasselbe gilt für den umgekehrten Fall — alle
+       richtigen Antworten auf derselben Position.
+
+       Geprüft wird nur die Einfachauswahl: bei `multi` gibt es keine eine
+       Position, die eine Leiter bilden könnte. */
+    const einfach = tasks.filter(t => t.type === 'choice' && !t.multi && Array.isArray(t.options));
+    if (einfach.length >= 3) {
+      const pos = einfach.map(t => t.options.findIndex(o => o.correct));
+      if (pos.every(i => i === pos[0] && i >= 0)) {
+        out.push({
+          level: 'hinweis',
+          where: id,
+          message: 'alle ' + pos.length + ' Einfachauswahlen haben die richtige Antwort an Position ' + (pos[0] + 1)
+        });
+      } else {
+        let lauf = 1, maxLauf = 1, richtung = 0;
+        for (let i = 1; i < pos.length; i++) {
+          const d = pos[i] - pos[i - 1];
+          if ((d === 1 || d === -1) && (richtung === 0 || d === richtung)) {
+            richtung = d; lauf++;
+          } else {
+            richtung = (d === 1 || d === -1) ? d : 0;
+            lauf = (d === 1 || d === -1) ? 2 : 1;
+          }
+          if (lauf > maxLauf) maxLauf = lauf;
+        }
+        if (maxLauf >= 3) {
+          out.push({
+            level: 'hinweis',
+            where: id,
+            message: 'Leiterform: in ' + maxLauf + ' aufeinanderfolgenden Einfachauswahlen rückt die richtige Antwort um genau eine Position weiter'
+          });
+        }
+      }
+    }
+
+    /* Geschaetzte Zeiten sind seit dem 10.09.2026 aus dem Rahmenwerk heraus:
+       sie waren geraten und lagen regelmäßig daneben. Das Feld wird nirgends
+       mehr gelesen — aber ein Agent, der ein älteres Blatt als Vorlage nimmt,
+       schreibt es gutgläubig wieder hin. Deshalb wird es hier gemeldet: nicht
+       weil es etwas kaputt macht, sondern weil es eine Behauptung ist, die
+       niemand prüft. Eine VORGESCHRIEBENE Zeit ist davon nicht betroffen —
+       `klausur.minuten` und `task.timebox` sind Teil der Aufgabenstellung. */
+    if (Object.prototype.hasOwnProperty.call(sheet, 'minutes')) {
+      out.push({
+        level: 'hinweis',
+        where: id,
+        message: '`minutes` ist eine geschätzte Zeit — das Rahmenwerk kennt keine mehr, das Feld bitte löschen'
+      });
+    }
 
     /* Regel: die Hälfte der Aufgaben ist schwer. 45 % lässt Luft für ein Blatt
        mit ungerader Aufgabenzahl. */

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="wb-course" content="Beispielkurs">
+<title>Modul 01 · Signale und Spektren — Lab</title>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SHOWCASE · Lab, Schritt 3 von Modul 01 — und damit der SCHLUSS des Moduls.
+
+     Rahmenwerk.md, „Labs": Hands-on OHNE Bewertung. Kein `WB.register`, keine
+     Punkte, kein Prüfknopf — deshalb liegt hier auch keine `.data.js` daneben.
+
+     Aufbau eines Labs, so wie im AuD-Bootcamp erprobt:
+
+       <section class="chapter" id="eN">
+         <span class="chapter__tag">Etappe N · Quelle</span>
+         <h2>…kurzer Titel…</h2>
+         <p class="lead-in">Ziel: …ein Satz…</p>
+         …Erklärung, ein .callout--think für das „warum es darauf ankommt"…
+         <div class="term">…die Sollwerte, an denen man selbst prüft…</div>
+         <div class="etappe-ende"><b>Etappe N ist fertig, wenn</b> …</div>
+       </section>
+
+     Zwei Dinge sind daran nicht Geschmack:
+
+     1. JEDE Etappe hat ein prüfbares Ende in `.etappe-ende`. Ein Lab ohne
+        sichtbares Ende ist eine Einladung, mittendrin aufzuhören und es nie
+        wieder anzufassen. Eine GESCHÄTZTE DAUER steht dort NICHT — der
+        `chapter__tag` nennt die Quelle, nicht eine geratene Zahl.
+     2. Die Voraussetzung steht in Etappe 0, nicht irgendwo im Fließtext. Ein
+        Lab, das an meiner Maschine nicht läuft, ist schlimmer als kein Lab.
+
+     `engine.js` wird geladen, aber NUR wegen `WB.store`; daran hängt der
+     Lesestand, den `lehrkurs.js` schreibt. Ohne ihn würde die Übersicht dieses
+     Lab für immer als „als nächstes" vorschlagen, weil es nie einen
+     Aufgabenstand bekommt.
+
+     Als reine Leseseite wird es vom Standardlauf nicht gefunden:
+         pwsh tools/bootcamp-check.ps1 -Pages Modul_01_Signale_Lab
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="brand">
+      <div class="brand__mark">Beispielkurs</div>
+      <div class="brand__name">Modul 01</div>
+      <div class="brand__sub">Signale und Spektren · Modul 1 von 2</div>
+    </div>
+
+    <div class="readbar" data-read-progress role="progressbar"
+         aria-label="Lesefortschritt" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="readbar__head">
+        <span>durchgearbeitet</span>
+        <span class="readbar__val" data-read-label>0%</span>
+      </div>
+      <div class="readbar__track"></div>
+    </div>
+
+    <div>
+      <div class="nav__group">Dein Weg durch Modul 01</div>
+      <a class="nav__task" href="Modul_01_Signale_Lehrkurs.html"><span class="nav__num">1</span><span class="nav__label">Lehrkurs lesen</span></a>
+      <a class="nav__task" href="Modul_01_Signale.html"><span class="nav__num">2</span><span class="nav__label">Aufgaben lösen</span></a>
+      <a class="nav__task" href="Modul_01_Signale_Lab.html" aria-current="page"><span class="nav__num">▸</span><span class="nav__label"><b>Lab: Ein Spektrum von Hand</b></span></a>
+    </div>
+
+    <div class="note-strip">
+      <b>Keine Punkte hier.</b> Ein Lab ist Handwerk, kein Test. Ob es stimmt, sagt dir
+      die Kontrolle am Ende jeder Etappe.
+    </div>
+
+    <nav class="nav" aria-label="Etappen">
+      <div class="nav__group">Etappen</div>
+      <a class="nav__task" href="#e0"><span class="nav__num">0</span><span class="nav__label">Befund</span></a>
+      <a class="nav__task" href="#e1"><span class="nav__num">1</span><span class="nav__label">Die Grundschwingung</span></a>
+      <a class="nav__task" href="#e2"><span class="nav__num">2</span><span class="nav__label">Drei Sinusse addieren</span></a>
+      <a class="nav__task" href="#e3"><span class="nav__num">3</span><span class="nav__label">Das Spektrum auftragen</span></a>
+      <a class="nav__task" href="#e4"><span class="nav__num">4</span><span class="nav__label">Die Gegenprobe</span></a>
+      <a class="nav__task" href="#e5"><span class="nav__num">·</span><span class="nav__label">Ergebnis &amp; Hilfe</span></a>
+    </nav>
+
+    <div class="rail__foot">
+      <div class="nav__group">Weiter</div>
+      <a class="nav__task" href="Modul_01_Signale.html"><span class="nav__num">←</span><span class="nav__label">Aufgabenheft Modul 01</span></a>
+      <a class="nav__task" href="../startseite.html"><span class="nav__num">←</span><span class="nav__label">Übersicht · Modul 1 von 2</span></a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="masthead">
+      <div class="masthead__rule"><span><span class="dot"></span>Lab · ohne Bewertung</span><span>5 Etappen</span></div>
+      <div class="kicker">Ein Spektrum von Hand</div>
+      <h1>Zeichne es <em>selbst</em>, einmal</h1>
+      <p class="lede">Die Zeichnung im Lehrkurs macht aus Sinussen ein Rechteck, wenn du am
+      Regler ziehst. Das ist überzeugend und geht zu schnell. Wer es einmal mit Bleistift und
+      Millimeterpapier gemacht hat, weiß danach, warum die Ecken zuletzt kommen.</p>
+    </header>
+
+    <!-- ══════════════════════ ETAPPE 0 ══════════════════════ -->
+    <section class="chapter" id="e0">
+      <span class="chapter__tag">Etappe 0 · Voraussetzung</span>
+      <h2>Befund</h2>
+      <p class="lead-in">Ziel: alles bereitlegen. <b>Nichts installieren</b> — dieses Lab braucht
+      keine Software, und das ist Absicht.</p>
+
+      <div class="callout callout--note">
+        <div class="callout__icon">✓</div>
+        <div class="callout__body">
+          <p><b>Millimeterpapier oder kariertes Papier</b>, ein Bleistift und ein Radiergummi.
+          Kein Lineal nötig — es geht um den Verlauf, nicht um Präzision.</p>
+          <p><b>Ein Taschenrechner</b> für die Sinuswerte. Der im Telefon genügt; achte darauf,
+          dass er auf <span class="keyword">Grad</span> und nicht auf Radiant steht.</p>
+          <p><b>Ein Block Zeit ohne Unterbrechung.</b> Die Etappen bauen aufeinander auf, und
+          Etappe 2 ist die eine, die man nicht halb machen kann.</p>
+        </div>
+      </div>
+
+      <p>Zeichne zuerst das Achsenkreuz, das für alle drei Zeichenetappen reicht: waagerecht eine
+      volle Periode von 0° bis 360°, mit Teilstrichen alle 30°. Senkrecht von −1,5 bis +1,5, mit
+      Teilstrichen alle 0,5. Zwölf Spalten, sechs Zeilen — das passt auf eine halbe Seite, und du
+      brauchst gleich drei davon.</p>
+
+      <div class="etappe-ende"><b>Etappe 0 ist fertig, wenn</b> drei gleiche Achsenkreuze auf dem
+      Papier stehen und der Rechner auf Grad zeigt.</div>
+    </section>
+
+    <!-- ══════════════════════ ETAPPE 1 ══════════════════════ -->
+    <section class="chapter" id="e1">
+      <span class="chapter__tag">Etappe 1 · Lehrkurs Kapitel 2</span>
+      <h2>Die Grundschwingung</h2>
+      <p class="lead-in">Ziel: <code>sin(x)</code> punktweise zeichnen, an zwölf Stellen. Nicht
+      freihand schwingen — <b>rechnen, eintragen, verbinden</b>.</p>
+
+      <p>Trage für jede der zwölf Stellen den Sinuswert ein. Zwei Dinge fallen dabei auf, und beide
+      sind später wichtig: die Kurve ist bei 0°, 180° und 360° null, und sie ist im zweiten
+      Halbbogen das Spiegelbild des ersten mit umgekehrtem Vorzeichen. Das ist genau die
+      Halbwellensymmetrie aus Aufgabe 7 des Aufgabenhefts.</p>
+
+      <div class="term"><span class="term__c">--- Etappe 1: Sollwerte für sin(x) ---------------</span>
+<span class="term__key">  0°</span>   0,00        <span class="term__key">180°</span>   0,00
+<span class="term__key"> 30°</span>   0,50        <span class="term__key">210°</span>  -0,50
+<span class="term__key"> 60°</span>   0,87        <span class="term__key">240°</span>  -0,87
+<span class="term__key"> 90°</span>   1,00        <span class="term__key">270°</span>  -1,00
+<span class="term__key">120°</span>   0,87        <span class="term__key">300°</span>  -0,87
+<span class="term__key">150°</span>   0,50        <span class="term__key">330°</span>  -0,50</div>
+
+      <div class="etappe-ende"><b>Etappe 1 ist fertig, wenn</b> deine Kurve bei 90° den Höchstwert
+      1,0 erreicht und bei 180° genau die Achse schneidet. Liegt der Höchstwert bei 100 statt 1,
+      stand der Rechner auf Radiant.</div>
+    </section>
+
+    <!-- ══════════════════════ ETAPPE 2 ══════════════════════ -->
+    <section class="chapter" id="e2">
+      <span class="chapter__tag">Etappe 2 · Lehrkurs Kapitel 4</span>
+      <h2>Drei Sinusse addieren</h2>
+      <p class="lead-in">Ziel: aus drei Kurven eine machen. <b>Spaltenweise addieren</b>, nicht
+      kurvenweise — sonst verliert man an der dritten Stelle den Überblick.</p>
+
+      <p>Die Rechteck-Näherung mit drei Gliedern lautet: Grundschwingung plus ein Drittel der
+      dritten Harmonischen plus ein Fünftel der fünften. Die dritte Harmonische schwingt dreimal
+      so schnell, die fünfte fünfmal — bei 30° stehen sie also schon bei 90° und 150°.</p>
+
+      <div class="eq">y(x) = sin x + ⅓ · sin 3x + ⅕ · sin 5x<span class="eq__note">die ersten drei Glieder der Rechteckreihe</span></div>
+
+      <p>Rechne Spalte für Spalte: erst alle drei Einzelwerte für 30°, dann die Summe, dann weiter
+      zu 60°. Wer erst die ganze dritte Harmonische zeichnet und dann die fünfte, addiert am Ende
+      drei Kurven mit dem Auge — und das geht schief.</p>
+
+      <div class="term"><span class="term__c">--- Etappe 2: Sollwerte der Summe ----------------</span>
+<span class="term__c">   x     sin x   ⅓·sin3x   ⅕·sin5x    Summe</span>
+<span class="term__key"> 30°</span>    0,50     0,33      0,10      0,93
+<span class="term__key"> 60°</span>    0,87     0,00     -0,10      0,77
+<span class="term__key"> 90°</span>    1,00    -0,33      0,20      0,87
+<span class="term__key">120°</span>    0,87     0,00     -0,10      0,77
+<span class="term__key">150°</span>    0,50     0,33      0,10      0,93
+<span class="term__key">180°</span>    0,00     0,00      0,00      0,00</div>
+
+      <div class="callout callout--think">
+        <div class="callout__icon">?</div>
+        <div class="callout__body">
+          <p><b>Warum die Summe bei 90° kleiner ist als bei 30°.</b> Das überrascht jeden beim
+          ersten Mal: die Grundschwingung ist bei 90° am größten, die Summe aber nicht. Bei 90°
+          steht die dritte Harmonische bei 270° und zieht deshalb <span class="keyword">nach
+          unten</span>. Genau diese Delle in der Mitte ist es, die mit jedem weiteren Glied
+          kleiner wird — und es ist derselbe Effekt, der die Ecken des Rechtecks überschwingen
+          lässt.</p>
+        </div>
+      </div>
+
+      <div class="etappe-ende"><b>Etappe 2 ist fertig, wenn</b> deine Summenkurve zwischen 30° und
+      150° oben flach verläuft und bei 180° die Achse schneidet — ein Rechteck mit unsauberen
+      Kanten, aber erkennbar.</div>
+    </section>
+
+    <!-- ══════════════════════ ETAPPE 3 ══════════════════════ -->
+    <section class="chapter" id="e3">
+      <span class="chapter__tag">Etappe 3 · Lehrkurs Kapitel 6</span>
+      <h2>Das Spektrum auftragen</h2>
+      <p class="lead-in">Ziel: dieselbe Information ein zweites Mal darstellen — als drei Striche
+      statt als Kurve.</p>
+
+      <p>Nimm das dritte Achsenkreuz und dreh die Bedeutung um: waagerecht steht jetzt nicht die
+      Zeit, sondern die Ordnung 1 bis 7. Senkrecht die Amplitude von 0 bis 1. Zeichne für jede
+      Ordnung einen Strich in der Höhe, die du in Etappe 2 benutzt hast.</p>
+
+      <div class="term"><span class="term__c">--- Etappe 3: Sollwerte des Spektrums ------------</span>
+<span class="term__key">Ordnung 1</span>   1,00   <span class="term__c">(Grundschwingung)</span>
+<span class="term__key">Ordnung 2</span>   0,00   <span class="term__c">(fehlt: gerade Ordnung)</span>
+<span class="term__key">Ordnung 3</span>   0,33
+<span class="term__key">Ordnung 4</span>   0,00   <span class="term__c">(fehlt: gerade Ordnung)</span>
+<span class="term__key">Ordnung 5</span>   0,20
+<span class="term__key">Ordnung 6</span>   0,00   <span class="term__c">(fehlt: gerade Ordnung)</span>
+<span class="term__key">Ordnung 7</span>   0,14   <span class="term__c">(in Etappe 2 nicht benutzt)</span></div>
+
+      <p>Die geraden Ordnungen bekommen <b>keinen</b> Strich, nicht einen kurzen. Ein Strich der
+      Höhe null ist kein Strich — und genau das war Aufgabe 5 im Aufgabenheft: die Linie bei 100 Hz
+      durfte dort nicht stehen.</p>
+
+      <div class="etappe-ende"><b>Etappe 3 ist fertig, wenn</b> auf dem Blatt genau drei Striche
+      stehen und die Lücken bei 2, 4 und 6 leer sind.</div>
+    </section>
+
+    <!-- ══════════════════════ ETAPPE 4 ══════════════════════ -->
+    <section class="chapter" id="e4">
+      <span class="chapter__tag">Etappe 4 · Gegenprobe</span>
+      <h2>Die Gegenprobe</h2>
+      <p class="lead-in">Ziel: prüfen, ob die eigene Zeichnung stimmt — <b>ohne</b> sie mit einer
+      fremden zu vergleichen.</p>
+
+      <p>Eine Zeichnung mit einem Bild zu vergleichen beweist nichts: man sieht, was man sehen
+      will. Drei Zahlen aus der Zeichnung sind der bessere Test, weil sie nur stimmen können, wenn
+      der Verlauf stimmt.</p>
+
+      <ol class="steps-eq">
+        <li>Lies bei <b>90°</b> den Wert deiner Summenkurve ab. Er muss zwischen 0,80 und 0,95
+        liegen — nicht bei 1,0 und nicht über 1,1.</li>
+        <li>Lies den <b>höchsten</b> Wert der Summenkurve ab und die Stelle, an der er auftritt.
+        Er liegt bei etwa 1,08 und <span class="keyword">nicht</span> bei 90°, sondern kurz vor
+        dem Umschlagpunkt.</li>
+        <li>Zähle die <b>Nulldurchgänge</b> deiner Summenkurve zwischen 0° und 360°. Es müssen
+        genau drei sein: bei 0°, 180° und 360°.</li>
+      </ol>
+
+      <div class="callout callout--think">
+        <div class="callout__icon">!</div>
+        <div class="callout__body">
+          <p><b>Der Wert über 1,0 ist kein Zeichenfehler.</b> Er ist das Überschwingen, das jede
+          abgebrochene Fourier-Reihe an einer Sprungstelle zeigt, und es verschwindet auch mit
+          hundert Gliedern nicht — es wird nur schmaler. Wer beim Zeichnen bei 1,0 „abschneidet",
+          weil ein Rechteck ja nicht höher wird, hat die interessanteste Eigenschaft der Näherung
+          wegradiert.</p>
+        </div>
+      </div>
+
+      <div class="etappe-ende"><b>Etappe 4 ist fertig, wenn</b> alle drei Werte im genannten
+      Bereich liegen. Stimmt der dritte nicht, liegt der Fehler meist in Etappe 2 bei der fünften
+      Harmonischen: sie hat bei 180° einen Nulldurchgang, nicht einen Scheitel.</div>
+    </section>
+
+    <!-- ══════════════════════ ETAPPE 5 ══════════════════════ -->
+    <section class="chapter" id="e5">
+      <span class="chapter__tag">Abschluss · Ergebnis und Hilfe</span>
+      <h2>Ergebnis &amp; Hilfe</h2>
+
+      <p>Du hast dasselbe Signal jetzt zweimal beschrieben: als Kurve über der Zeit und als drei
+      Striche über der Frequenz. Beide enthalten dieselbe Information, und das ist die ganze
+      Aussage der Fourier-Analyse — mehr steckt nicht dahinter.</p>
+
+      <details class="reveal"><summary>Meine Summenkurve sieht wie ein Sinus aus, nicht wie ein Rechteck.</summary>
+        <div class="q"><p>Dann sind die Harmonischen zu klein geraten. Prüfe die Faktoren: ein
+        Drittel und ein Fünftel, nicht ein Neuntel und ein Fünfundzwanzigstel. Mit 1/n² käme ein
+        Dreieck heraus, und das sieht tatsächlich einem Sinus ähnlich.</p></div>
+      </details>
+
+      <details class="reveal"><summary>Die Kurve ist oben und unten nicht symmetrisch.</summary>
+        <div class="q"><p>Ein Vorzeichenfehler in einer der Harmonischen. Beide Harmonischen sind
+        reine Sinusse ohne Phasenverschiebung — bei 180° müssen alle drei Einzelwerte null sein.
+        Ist das nicht so, steht in einer Zeile ein Kosinus.</p></div>
+      </details>
+
+      <details class="reveal"><summary>Warum überhaupt Millimeterpapier und nicht der Regler im Lehrkurs?</summary>
+        <div class="q"><p>Weil der Regler die Delle bei 90° zeigt, aber nicht erklärt. Wer die
+        drei Einzelwerte für 90° selbst hingeschrieben hat und dabei die −0,33 der dritten
+        Harmonischen gesehen hat, vergisst nicht mehr, woher sie kommt.</p></div>
+      </details>
+
+      <div class="callout callout--note" style="margin-top:28px">
+        <div class="callout__icon">→</div>
+        <div class="callout__body"><b>Modul 01 ist damit fertig.</b> Weiter geht es mit
+        <a href="Modul_02_Verbundnetze_Lehrkurs.html">Modul 02</a>, wo aus derselben 50-Hz-Schwingung
+        ein Kontinent voller Kraftwerke wird — und wo die Frequenz plötzlich eine Regelgröße ist
+        und keine Rechengröße.</div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span>Modul 01 · Signale und Spektren · Lab</span>
+      <span>läuft ohne Server, ohne Build</span>
+    </footer>
+  </main>
+
+</div>
+
+<script src="assets/engine.js"></script>
+<script src="assets/lehrkurs.js"></script>
+<script src="assets/audit.js"></script>
+</body>
+</html>

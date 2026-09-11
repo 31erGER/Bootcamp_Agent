@@ -197,6 +197,11 @@ sub, sup { line-height: 0; }
   transition: background .2s var(--ease), border-color .2s var(--ease);
 }
 .nav__num { font-family: var(--mono); font-size: 11px; color: var(--ink-mute); width: 18px; }
+/* Gefunden im Infosec-Kurs: ein langer Aufgabentitel (zusammengesetztes Substantiv)
+   drueckte .nav__task ueber die Rail-Breite, weil das anonyme Flex-Kind .nav__label
+   keine Untergrenze hatte — trat erst ab 760px auf, weil die Labels darunter per
+   Media-Query ausgeblendet sind. */
+.nav__label { min-width: 0; overflow-wrap: anywhere; }
 .nav__task.is-active {
   background: var(--surface);
   color: var(--ink);
@@ -251,6 +256,11 @@ sub, sup { line-height: 0; }
   line-height: .9;
   letter-spacing: -.035em;
   color: var(--ink);
+  /* Gefunden im Infosec-Kurs: das @media(max-width:400px) weiter unten setzte
+     overflow-wrap NUR unterhalb 400px. Ein langes Kompositum (21 Zeichen,
+     "Bedrohungskategorien") sprengte h1 aber schon bei 760-1200px, weil dort
+     die Hauptspalte neben der Rail schmaler ist als man denkt. Jetzt immer an. */
+  overflow-wrap: anywhere;
 }
 .masthead h1 em {
   font-style: italic; font-weight: 500; color: var(--accent);
@@ -298,6 +308,10 @@ sub, sup { line-height: 0; }
   border-left: 3px solid var(--accent);
   border-radius: 0 var(--radius) var(--radius) 0;
   padding: 14px 16px; font-size: 14px; color: var(--ink-soft);
+  /* Gefunden im Infosec-Kurs: ein Merkstreifen mit einem langen Schrägstrich-
+     Fachbegriff (z. B. "AES-Schlüsselaufbereitung/SubBytes/MixColumns") sprengte
+     .intro__aside, weil .note-strip als Flex-Kind keine Untergrenze hatte. */
+  min-width: 0; overflow-wrap: anywhere;
 }
 .note-strip b { color: var(--ink); }
 
@@ -441,10 +455,13 @@ sub, sup { line-height: 0; }
   font-size: 18px; line-height: 1.45; color: var(--ink-soft);
   padding-left: 16px; border-left: 2px solid var(--accent);
   margin-bottom: 22px;
+  /* Gefunden im Infosec-Kurs: eine mathematische Notation mit Sonderzeichen
+     ohne Leerzeichen (z.B. "1,1774·√(2⁶⁴)") sprengte den Aufgabentext bei 320px. */
+  min-width: 0; overflow-wrap: anywhere;
 }
 .goal b { font-style: normal; font-weight: 600; color: var(--ink); }
 
-.task__body p { margin-bottom: 14px; max-width: 68ch; }
+.task__body p { margin-bottom: 14px; max-width: 68ch; min-width: 0; overflow-wrap: anywhere; }
 .task__body > p:first-child { margin-top: 0; }
 
 /* Prosa-Listen im Aufgabentext. `:not([class])` ist Absicht und keine Spielerei:
@@ -535,6 +552,34 @@ thead th {
   white-space: nowrap;
 }
 tbody td { padding: 11px 14px; border-bottom: 1px solid var(--hair); vertical-align: top; }
+
+/* Probeklausur, 28.08.2026: eine vom Aufgabenblatt bereitgestellte Referenz —
+   als Klausurbeilage erkennbar und deshalb kein normaler Tabellenblock.
+   `.refgrid` ist der Rahmenwerksname; `.aes-sbox` bleibt als Aliasname
+   bestehen, damit ein aus dem Infosec-Kurs portiertes Blatt nicht bricht. */
+.exam-reference {
+  margin: 18px 0 28px;
+  padding: 14px 16px 2px;
+  background: var(--surface-2);
+  border-left: 3px solid var(--accent);
+}
+.exam-reference > p { margin: 0; max-width: none; }
+.refgrid,
+.aes-sbox { min-width: 670px; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.refgrid caption,
+.aes-sbox caption {
+  padding: 10px 12px;
+  text-align: left;
+  color: var(--ink-mute);
+  font: 700 10.5px/1.4 var(--mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.refgrid th, .refgrid td,
+.aes-sbox th,
+.aes-sbox td { padding: 5px 7px; text-align: center; white-space: nowrap; }
+.refgrid tbody th,
+.aes-sbox tbody th { color: var(--accent); background: var(--surface-2); }
 tbody tr:last-child td { border-bottom: 0; }
 tbody tr:nth-child(even) { background: var(--surface-2); }
 /* @TASKCARD:END */
@@ -552,6 +597,12 @@ tbody tr:nth-child(even) { background: var(--surface-2); }
 }
 .opt:hover { border-color: var(--accent); }
 .opt input { margin-top: 4px; accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+/* Gefunden im Infosec-Kurs bei 320px: der Options-Text steckt in einem klassenlosen
+   <span> neben dem <input> — ohne Untergrenze schob ein langer Fachbegriff (z. B. mit
+   Schraegstrich/Bindestrich) den Options-Kasten ueber den Viewport hinaus. Der zweite
+   klassenlose Span (".mark", ✓/✗ nach dem Loesen) darf NICHT mitgetroffen werden — er
+   braucht seine feste Breite, sonst wird das Haekchen selbst abgeschnitten. */
+.opt > span:not(.mark) { min-width: 0; overflow-wrap: anywhere; }
 .opt.correct { border-color: var(--easy); background: var(--easy-bg); }
 .opt.wrong   { border-color: var(--hard); background: var(--hard-bg); }
 .opt .mark { margin-left: auto; font-family: var(--mono); font-weight: 700; font-size: 16px; }
@@ -582,7 +633,13 @@ button.act:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 .fb .head { font-family: var(--display); font-weight: 700; font-size: 16.5px; margin-bottom: 6px; }
 .fb.ok .head { color: var(--easy); }
 .fb.no .head { color: var(--hard); }
-.fb .body { color: var(--ink-soft); }
+.fb .body {
+  color: var(--ink-soft);
+  /* Gefunden im Infosec-Kurs: ein langer, schraegstrich-/doppelpunktreicher
+     Fachtoken (ein CVSS-Vektor wie "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N") in
+     einem Feedback-Text sprengte .fb und .task__body bei 320-360px. */
+  min-width: 0; overflow-wrap: anywhere;
+}
 .fb .body .mute { color: var(--ink-mute); }
 .fb .deep { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hair-strong); color: var(--ink-soft); }
 .fb .deep::before {
@@ -984,6 +1041,162 @@ button.act:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 .fc__field.wrong   { border-color: var(--hard); background: var(--hard-bg); }
 .fc__field.wrong .fc__truth { color: var(--hard); }
 
+/* ── reverse: Antwort links, Frage im Auswahlfeld ──────────────────────────
+   Ergänzt am 11.09.2026. Derselbe Zeilenbau wie `.fc`, aber mit umgekehrter
+   Gewichtung: die ANTWORT ist hier der Reiz und bekommt deshalb das optische
+   Gewicht (Mono, kräftiger), das Auswahlfeld ist die Eingabe.
+
+   `minmax(0, …)` an beiden Spuren aus demselben Grund wie bei `.fc__field`:
+   der max-content eines <select> ist seine längste Option, und eine ganze
+   Frage als Option sprengt die Karte sonst noch bei 900 px. */
+.rev { display: grid; gap: 13px; margin-top: 6px; }
+.rev__row {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  align-items: center; gap: 12px;
+  padding: 11px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+}
+.rev__answer {
+  font-family: var(--mono); font-size: 14.5px; font-weight: 700;
+  color: var(--ink); min-width: 0; overflow-wrap: anywhere;
+}
+.rev__pick {
+  font-family: var(--sans); font-size: 14px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-bottom: 2px solid var(--accent);
+  color: var(--ink); border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  padding: 7px 10px;
+  width: 100%; min-width: 0; max-width: 100%;
+}
+.rev__pick:focus { outline: none; box-shadow: 0 0 0 3px var(--accent-tint); }
+/* Die Auflösung steht unter der Zeile und nicht daneben: „gehört zu: …" ist
+   ein ganzer Fragesatz und hätte in einer dritten Spalte keine Breite. */
+.rev__truth {
+  grid-column: 1 / -1;
+  font-size: 12.5px; font-weight: 700;
+  min-width: 0; overflow-wrap: anywhere; color: var(--ink-mute);
+}
+.rev__truth:empty { display: none; }
+.rev__row.correct { border-color: var(--easy); background: var(--easy-bg); }
+.rev__row.correct .rev__truth { color: var(--easy); }
+.rev__row.wrong   { border-color: var(--hard); background: var(--hard-bg); }
+.rev__row.wrong .rev__truth { color: var(--hard); }
+
+@media (max-width: 560px) {
+  .rev__row { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Infosec-Bootcamp, 27.08.2026: Endergebnis-Aufgaben der Intensivkurse. */
+.result-work,
+.result-fields,
+.result-field,
+.result-field__label,
+.result-field__truth,
+.worked-solution,
+.worked-solution__steps { min-width: 0; overflow-wrap: anywhere; }
+.result-work table.given { width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 14.5px; }
+.result-work table.given td { padding: 8px 12px; border-bottom: 1px solid var(--hair); overflow-wrap: anywhere; }
+.result-work table.given tr:last-child td { border-bottom: 0; }
+.result-work table.given td:first-child { color: var(--ink-mute); }
+.result-work table.given td:last-child { font-weight: 600; text-align: right; font-family: var(--mono); }
+.result-fields { display: grid; gap: 10px; }
+.result-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(110px, .55fr) minmax(72px, auto);
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-sm);
+}
+.result-field input { min-width: 0; width: 100%; }
+.result-field.correct { border-color: var(--easy); background: var(--easy-bg); }
+.result-field.wrong { border-color: var(--hard); background: var(--hard-bg); }
+.result-field__truth { color: var(--ink-mute); font-family: var(--mono); font-size: 12px; }
+.worked-solution { margin-top: 16px; padding: 16px; border-left: 4px solid var(--signal); background: var(--paper-warm); }
+.worked-solution__title { font-weight: 750; margin-bottom: 8px; }
+.worked-solution__steps { margin: 0; padding-left: 22px; }
+.worked-solution__steps li + li { margin-top: 7px; }
+
+/* Infosec-Bootcamp, 27.08.2026: Papierbasierte DFD-/STRIDE-Aufgaben. */
+.paper-work,
+.paper-work__comparison,
+.paper-work__solution,
+.paper-check,
+.paper-check__row,
+.paper-check__criterion,
+.paper-check__choices,
+.paper-check__choice,
+.intensive-example { min-width: 0; overflow-wrap: anywhere; }
+.paper-work__timebox { margin-bottom: 12px; color: var(--ink-mute); font-family: var(--mono); font-size: 12px; font-weight: 700; }
+.paper-work__done { max-width: 100%; white-space: normal; }
+.paper-work__comparison { margin-top: 16px; }
+.paper-work__image { display: block; width: 100%; height: auto; margin-top: 12px; border: 1px solid var(--hair); background: var(--paper); }
+.paper-check { display: grid; gap: 10px; margin-top: 16px; }
+.paper-check__title { font-weight: 750; }
+.paper-check__row { margin: 0; padding: 12px; border: 1px solid var(--hair); border-radius: var(--radius-sm); }
+.paper-check__criterion { padding: 0 4px; }
+.paper-check__choices { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 8px; }
+.paper-check__choice { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.paper-check__row.correct { border-color: var(--easy); background: var(--easy-bg); }
+.paper-check__row.wrong { border-color: var(--hard); background: var(--hard-bg); }
+.intensive-example { margin: 16px 0 0; padding: 16px; border-left: 4px solid var(--signal); background: var(--signal-soft); }
+
+/* Infosec-Bootcamp, 01.09.2026: Theorieblock im Intensivkurs.
+   `.lead-in` ist als kurze Kapiteleinleitung gesetzt — Display-Serife, 19-23px,
+   62ch Zeilenmaß. Ein Theorieteil mit Regellisten, Tabellen und einer Abbildung
+   braucht das Gegenteil: Textschrift, normales Fließtextmaß und volle Breite für
+   die Tabellen. Deshalb hebt `.theorie` als Kind die Vorgaben des Elternteils auf,
+   statt `.lead-in` selbst zu ändern — dessen Auftritt in allen anderen Blättern
+   bleibt damit unberührt. */
+.lead-in > .theorie {
+  font-family: var(--body); font-size: 15.5px; line-height: 1.62;
+  max-width: none; color: var(--ink-soft);
+}
+.theorie h3 {
+  font-family: var(--display); font-size: 19px; font-weight: 700;
+  color: var(--ink); margin: 30px 0 8px; line-height: 1.25;
+}
+.theorie h3:first-child { margin-top: 0; }
+.theorie p { max-width: 74ch; margin: 0 0 10px; }
+/* Gefunden im Showcase bei 320px, 10.09.2026: eine Aufzählung mit einem langen
+   Dateinamen in <code> — `Modul_NN_Thema_Lehrkurs.html`, 28 Zeichen ohne
+   Bruchstelle — sprengte `.theorie` um zwei Pixel. Zwei Pixel scrollen nicht
+   und fallen von Auge nicht auf; gefunden hat es die Breitenmessung.
+   Dieselbe Ursache wie ein Dutzend Mal zuvor: ein Kind ohne Untergrenze kann
+   nicht schmaler werden als sein längster Token. */
+.theorie ol, .theorie ul {
+  max-width: 74ch; margin: 8px 0 14px; padding-left: 20px;
+  min-width: 0; overflow-wrap: anywhere;
+}
+.theorie li { margin: 0 0 7px; padding-left: 2px; min-width: 0; overflow-wrap: anywhere; }
+.theorie li::marker { color: var(--accent); font-weight: 700; }
+.theorie .table-wrap { margin: 12px 0 20px; }
+.theorie table { font-size: 13.5px; }
+.theorie code { font-size: .92em; }
+.theorie figure { margin: 14px 0 22px; }
+.theorie figure img {
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--hair); background: var(--paper);
+}
+.theorie figcaption {
+  margin-top: 8px; font-family: var(--mono); font-size: 11.5px;
+  color: var(--ink-mute); line-height: 1.5;
+}
+/* Wörtliche Folienzitate abgesetzt — damit erkennbar bleibt, was Prof-Wortlaut
+   ist und was Erklärung. */
+.theorie .zitat {
+  border-left: 3px solid var(--accent); padding: 4px 0 4px 14px;
+  margin: 10px 0 16px; max-width: 74ch; color: var(--ink);
+}
+.theorie .quelle {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--ink-mute); font-weight: 700;
+}
+
 /* ---- Nachträge zu @QUIZ ---------------------------------------------------
    Deutsche Komposita sind der Regelfall, nicht die Ausnahme. `break-word`
    bricht zwar um, fließt aber NICHT in die min-content-Breite ein — die Spalte
@@ -1084,7 +1297,7 @@ button.act--retry:hover { background: var(--ink); }
   overflow-wrap: anywhere;
 }
 .chapter h3 { font-family: var(--display); font-weight: 700; font-size: 21px; margin: 26px 0 10px; }
-.chapter p  { max-width: 66ch; margin-bottom: 14px; }
+.chapter p  { max-width: 66ch; margin-bottom: 14px; min-width: 0; overflow-wrap: anywhere; }
 .chapter ul, .chapter ol { margin: 0 0 18px; padding-left: 0; list-style: none; counter-reset: cstep; }
 .chapter ol > li {
   counter-increment: cstep; position: relative;
@@ -1583,6 +1796,7 @@ body.is-hub { background: var(--paper-2); }
   .dnd { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .fc__field { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .fc__truth { text-align: left; min-width: 0; }
+  .result-field { grid-template-columns: minmax(0, 1fr); gap: 8px; }
 }
 
 @media (max-width: 759px) {
@@ -1954,3 +2168,30 @@ body.is-hub { background: var(--paper-2); }
 
 .done__zeit { font-family: var(--mono); font-size: 13px; }
 /* @KLAUSUR:END */
+
+/* ============================================================================
+   Lernplan — eine Kachel je Tag (Rahmenwerk.md: "nicht eine Tabelle")
+   ============================================================================ */
+.plan { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin: 24px 0 40px; }
+.plantile {
+  background: var(--surface); border: 1px solid var(--hair); border-radius: var(--radius);
+  padding: 16px 18px; box-shadow: var(--shadow); min-width: 0;
+}
+.plantile--rest { background: var(--surface-2); border-style: dashed; }
+.plantile--milestone { border-color: var(--accent); }
+.plantile--exam { background: var(--hard-bg); border-color: var(--hard); }
+.plantile__day {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-mute); display: flex; justify-content: space-between; gap: 8px;
+}
+.plantile__date { color: var(--accent-deep); font-weight: 700; }
+.plantile__focus {
+  font-family: var(--display); font-weight: 700; font-size: 17px; margin: 8px 0 6px;
+  color: var(--ink); min-width: 0; overflow-wrap: anywhere;
+}
+.plantile__note { font-size: 13px; color: var(--ink-soft); margin-bottom: 10px; min-width: 0; overflow-wrap: anywhere; }
+.plantile__link {
+  font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent-deep);
+  text-decoration: none; border-bottom: 1px solid var(--accent-soft);
+}
+.plantile__link:hover { border-color: var(--accent-deep); }

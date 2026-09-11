@@ -14,4 +14,10 @@ Die vollständige Anweisung steht in zwei Dateien im Wurzelverzeichnis dieses Re
 
 `NeuesThema.md` ist der **andere** Auftrag und hier nicht zuständig — lies sie nicht, ihre Regeln zu Zuschnitt und Belegen gelten für ein Thema ohne Unterlagen.
 
+Sieh dir zuerst `src/Anleitung.html` an: dort steht Zeile für Zeile, welche Seite welches Merkmal des Rahmenwerks vorführt. Das ersetzt das Durchsuchen der Engine.
+
+**Jedes Modul ist ein Dreiklang** aus Fachartikel, Aufgabenheft und Lab — das Lab am Schluss, und es fehlt nie. Die Regel samt Begründung und dem Aufbau eines Labs steht in `Rahmenwerk.md` unter *Ein Modul ist ein Dreiklang*; zwei ausgearbeitete Beispiele liegen in `src/`.
+
+Zu diesem Auftrag gehören **Abdeckungskarte, Probeklausur und Klausurzettel** — sie sind der Teil des Rahmenwerks, den nur eine Prüfung braucht, und ihre Erwartungen stehen in `tools/klausurphase.config.mjs`. Ohne Eintrag dort werden zwei Prüfungen still übersprungen.
+
 Bevor du „fertig" sagst: `pwsh tools/bootcamp-check.ps1` muss ohne Fehler durchlaufen. Ein grüner Exitcode heißt „nichts Kaputtes gefunden", nicht „gut" — was er nicht prüft, steht in `Rahmenwerk.md`.

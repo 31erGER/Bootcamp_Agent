@@ -41,11 +41,11 @@ Das ist der Schritt, an dem dieses Bootcamp gewinnt oder verloren wird. Bei eine
 
 1. **Wozu.** Was will ich danach können, in einem prüfbaren Satz? Nicht „etwas über lokale KI wissen", sondern „ein Modell auf meiner Hardware laufen lassen und begründen können, wann sie nicht reicht". Aus diesem Satz werden die Lernziele, und gegen die prüfst du am Ende ab.
 2. **Vorwissen.** Woran kannst du anknüpfen? Nimm den Abschnitt *Kontext* aus `Nutzereinstellungen.md` als Ausgangspunkt und frag nach, wo das Thema an meinem Vorwissen vorbeigeht. Rate nicht — ein Bootcamp, das zwei Ebenen zu tief ansetzt, verliert mich in der ersten Einheit.
-3. **Tiefe.** Drei Stufen, und sie schließen sich aus: **Überblick** (ein Abend, ich will mitreden können), **Anwenden** (mehrere Abende, ich will es benutzen), **Beherrschen** (Wochen, ich will es beurteilen und debuggen können). Frage nach der Stufe, nicht nach „wie viel Zeit hast du" — die Antwort darauf ist immer zu optimistisch.
+3. **Tiefe.** Drei Stufen, und sie schließen sich aus: **Überblick** (ich will mitreden können), **Anwenden** (ich will es benutzen), **Beherrschen** (ich will es beurteilen und debuggen können). Frage nach der Stufe, nicht nach „wie viel Zeit hast du" — die Antwort darauf ist immer zu optimistisch.
 4. **Praxis.** Ist das Thema praktisch: welche Hardware, welches Betriebssystem, darf installiert werden, darf es Geld kosten, gibt es Firmen- oder Datenschutzgrenzen? Ein Lab, das an meiner Maschine nicht läuft, kostet einen Abend und endet in Frust.
 5. **Abgrenzung.** Was ausdrücklich **nicht**? Der wertvollste Satz des ganzen Gesprächs. „Kein Training von Grund auf", „keine Cloud-Anbieter", „keine Mathematik hinter Transformern" — jedes Nein spart eine Einheit und schärft die übrigen.
 
-**Dann leg mir eine Landkarte vor und lass sie bestätigen.** Acht bis vierzehn Einheiten, je eine Zeile: Titel, ein Satz Inhalt, geschätzte Minuten, und ob Artikel, Aufgabenblatt oder Lab. Dazu die Lernziele aus Frage 1 und die Streichliste aus Frage 5. **Baue erst nach meinem Ja.** Eine bestätigte Landkarte ist billig zu ändern, ein gebautes Bootcamp nicht.
+**Dann leg mir eine Landkarte vor und lass sie bestätigen.** Acht bis vierzehn Einheiten, je eine Zeile: Titel, ein Satz Inhalt, die Voraussetzung, und ob Artikel, Aufgabenblatt oder Lab. **Keine geschätzten Minuten** — siehe `Rahmenwerk.md`, *Keine geschätzten Zeiten*. Dazu die Lernziele aus Frage 1 und die Streichliste aus Frage 5. **Baue erst nach meinem Ja.** Eine bestätigte Landkarte ist billig zu ändern, ein gebautes Bootcamp nicht.
 
 Schreib Landkarte und Antworten in `AGENT_Zwischenablage.md`, damit eine spätere Sitzung mit neuem Kontext sie wiederfindet. Ohne diesen Eintrag beginnt der nächste Durchlauf das Gespräch von vorn.
 
@@ -73,7 +73,7 @@ Es gibt keinen Termin, keinen Druck und keine externe Struktur. Die muss das Boo
 
 **Spirale statt Linie.** Jedes tragende Thema kommt zweimal: einmal flach, so früh wie möglich, damit das Gesamtbild früh steht; einmal tief, wenn es gebraucht wird. Eine Linie zwingt mich, fünf Einheiten durchzuhalten, bevor etwas Sinn ergibt.
 
-**Kurze Einheiten mit sichtbarem Ende.** Zwanzig bis dreißig Minuten, danach etwas Vorzeigbares — eine gelöste Aufgabenserie, ein laufendes Skript, eine ausgefüllte Karte. Eine Einheit, die man nicht in einer Sitzung schafft, wird nicht angefangen.
+**Kurze Einheiten mit sichtbarem Ende.** Eine Einheit ist eine Sitzung: danach steht etwas Vorzeigbares — eine gelöste Aufgabenserie, ein laufendes Skript, eine ausgefüllte Karte. Eine Einheit, die man nicht in einer Sitzung schafft, wird nicht angefangen. Das ist die **Zuschnittsregel für dich**; auf der Seite steht keine Zeit.
 
 **Verschränken und wiederholen.** Nach je drei bis vier Einheiten ein kurzes Blatt, das Aufgaben aus den *vorherigen* Einheiten mischt. Nicht als Bonus, sondern als eigene Einheit in der Landkarte. Der Effekt ist belegt, kostet dich wenig und ist das Einzige, was in zwei Wochen noch da ist.
 
@@ -87,14 +87,26 @@ Die technische Form steht in `Rahmenwerk.md`. Hier nur, welche Stücke ein Theme
 
 1. **Bestätigte Landkarte** in `AGENT_Zwischenablage.md`, mit Lernzielen und Streichliste.
 2. **Themen-Canvas** — die Landkarte als `.canvas` mit den Abhängigkeiten zwischen den Einheiten. Nicht nach Häufigkeit gewichtet, sondern nach **Voraussetzung**: was muss vorher sitzen. Genau das ist bei einem neuen Feld die Information, die mir fehlt.
+
+   **Format.** Ins **Wurzelverzeichnis** neben `startseite.html`, unter sprechendem Namen — `src/Canvas_Beispiel.canvas` ist nur das Syntaxbeispiel für dich. **Sag mir beim Abliefern, dass die Datei mit Obsidian geöffnet werden muss.**
 3. **Je Einheit** ein Fachartikel, ein Aufgabenblatt oder ein Lab — oft ein Artikel plus ein kurzes Blatt. Ist das Thema praktisch, ist mindestens jede dritte Einheit ein Lab.
 4. **`Referenzkarte.md`** — Markdown im Vault aus dem in `Rahmenwerk.md` genannten Grund: Befehle, Parameter, Kennzahlen, Merksätze, Fehlermeldungen und was sie bedeuten. Das Blatt, das neben der Tastatur liegt, wenn ich es benutze. Mit `[[Wikilinks]]` in meine Notizen.
 5. **`Lernzettel.md`** — die Landkarte auf Vault-Ebene, ebenfalls Markdown, verlinkt in beide Richtungen: von hier in die Projektseiten, aus den Notizen hierher.
-6. **Etappenplan** statt Kalenderplan: Etappe für Etappe, mit Voraussetzung und ehrlicher Dauer. Eine `.ics` nur, wenn ich ein Zeitfenster genannt habe — ohne Termin sind Kalendereinträge Müll, den ich wegklicke, und das beschädigt den Kalender, den ich für echte Termine brauche.
-7. **`Anleitung.html`** und der Eintrag jeder Seite in `index.data.js`.
+6. **Etappenplan** statt Kalenderplan: Etappe für Etappe, mit Voraussetzung und prüfbarem Ende — **ohne Dauerangabe**, die wäre geraten. Eine `.ics` nur, wenn ich ein Zeitfenster genannt habe — ohne Termin sind Kalendereinträge Müll, den ich wegklicke, und das beschädigt den Kalender, den ich für echte Termine brauche.
+7. **`Anleitung.html`** und der Eintrag jeder Seite in `src/startseite.data.js`.
 8. **Quellenliste mit Abrufdatum** und der Halbwertszeit-Markierung aus Schritt 1 — als Seite im Projekt, damit ich sie beim Lesen zur Hand habe.
 9. **Abgleich gegen die Lernziele.** Zu jedem Lernziel aus Schritt 0 gehört mindestens eine Aufgabe oder ein Lab, das es tatsächlich prüft. Leg die Zuordnung offen und nenne die Lücken. Ein Lernziel ohne prüfende Aufgabe ist ein Versprechen, das das Bootcamp nicht hält.
 10. **Persistenz** wie in `Rahmenwerk.md` — was hier über das Verfahren gelernt wurde, gehört ins Repo, nicht in den Themenordner.
+
+**Was hier ausdrücklich NICHT dazugehört.** Der Showcase in `src/` führt auch Bestandteile vor, die eine Prüfung voraussetzen — sie sind dort als *nur Klausurphase* markiert, und die vollständige Liste steht in `Rahmenwerk.md` unter *Nur in der Klausurphase*. Kurz:
+
+- **kein `Lernplan.html`, keine `.ics`** ohne genanntes Zeitfenster (siehe Punkt 6),
+- **keine `Abdeckung.html`** — es gibt keinen von außen gesetzten Umfang, den man abdecken könnte; der Zuschnitt aus Schritt 0 tritt an ihre Stelle,
+- **keine `Probeklausur.*`** und kein `klausur: {…}`-Blatt,
+- **kein `Klausurzettel.md`**,
+- `tools/klausurphase.config.mjs` bleibt **leer, aber vorhanden** — dann melden die beiden klausurbezogenen Prüfungen „keine Erwartungen hinterlegt" und `tools/bootcamp-check.ps1` läuft unverändert grün.
+
+Lösche die Showcase-Dateien beim Aufräumen mit, statt sie mit eigenen Inhalten zu füllen. Ohne Termin erfindet ein Lernplan Druck, den es nicht gibt, und eine Probeklausur prüft gegen eine Prüfung, die es nicht gibt. **Was in der Klausurphase der Termin leistet, muss hier die Struktur leisten** — eine klare Reihenfolge auf der Übersicht, sichtbarer Fortschritt und zu jedem Zeitpunkt genau ein empfohlener nächster Schritt.
 
 ---
 

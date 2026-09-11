@@ -14,3 +14,8 @@ Usersettings.md
 # Das Glob fängt auch die Varianten, die es im Vault schon gibt:
 # CLAUDE_Zwischenablage.md und @AGENT_Zwischenablage.md.
 *_Zwischenablage.md
+
+# ── Von Werkzeugen angelegt — bleibt lokal ──────────────────────────────────
+# Die Claude-Desktop-App legt hier Dateien ab, die sie in den Chat geschickt
+# hat. Sie gehören zur Sitzung, nicht zum Rahmenwerk.
+Claude outputs/

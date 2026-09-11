@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="wb-course" content="Beispielkurs">
+<title>Lernplan — Beispielkurs (Dummy)</title>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SHOWCASE · Lernplan. NUR FÜR DIE KLAUSURPHASE.
+
+     `Klausurvorbereitung.md`, Punkt 4: „Der Plan selbst ist eine Seite im
+     Projekt: eine Kachel je Tag, mit dem, was ansteht, und einem Link auf das
+     jeweilige Blatt. Nicht eine Tabelle in einer Textdatei. Die `.ics` ist nur
+     der Export für den Kalender, nicht die Darstellung des Plans."
+
+     Diese Datei ist diese Kachelseite. Drei Kachelarten sind vorgesehen:
+
+       .plantile                 ein Arbeitstag
+       .plantile--rest           ein Wiederholungs- oder Ruhetag
+       .plantile--milestone      ein Tag mit besonderem Gewicht
+       .plantile--exam           der Prüfungstermin selbst
+
+     EIN BOOTCAMP OHNE KLAUSUR HAT DIESE SEITE NICHT. Ohne Termin gibt es keinen
+     Countdown, und ein erfundener Plan erzeugt Druck, den es nicht gibt — siehe
+     `NeuesThema.md`. Dort ersetzt die Reihenfolge der Übersicht den Plan.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="is-hub">
+
+<div class="hub">
+
+  <header class="hub__head">
+    <div class="masthead__rule">Lernplan · Dummy-Zeitraum · Prüfung am letzten Tag</div>
+    <h1>Acht Tage,<br><em>ein Schritt nach dem anderen.</em></h1>
+    <p class="hub__lede">Jede Kachel ist eine Etappe: ein Fokus und ein Link auf das passende
+    Blatt. Die Reihenfolge folgt der Gewichtung — was in der Prüfung schwer wiegt, kommt zuerst,
+    und nach jedem Block steht ein Wiederholungstag.</p>
+  </header>
+
+  <div class="callout callout--think">
+    <div class="callout__icon">!</div>
+    <div class="callout__body">
+      <p><b>Nur in der Klausurphase.</b> Diese Seite setzt einen Prüfungstermin voraus. Wird ein
+      Thema ohne Prüfung aufgearbeitet, entfällt sie — dann ist die Reihenfolge der Übersicht der
+      Plan. Der Kalenderexport liegt als <code>Lernplan.ics</code> im Arbeitsordner, nicht hier:
+      die <code>.ics</code> ist der Export, diese Seite ist die Darstellung.</p>
+    </div>
+  </div>
+
+  <div class="hub__section">Der Plan</div>
+
+  <div class="plan">
+
+    <div class="plantile">
+      <div class="plantile__day">Tag 1 <span class="plantile__date">Mo</span></div>
+      <div class="plantile__focus">Lehrkurs lesen</div>
+      <div class="plantile__note">Grundlagen zusammenhängend, ohne Aufgaben. Karteikarten am Ende
+      zweimal durchgehen.</div>
+      <a class="plantile__link" href="../Modul_01_Signale_Lehrkurs.html">Blatt öffnen →</a>
+    </div>
+
+    <div class="plantile plantile--milestone">
+      <div class="plantile__day">Tag 2 <span class="plantile__date">Di</span></div>
+      <div class="plantile__focus">Aufgabenheft, Teile 1 und 2</div>
+      <div class="plantile__note">Höchste Gewichtung: die Rechenaufgaben zur Frequenzhaltung kamen
+      in jeder Altprüfung vor.</div>
+      <a class="plantile__link" href="../Modul_02_Verbundnetze.html">Blatt öffnen →</a>
+    </div>
+
+    <div class="plantile">
+      <div class="plantile__day">Tag 3 <span class="plantile__date">Mi</span></div>
+      <div class="plantile__focus">Aufgabenheft, Teil 3</div>
+      <div class="plantile__note">Rest des Hefts, danach die Auszeichnungen prüfen: fehlt eine,
+      ist ein Teil unbearbeitet.</div>
+      <a class="plantile__link" href="../Modul_02_Verbundnetze.html">Blatt öffnen →</a>
+    </div>
+
+    <div class="plantile plantile--rest">
+      <div class="plantile__day">Tag 4 <span class="plantile__date">Do</span></div>
+      <div class="plantile__focus">Wiederholung ohne neues Material</div>
+      <div class="plantile__note">Nur die falsch beantworteten Aufgaben erneut. Kein neues Blatt —
+      der Tag ist für das Setzen da, nicht fürs Sammeln.</div>
+      <a class="plantile__link" href="../../startseite.html">Übersicht öffnen →</a>
+    </div>
+
+    <div class="plantile">
+      <div class="plantile__day">Tag 5 <span class="plantile__date">Fr</span></div>
+      <div class="plantile__focus">Lab am Lastgang</div>
+      <div class="plantile__note">Einmal mit eigenen Zahlen rechnen. Handwerk, keine Bewertung —
+      und der beste Test dafür, ob die Formeln wirklich sitzen.</div>
+      <a class="plantile__link" href="../Modul_02_Verbundnetze_Lab.html">Lab öffnen →</a>
+    </div>
+
+    <div class="plantile plantile--milestone">
+      <div class="plantile__day">Tag 6 <span class="plantile__date">Sa</span></div>
+      <div class="plantile__focus">Intensivkurs Netzrechnen</div>
+      <div class="plantile__note">Theorieblock lesen, dann acht Aufgaben ohne Rechenweg. Der
+      unangenehmste und wirksamste Tag.</div>
+      <a class="plantile__link" href="Intensiv_01_Netzrechnen.html">Blatt öffnen →</a>
+    </div>
+
+    <div class="plantile plantile--rest">
+      <div class="plantile__day">Tag 7 <span class="plantile__date">So</span></div>
+      <div class="plantile__focus">Klausurzettel abschreiben</div>
+      <div class="plantile__note">Von Hand, in der Reihenfolge, in der er gegliedert ist.
+      Das Abschreiben ist die Wiederholung.</div>
+      <a class="plantile__link" href="Abdeckung.html">Abdeckung prüfen →</a>
+    </div>
+
+    <div class="plantile plantile--exam">
+      <div class="plantile__day">Tag 8 <span class="plantile__date">Mo</span></div>
+      <div class="plantile__focus">Probeklausur, dann Prüfung</div>
+      <div class="plantile__note">90 Minuten am Stück, ohne Unterbrechung und ohne Hilfsmittel.
+      Erst danach die Musterwege lesen.</div>
+      <a class="plantile__link" href="Probeklausur.html">Probeklausur öffnen →</a>
+    </div>
+
+  </div>
+
+  <div class="hub__section">Warum diese Reihenfolge</div>
+
+  <div class="theorie">
+    <p>Drei Regeln bestimmen den Plan, und sie sind wichtiger als die Tagesaufteilung selbst:</p>
+    <ol>
+      <li><b>Gewichtung vor Vollständigkeit.</b> Was in Übungen, Praktika und Altprüfungen häufig
+      vorkam, steht vorn — nicht das, was in der Vorlesung zuerst kam.</li>
+      <li><b>Nach jedem Block ein Tag ohne neues Material.</b> Wiederholung wirkt nur mit Abstand,
+      und ein voller Plan ohne Lücken ist ein Plan, der beim ersten Ausfall zerfällt.</li>
+      <li><b>Die Probeklausur nicht am Prüfungstag.</b> Hier steht sie aus Platzgründen zusammen —
+      in einem echten Plan liegen zwei bis drei Tage dazwischen, damit die Lücken, die sie
+      aufdeckt, noch geschlossen werden können.</li>
+    </ol>
+    <p><a href="../../startseite.html">→ Zur Übersicht</a></p>
+  </div>
+
+</div>
+
+</body>
+</html>

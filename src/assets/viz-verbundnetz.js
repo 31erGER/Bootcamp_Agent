@@ -2,7 +2,7 @@
    viz-verbundnetz.js — Zeichnungen zum Thema Verbundnetze
    ---------------------------------------------------------------------------
    Wird von beiden Blättern geladen: assets/selbsttest.html und
-   Modul_03_Verbundnetze.html. Deshalb heißt die Datei nach dem THEMA und nicht
+   Modul_02_Verbundnetze.html und dessen Lehrkurs. Deshalb heißt die Datei nach dem THEMA und nicht
    nach einem Blatt — eine Zeichnung, die zwei Blätter brauchen, gehört keinem
    davon allein.
 

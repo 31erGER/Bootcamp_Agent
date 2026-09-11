@@ -4,21 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="wb-course" content="Beispielkurs">
-<title>Modul 03 · Verbundnetze — Übersicht</title>
+<title>Beispielkurs — Showcase des Rahmenwerks</title>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
-     Die Einstiegsseite des Moduls. Sie ist neu: das Rahmenwerk hatte keine, und
-     der Student sah nirgends, was es gibt und wie weit er ist.
+     SHOWCASE · Die Einstiegsseite, und die EINZIGE Seite im Wurzelverzeichnis.
+     Sie ist das Inhaltsverzeichnis des Kurses und zeigt, wie weit man ist —
+     gruppiert nach Modulen, mit einer Weiter-Karte auf den ersten offenen
+     Eintrag.
+
+     Warum sie hier oben liegt und nicht in src/: sie ist der Einstieg, und ein
+     Einstieg, den man erst in einem Unterordner suchen muss, ist keiner. Alles
+     Übrige — Blätter, Stylesheet, Engine UND die Daten dieser Seite — liegt in
+     src/, und die Einträge in src/startseite.data.js tragen diesen Pfad
+     deshalb mit. Rahmenwerk.md erlaubt das ausdrücklich: ein Blatt darf eine
+     Ebene tiefer liegen, der Autofund des Prüfwerkzeugs durchsucht Unterordner
+     mit.
+
+     UMBENANNT AM 11.09.2026: hieß index.html. „index" ist ein Webserverwort —
+     es bedeutet „die Datei, die ausgeliefert wird, wenn niemand eine nennt".
+     Hier nennt sie immer jemand, per Doppelklick, und dann ist „Startseite"
+     das Wort, das der Ordner sprechen sollte. Die Datendatei ist mitgezogen:
+     sie ist kein Einstieg, sondern Inhalt, und Inhalt liegt in src/.
 
      Sie ist ABSICHTLICH ruhig gehalten — kein Rauschfilm, keine 100-px-Serifen,
      keine Initiale. Zwei optische Register: die Übersicht ist ein Inhalts-
      verzeichnis, die redaktionelle Anmutung beginnt erst im Blatt. Wer beides
      gleich laut macht, nimmt der Lektion ihren Auftritt.
 
-     Der Inhalt steht in index.data.js.
+     Der Inhalt steht in src/startseite.data.js.
      ═══════════════════════════════════════════════════════════════════════════ -->
 
-<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="src/assets/styles.css">
 </head>
 <body class="is-hub">
 
@@ -33,23 +49,23 @@
     <code>file://</code>. Die Blätter laufen, aber der Stand überlebt kein Neuladen.
   </div>
 
-  <h2 class="hub__section">Blätter dieses Moduls</h2>
+  <h2 class="hub__section">Module und Blätter</h2>
   <div class="sheets" data-hub-sheets></div>
 
   <h2 class="hub__section">Auszeichnungen</h2>
   <div class="badges" data-hub-badges></div>
 
   <footer class="foot">
-    <span>Rahmenwerk · Übersicht</span>
+    <span>Beispielkurs · Übersicht</span>
     <span>läuft ohne Server, ohne Build</span>
   </footer>
 
 </div>
 
-<script src="assets/engine.js"></script>
-<script src="assets/hub.js"></script>
-<script src="index.data.js"></script>
+<script src="src/assets/engine.js"></script>
+<script src="src/assets/hub.js"></script>
+<script src="src/startseite.data.js"></script>
 <!-- Macht die Seite für die Breitenprüfung messbar; ohne Anker inaktiv. -->
-<script src="assets/audit.js"></script>
+<script src="src/assets/audit.js"></script>
 </body>
 </html>

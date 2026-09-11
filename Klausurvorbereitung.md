@@ -47,7 +47,7 @@ Arbeite deshalb erst das Inventar durch und leg mir das Ergebnis vor:
 1. **Inventar.** Was liegt im Ordner: Vorlesungen, Übungen, Praktika, Notizen, Lösungen, Altprüfungen. Nenne, was fehlt — ein Modul ohne Altprüfungen wird anders gewichtet als eines mit.
 2. **Themenliste mit Häufigkeit.** Jedes Thema mit der Zahl der Vorkommen, getrennt nach Quelle: Vorlesung / Übung / Praktikum / Altprüfung. Übungen und Praktika wiegen schwerer als Folien, Altprüfungen am schwersten — sie zeigen, was der Prüfer tatsächlich fragt.
 3. **Gewichtung.** Daraus abgeleitet: welches Thema wie viele Aufgaben bekommt, und welche Themen ein eigenes Blatt tragen. Nenne die Zahlen, nicht „Schwerpunkt".
-4. **Blattplan.** Die geplanten Blätter, Artikel und Labs mit Titel, Aufgabenzahl und geschätzter Dauer — also der spätere Inhalt von `index.data.js`, vorab als Liste.
+4. **Blattplan.** Die geplanten Blätter, Artikel und Labs mit Titel, Form und Aufgabenzahl — also der spätere Inhalt von `src/startseite.data.js`, vorab als Liste. **Keine geschätzten Zeiten**, hier nicht und auf keiner Seite: siehe `Rahmenwerk.md`, *Keine geschätzten Zeiten*.
 5. **Was dir auffällt.** Widersprüche zwischen Folien und Übungen, Themen ohne Übungsaufgaben, Lücken in den Unterlagen. Das ist die Information, die ich sonst erst im dritten Blatt bemerke.
 
 **Baue erst nach meinem Ja.** Eine Liste ist in zwei Minuten korrigiert, ein gebautes Bootcamp nicht. Schreib Inventar und Gewichtung zusätzlich in `AGENT_Zwischenablage.md`, damit eine spätere Sitzung mit neuem Kontext nicht neu zählen muss.
@@ -68,13 +68,15 @@ Gehe mindestens folgende Inhalte durch; du kannst diese Liste ergänzen, wenn di
 
    **Format.** `Lernzettel.md`, ebenfalls Markdown im Vault, aus demselben Grund. Er ist die verlinkte Landkarte des Moduls. Was Interaktion, eine Zeichnung oder Punkte braucht, gehört nicht in den Zettel, sondern auf eine Seite im HTML-Projekt — verlinke von hier darauf. Der Lernzettel ist die Übersicht auf Vault-Ebene, das Projekt ist die Übungsstrecke; die beiden konkurrieren nicht, sie verweisen aufeinander.
 
-3. **Mindmap der Themen und Inhalte**: Für die Prüfungsvorbereitung ist es wichtig, alle Inhalte dargelegt zu haben. Erstelle deswegen ein Canvas mit allen Themen und deren Zusammenhängen. Analysiere auch die Häufigkeit, mit der die Inhalte vorkamen, und statte sie mit einer Relevanzkennzeichnung aus. Lege die Canvas-Dateien in den Arbeitsordner.
+3. **Mindmap der Themen und Inhalte**: Für die Prüfungsvorbereitung ist es wichtig, alle Inhalte dargelegt zu haben. Erstelle deswegen ein Canvas mit allen Themen und deren Zusammenhängen. Analysiere auch die Häufigkeit, mit der die Inhalte vorkamen, und statte sie mit einer Relevanzkennzeichnung aus.
 
-4. **Lernplan**: Entwickle einen zeitlichen Lernplan, der auf die Tage verteilt, wann was wiederholt oder abgearbeitet werden muss. Erstelle daraus eine `.ics`-Datei, damit ich mir die Lerntermine im Kalender importieren kann, und lege sie in den Arbeitsordner.
+   **Format.** Die Datei gehört ins **Wurzelverzeichnis** neben `startseite.html`, unter einem sprechenden Namen — nicht in `src/`, dort liegt nur das Syntaxbeispiel `src/Canvas_Beispiel.canvas`. **Sag mir beim Abliefern, dass ich sie mit Obsidian öffnen muss**; per Doppelklick sehe ich nur JSON und halte sie für kaputt.
 
-   **Format.** Der Plan selbst ist eine Seite im Projekt: eine Kachel je Tag, mit dem, was ansteht, und einem Link auf das jeweilige Blatt. Nicht eine Tabelle in einer Textdatei. Die `.ics` ist nur der Export für den Kalender, nicht die Darstellung des Plans.
+4. **Lernplan**: Entwickle einen Lernplan, der auf die Tage verteilt, wann was wiederholt oder abgearbeitet werden muss. Erstelle daraus eine `.ics`-Datei, damit ich mir die Lerntermine im Kalender importieren kann, und lege sie in den Arbeitsordner.
 
-5. **Design und Visuals**: Lege Canvas an, wann immer es angebracht ist. Halte den grundsätzlichen Aufbau der Beispielblätter ein und das Farbschema dort, wo es hingehört — beides steht in `Rahmenwerk.md`.
+   **Format.** Der Plan selbst ist eine Seite im Projekt: eine Kachel je Tag, mit dem, was ansteht, und einem Link auf das jeweilige Blatt. Nicht eine Tabelle in einer Textdatei. Die `.ics` ist nur der Export für den Kalender, nicht die Darstellung des Plans. Der Plan verteilt **Tage**, er nennt keine Dauer je Tag — die wäre geraten.
+
+5. **Design und Visuals**: Lege Canvas an, wann immer es angebracht ist — jede erstellte `.canvas` ins Wurzelverzeichnis, mit dem Obsidian-Hinweis aus Punkt 3. Halte den grundsätzlichen Aufbau der Beispielblätter ein und das Farbschema dort, wo es hingehört — beides steht in `Rahmenwerk.md`.
 
 6. **Übungsaufgaben**: Halte dich vor allem an die vorhandenen Aufgaben in den Übungen und Praktika. Konzentriere die Aufgaben auch danach, wie häufig die Inhalte in Übungen und Praktika vorkamen, da es wahrscheinlich ist, dass Aufgaben vorkommen, die in der FH häufig und intensiv besprochen wurden.
 
@@ -82,8 +84,16 @@ Gehe mindestens folgende Inhalte durch; du kannst diese Liste ergänzen, wenn di
 
 7. **Nachbearbeitung**: Du darfst in alle bestehenden Dateien im Ordner Studium schreiben, auch in die, die du nicht selbst angelegt hast. Kündige diese Bearbeitungen immer an und kennzeichne sie deutlich im File. Sofern du dich strikt daran hältst, kannst du sogar in dieser Datei schreiben.
 
-   Du wirst relativ viele Änderungen machen. Erstelle deswegen eine **Anleitungsseite im HTML-Projekt** (`Anleitung.html`, eingetragen in `index.data.js` ohne `points`) und nicht eine Textdatei daneben: was du angelegt hast, in welcher Reihenfolge ich es durchgehen soll, wie der Fortschritt funktioniert und was ich selbst nachprüfen muss. Die `README.md` im Wurzelverzeichnis beschreibt das Rahmenwerk und bleibt unberührt — sie ist meine Datei, nicht deine Ablage. Weise mich darauf hin, wenn du alles fertig hast und ich loslegen kann.
+   Du wirst relativ viele Änderungen machen. Erstelle deswegen eine **Anleitungsseite im HTML-Projekt** (`Anleitung.html`, eingetragen in `src/startseite.data.js` ohne `points`) und nicht eine Textdatei daneben: was du angelegt hast, in welcher Reihenfolge ich es durchgehen soll, wie der Fortschritt funktioniert und was ich selbst nachprüfen muss. Die `README.md` im Wurzelverzeichnis beschreibt das Rahmenwerk und bleibt unberührt — sie ist meine Datei, nicht deine Ablage. Weise mich darauf hin, wenn du alles fertig hast und ich loslegen kann.
 
    **Folienabgleich als Abschlussdurchgang.** Geh die `quelle`-Kommentare aus *Umgebung* Aufgabe für Aufgabe durch und vergleiche jede mit ihrer Fundstelle: Stimmt der Begriff, die Schreibweise, die Größenordnung? Das ist bewusst ein mechanischer Durchgang über eine Liste und keine Aufforderung, „nochmal drüberzuschauen" — eine Liste kann jeder Agent abarbeiten und ich hinterher nachvollziehen. Liefere das Ergebnis als Tabelle in `AGENT_Zwischenablage.md`: Aufgabe, Quelle, geprüft, Abweichung. Aufgaben ohne Quelle und Abweichungen, die du nicht auflösen konntest, stehen oben.
 
-8. **Persistenz**: siehe *Persistenz* in `Rahmenwerk.md`. Was für alle Module gilt, gehört ins Repo, nicht in den Modulordner.
+8. **Abdeckungskarte**: Eine Seite im Projekt (`Abdeckung.html`, eingetragen in `src/startseite.data.js` ohne `points`), die jedes Thema der Unterlagen, jede Übungsaufgabe, jedes Praktikum und jede Altprüfungsaufgabe mit dem Blatt aufführt, das es abdeckt — plus einem Abschnitt mit dem, was du **bewusst weggelassen** hast. Eine Karte, in der alles abgedeckt ist, ist meistens keine Karte, sondern eine Behauptung.
+
+   **Und die Karte muss geprüft werden, nicht nur geschrieben.** Trage die Pflichtbegriffe in `tools/klausurphase.config.mjs` unter `abdeckung` ein; `tools/exam-coverage-check.mjs` sucht sie dann in den Aufgabenobjekten selbst und ist ROT, wenn einer fehlt. Ohne diesen Eintrag altert die Karte still: die Aufgabe daneben wird umgeschrieben, der Begriff fällt heraus, und die Karte sagt weiter „abgedeckt".
+
+9. **Probeklausur**: Ein Blatt mit `klausur: { minuten, bestehen, gesamt }`, das die echte Prüfung nachbildet — Dauer, Punktzahl, Bestehensgrenze und Aufgabenmischung nach der Altprüfung, nicht nach Bequemlichkeit. Jede Aufgabe braucht `punkte` und `source`; der Schwerpunkt liegt auf `result`-Aufgaben, weil nur die prüfen, ob du **selbst** rechnen kannst. Trage die Bedingungen in `tools/klausurphase.config.mjs` unter `probeklausur` ein — `tools/probeklausur-quality-check.mjs` erzwingt sie dann, inklusive der Regel, dass nirgends ein `hint` oder eine `formula` vor der Abgabe im DOM steht.
+
+   **Intensivkurse** sind die Steigerungsform davon und lohnen sich für jedes Thema, das gerechnet wird: ein Theorieblock über `part.lead`, danach `result`-Aufgaben ohne Rechenweg und, wo gezeichnet wird, `paper`-Aufgaben mit Selbstbewertung. Jedes numerische Endergebnis braucht eine `verify`-Regel, sonst bestätigt sich der Selbstlauf nur selbst. Alles dazu steht in `Rahmenwerk.md` unter *Die zwölf Aufgabentypen*.
+
+10. **Persistenz**: siehe *Persistenz* in `Rahmenwerk.md`. Was für alle Module gilt, gehört ins Repo, nicht in den Modulordner.

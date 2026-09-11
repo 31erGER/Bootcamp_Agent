@@ -65,12 +65,22 @@ $root  = Split-Path -Parent $PSScriptRoot
 # Formatvorlage, und darin läge dann der Produktionsstand. Wer das Verzeichnis
 # öffnet, vermutet Beispielmaterial und findet den echten Kurs.
 #
-# Deshalb: liegt ein Ordner `Stylevorgabe` mit `assets` darin, wird er benutzt
-# (dieses Repo, unverändertes Verhalten). Sonst gilt das Wurzelverzeichnis
-# selbst als Kursordner — das ist die aufgelöste Struktur, die nach dem Klonen
-# empfohlen ist. Beide Layouts laufen mit demselben Skript.
-$vorl = Join-Path $root 'Stylevorgabe'
-if (-not (Test-Path -LiteralPath (Join-Path $vorl 'assets'))) { $vorl = $root }
+# Drei Layouts, dasselbe Skript. Gesucht wird der Ordner, in dem `assets`
+# liegt — in dieser Reihenfolge:
+#
+#   src/           die Vorlage seit dem 10.09.2026. `startseite.html` liegt eine
+#                  Ebene HÖHER, im Wurzelverzeichnis: der Einstieg soll nicht
+#                  in einem Unterordner gesucht werden müssen.
+#   Stylevorgabe/  wie die Vorlage bis zum 10.09.2026 hieß. Bleibt erkannt,
+#                  damit ein älterer Klon unverändert weiterläuft.
+#   das Wurzelverzeichnis selbst — die aufgelöste Struktur eines fertigen
+#                  Moduls (so liegen AuD und Homelab).
+$vorl = $null
+foreach ($kand in @('src', 'Stylevorgabe')) {
+  $pfad = Join-Path $root $kand
+  if (Test-Path -LiteralPath (Join-Path $pfad 'assets')) { $vorl = $pfad; break }
+}
+if (-not $vorl) { $vorl = $root }
 $assets = Join-Path $vorl 'assets'
 
 if (-not (Test-Path -LiteralPath $assets)) {
@@ -107,6 +117,7 @@ New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 $fails = @()
 $warns = @()
 
+
 function Note-Fail([string] $m) { $script:fails += $m }
 function Note-Warn([string] $m) { $script:warns += $m }
 
@@ -121,6 +132,24 @@ function Head([string] $t) {
 function To-FileUrl([string] $path) {
   $p = (Resolve-Path -LiteralPath $path).Path -replace '\\', '/'
   return 'file:///' + ($p -replace ' ', '%20')
+}
+
+# Eine Seite wird im Kursordner gesucht und, falls sie dort nicht liegt, im
+# Wurzelverzeichnis. Das ist der Fall `startseite.html` im neuen Layout: sie gehört
+# zum Kurs, liegt aber eine Ebene über seinen Blättern.
+function Resolve-Seite([string] $name) {
+  $rel = ($name -replace '/', '\') + '.html'
+  foreach ($basis in @($vorl, $root)) {
+    $p = Join-Path $basis $rel
+    if (Test-Path -LiteralPath $p) { return $p }
+  }
+  return $null
+}
+
+# Pfad einer Seite relativ zu assets/, denn breiten.html laedt sie von dort.
+function Rel-ZuAssets([string] $voll) {
+  $basis = [uri]((To-FileUrl $assets) + '/')
+  return $basis.MakeRelativeUri([uri](To-FileUrl $voll)).ToString()
 }
 
 function Get-Dom([string] $url, [int] $budgetMs, [string] $size, [string] $profile) {
@@ -159,7 +188,7 @@ if (-not $Sheets -or $Sheets.Count -eq 0) {
   $Sheets = @()
   Get-ChildItem -LiteralPath $vorl -Filter '*.data.js' -File | ForEach-Object {
     $base = $_.Name -replace '\.data\.js$', ''
-    if ($base -ne 'index' -and (Test-Path -LiteralPath (Join-Path $vorl "$base.html"))) {
+    if ($base -notin @('startseite', 'index') -and (Test-Path -LiteralPath (Join-Path $vorl "$base.html"))) {
       $Sheets += $base
     }
   }
@@ -189,6 +218,48 @@ if (-not $Sheets -or $Sheets.Count -eq 0) {
   if (Test-Path -LiteralPath (Join-Path $assets 'selbsttest.html')) {
     $Sheets += 'assets/selbsttest'
   }
+}
+
+# ERGAENZT 11.09.2026: die LESESEITEN werden jetzt ebenfalls automatisch
+# gefunden.
+#
+# Der Anlass ist derselbe wie bei der Blattsuche, nur schlimmer: -Pages war
+# standardmaessig LEER. Damit liefen Startseite, Anleitung, beide Fachartikel,
+# beide Labs, Lernplan und Abdeckungskarte NIE durch die Breitenpruefung --
+# acht von dreizehn Seiten, und ausgerechnet die textlastigen, in denen eine
+# lange Formel oder ein Dateiname ueberlaeuft. Wer -Pages nicht von Hand
+# mitgab, bekam gruen fuer fuenf Seiten.
+#
+# Gesucht wird jede *.html, die styles.css laedt und KEIN Blatt ist: im
+# Kursordner, in seinen Unterordnern und im Wurzelverzeichnis (dort liegt die
+# Startseite). breiten.html ist das Pruefwerkzeug selbst und faellt heraus.
+if (-not $Pages -or $Pages.Count -eq 0) {
+  # Blattnamen kommen mit '/' herein ('Klausurphase/Probeklausur'); unten wird
+  # ebenfalls auf '/' normalisiert, damit der Vergleich auf jedem Dateisystem
+  # trifft und nicht nur dort, wo der Trenner zufaellig passt.
+  $blattNamen = @($Sheets | ForEach-Object { ($_ -replace '\\', '/') })
+  $suchOrdner = @($vorl, $root) + @(Get-ChildItem -LiteralPath $vorl -Directory |
+    Where-Object { $_.Name -notin @('assets', 'tools', 'Code-Aufgaben', '.claude') } |
+    ForEach-Object { $_.FullName })
+  $gefunden = @()
+  foreach ($d in ($suchOrdner | Select-Object -Unique)) {
+    if (-not (Test-Path -LiteralPath $d)) { continue }
+    Get-ChildItem -LiteralPath $d -Filter '*.html' -File | ForEach-Object {
+      if ($_.Name -eq 'breiten.html') { return }
+      if ((Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8) -notmatch 'styles\.css') { return }
+      # Name relativ zum Kursordner, ohne .html -- dieselbe Schreibweise wie
+      # bei den Blaettern, damit Resolve-Seite beides gleich behandelt. $vorl
+      # wird VOR $root geprueft: im Wurzelverzeichnis liegt $vorl darunter, ein
+      # Abzug von $root ergaebe sonst 'src/Anleitung' statt 'Anleitung'.
+      $rel = $_.FullName
+      if ($rel.StartsWith($vorl))      { $rel = $rel.Substring($vorl.Length) }
+      elseif ($rel.StartsWith($root))  { $rel = $rel.Substring($root.Length) }
+      $rel = (($rel -replace '\\', '/') -replace '\.html$', '').Trim('/')
+      if ($blattNamen -contains $rel) { return }
+      if ($gefunden -notcontains $rel) { $gefunden += $rel }
+    }
+  }
+  $Pages = $gefunden
 }
 
 Write-Host ''
@@ -237,16 +308,75 @@ if ($node) {
     Write-Host '  Haeufigste Ursache: die Zeichenfolge */ in einem Blockkommentar,' -ForegroundColor Yellow
     Write-Host '  etwa in einem Pfad wie UEB05/*/*.java.' -ForegroundColor Yellow
   }
+
+  # Ergaenzt fuer das Infosec-Bootcamp am 28.08.2026, danach verallgemeinert.
+  # Ergebnisaufgaben (`result`) und die Probeklausur zeigen vor der Abgabe
+  # keinen Rechenweg. Der Selbstlauf traegt genau die hinterlegte Zahl ein und
+  # bestaetigt sich damit selbst, und ein `hint` in den Daten faellt ihm nicht
+  # auf. Deshalb pruefen hier zweite, vom Browser unabhaengige Implementierungen
+  # die Bewertungsregeln, die Rechenwerte und die Klausurbedingungen.
+  # Die drei Rahmenwerksproben laufen immer; die klausurbezogenen nur, wenn es
+  # eine Probeklausur bzw. Intensivkurse gibt.
+  Head 'RAHMENWERK UND KLAUSURNAHE AUFGABEN'
+  $intensivPruefungen = @(
+    @{ Script = (Join-Path $root 'tools/intensive-types-check.mjs');     Args = @() },
+    @{ Script = (Join-Path $root 'tools/file-progress-sync-check.mjs');  Args = @() },
+    @{ Script = (Join-Path $root 'tools/hub-progress-check.mjs');        Args = @() },
+    @{ Script = (Join-Path $root 'tools/intensive-answer-check.test.mjs'); Args = @() }
+  )
+
+  # KORRIGIERT 10.09.2026: auch eine Ebene tiefer suchen.
+  #
+  # Die Blattsuche oben findet Klausurphase/Probeklausur seit dem 14.08.2026 --
+  # diese beiden Zeilen nicht. Sie schauten nur in $vorl, und seit die vier
+  # Klausurseiten in $vorl/Klausurphase/ liegen, wurden die Probeklausur-Probe
+  # und die Nachrechnung der Intensivkurse STILL uebersprungen: der Lauf blieb
+  # gruen und prueft weniger. Genau die Luecke, vor der der Kommentar zur
+  # Blattsuche warnt -- und sie ist trotzdem entstanden.
+  $kursordner = @($vorl) + @(Get-ChildItem -LiteralPath $vorl -Directory |
+    Where-Object { $_.Name -notin @('assets', 'tools', 'Code-Aufgaben', '.claude') } |
+    ForEach-Object { $_.FullName })
+
+  $probeklausur = $null
+  foreach ($o in $kursordner) {
+    $kandidat = Join-Path $o 'Probeklausur.data.js'
+    if (Test-Path -LiteralPath $kandidat) { $probeklausur = $kandidat; break }
+  }
+  if ($probeklausur) {
+    $intensivPruefungen += @{ Script = (Join-Path $root 'tools/probeklausur-quality-check.mjs'); Args = @() }
+    $intensivPruefungen += @{ Script = (Join-Path $root 'tools/intensive-answer-check.mjs'); Args = @($probeklausur) }
+  } else {
+    Write-Host '  keine Probeklausur im Ordner - Klausurpruefungen uebersprungen' -ForegroundColor DarkGray
+  }
+
+  $intensivDateien = @($kursordner | ForEach-Object {
+    Get-ChildItem -LiteralPath $_ -Filter 'Intensiv_*.data.js' -File | ForEach-Object { $_.FullName }
+  })
+  if ($intensivDateien.Count -gt 0) {
+    $intensivPruefungen += @{ Script = (Join-Path $root 'tools/intensive-answer-check.mjs'); Args = $intensivDateien }
+  } else {
+    Write-Host '  keine Intensivkurse im Ordner - Nachrechnung uebersprungen' -ForegroundColor DarkGray
+  }
+
+  # Die Abdeckungsprobe endet ohne hinterlegte Regeln von selbst gruen.
+  $intensivPruefungen += @{ Script = (Join-Path $root 'tools/exam-coverage-check.mjs'); Args = @() }
+
+  foreach ($probe in $intensivPruefungen) {
+    $ausgabe = & $node.Source $probe.Script @($probe.Args) 2>&1
+    $ok = $LASTEXITCODE -eq 0
+    $farbe = if ($ok) { 'Green' } else { 'Red' }
+    $ausgabe | ForEach-Object { Write-Host ('  ' + $_) -ForegroundColor $farbe }
+    if (-not $ok) { Note-Fail ('Zusatzprüfung fehlgeschlagen: ' + (Split-Path -Leaf $probe.Script)) }
+  }
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 1 + 2 · Selbstlauf und Redaktionsregeln
 # ═══════════════════════════════════════════════════════════════════════════
 foreach ($s in $Sheets) {
-  $file = Join-Path $vorl ($s -replace '/', '\')
-  $file = "$file.html"
-  if (-not (Test-Path -LiteralPath $file)) {
-    Note-Fail "$s : Datei fehlt ($file)"
+  $file = Resolve-Seite $s
+  if (-not $file) {
+    Note-Fail "$s : Datei fehlt (weder in $vorl noch in $root)"
     continue
   }
   Head "SELBSTLAUF + REDAKTION  ·  $s"
@@ -292,8 +422,12 @@ if (-not $SkipWidths) {
   foreach ($pair in $alle) {
     $name = $pair[0]
     $states = if ($pair[1]) { @('', '&state=geloest') } else { @('') }
-    # breiten.html liegt IN assets/, der Seitenpfad ist relativ dazu.
-    $rel = if ($name -like 'assets/*') { ($name -replace '^assets/', '') + '.html' } else { '../' + $name + '.html' }
+    # breiten.html liegt IN assets/, der Seitenpfad ist relativ dazu — und
+    # seit dem neuen Layout kann er zwei Ebenen hoch fuehren (startseite.html im
+    # Wurzelverzeichnis). Deshalb wird er berechnet und nicht geraten.
+    $voll = Resolve-Seite $name
+    if (-not $voll) { Note-Fail "$name : Datei fuer die Breitenpruefung fehlt"; continue }
+    $rel = Rel-ZuAssets $voll
 
     foreach ($state in $states) {
       $label = if ($state) { 'aufgelöst' } else { 'ungelöst ' }
@@ -344,7 +478,9 @@ $erlaubt = @('js-only')
 # ERGAENZT 14.08.2026: auch die Ordner der Blätter, die tiefer liegen. Ohne das
 # wäre Klausurphase/Probeklausur.html bei dieser Prüfung durchgerutscht und eine
 # Klasse ohne Regel dort nie aufgefallen.
-$ordner = @($vorl, $assets)
+# Das Wurzelverzeichnis ist dabei, seit die Startseite dort liegt: sie war bei
+# dieser Pruefung sonst nicht erfasst.
+$ordner = @($vorl, $assets, $root)
 foreach ($s in $Sheets) {
   if ($s -notmatch '/') { continue }
   $d = Join-Path $vorl (Split-Path -Parent ($s -replace '/', '\'))
@@ -522,7 +658,7 @@ foreach ($f in $htmlFiles) {
 if ($ohneKurs.Count -gt 0) {
   Write-Host ('  ohne <meta name="wb-course">: ' + $ohneKurs.Count + ' Seite(n)') -ForegroundColor Yellow
   $ohneKurs | Select-Object -First 8 | ForEach-Object { Write-Host ('    ' + $_) -ForegroundColor Yellow }
-  Note-Warn ($ohneKurs.Count + ' Seite(n) ohne <meta name="wb-course"> — dort faellt der Lernstand auf den Pfadschluessel zurueck und ueberlebt kein Verschieben')
+  Note-Warn ("$($ohneKurs.Count) Seite(n) ohne <meta name=`"wb-course`"> — dort faellt der Lernstand auf den Pfadschluessel zurueck und ueberlebt kein Verschieben")
 } else {
   Write-Host '  jede Seite mit Engine nennt ihren Kurs' -ForegroundColor Green
 }
