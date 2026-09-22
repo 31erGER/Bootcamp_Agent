@@ -108,10 +108,16 @@
       if (saved && saved.percent) best = saved.percent;
     }
 
+    /* Geändert am 22.09.2026: Scrollen liefert viele Ereignisse pro
+       Prozentstufe. Identische Anzeigen nicht erneut ins DOM schreiben.
+       Der erste Aufruf bleibt synchron, auch ohne Animations-Frame. */
+    let lastPercent = null;
     function paint() {
       const doc = document.documentElement;
       const max = doc.scrollHeight - doc.clientHeight;
       const pct = max > 0 ? Math.min(100, Math.round((doc.scrollTop / max) * 100)) : 100;
+      if (pct === lastPercent) return;
+      lastPercent = pct;
       bars.forEach(b => {
         b.style.setProperty('--read', pct + '%');
         b.setAttribute('aria-valuenow', String(pct));

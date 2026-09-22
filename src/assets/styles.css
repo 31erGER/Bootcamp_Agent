@@ -49,16 +49,10 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: .035;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
+/* Geändert am 22.09.2026: Den fixierten SVG-Rauschfilm (body::before)
+   entfernt. Seine bildschirmfüllende Multiply-Ebene muss mit dem bewegten
+   Inhalt zusammengesetzt werden und kann das Scrollen verteuern. Der normale
+   Papiergrund bleibt; keine zusätzliche Filter-/Blend-Ebene über der Seite. */
 ::selection { background: var(--accent); color: #fff; }
 a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 sub, sup { line-height: 0; }
@@ -1532,10 +1526,8 @@ button.act--retry:hover { background: var(--ink); }
    Blatt oder Artikel, wo sie den Lesefluss trägt.
    ============================================================================ */
 
-/* Das ruhige Register wird hier wirklich eingelöst und nicht nur behauptet:
-   der Rauschfilm über der Seite ist Teil der redaktionellen Anmutung und hat
-   auf einem Inhaltsverzeichnis nichts zu suchen. */
-body.is-hub::before { display: none; }
+/* Geändert am 22.09.2026: Der Hub behält seinen ruhigen Papiergrund.
+   Der frühere Rauschfilm ist jetzt auf allen Seitentypen entfernt. */
 body.is-hub { background: var(--paper-2); }
 
 .hub { max-width: 1080px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 40px) 90px; }
@@ -1923,13 +1915,12 @@ body.is-hub { background: var(--paper-2); }
 /* @PRINT:START ==============================================================
    Ausdruck. Zielgruppe ist die Klausurvorbereitung am Papier: Seitenleiste und
    Knöpfe weg, alle Lösungen und Vertiefungen aufgeklappt, Seitenumbruch vor
-   jedem Teil. Der Rauschfilm über der Seite muss weg — er würde mitdrucken und
-   das Blatt grau machen.
+   jedem Teil. Geändert am 22.09.2026: Die frühere Rauschfilm-Sonderregel
+   entfällt, da diese Ebene bereits im Basisstil entfernt wurde.
    ============================================================================ */
 
 @media print {
   body { background: #fff; font-size: 11pt; }
-  body::before { display: none !important; }
 
   .shell { display: block; max-width: none; }
   .rail, .filters, .btnrow, .toast, .solbox, .hot__ask { display: none !important; }

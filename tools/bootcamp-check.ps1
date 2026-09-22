@@ -315,13 +315,15 @@ if ($node) {
   # bestaetigt sich damit selbst, und ein `hint` in den Daten faellt ihm nicht
   # auf. Deshalb pruefen hier zweite, vom Browser unabhaengige Implementierungen
   # die Bewertungsregeln, die Rechenwerte und die Klausurbedingungen.
-  # Die drei Rahmenwerksproben laufen immer; die klausurbezogenen nur, wenn es
+  # Die Rahmenwerksproben laufen immer; die klausurbezogenen nur, wenn es
   # eine Probeklausur bzw. Intensivkurse gibt.
   Head 'RAHMENWERK UND KLAUSURNAHE AUFGABEN'
   $intensivPruefungen = @(
     @{ Script = (Join-Path $root 'tools/intensive-types-check.mjs');     Args = @() },
     @{ Script = (Join-Path $root 'tools/file-progress-sync-check.mjs');  Args = @() },
     @{ Script = (Join-Path $root 'tools/hub-progress-check.mjs');        Args = @() },
+    # Ergänzt am 22.09.2026: Scroll-Updates und gespeicherten Lesestand prüfen.
+    @{ Script = (Join-Path $root 'tools/reading-progress-check.mjs');    Args = @() },
     @{ Script = (Join-Path $root 'tools/intensive-answer-check.test.mjs'); Args = @() }
   )
 
