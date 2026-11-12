@@ -1,6 +1,6 @@
 # Übergabe — Stand 12.11.2026
 
-**Für den Agenten der nächsten Sitzung.** Der Rechner, auf dem bis hierher gearbeitet wurde, wird zurückgesetzt; die Sitzung, ihr Notizspeicher und alle lokalen Klone sind danach weg. Diese Datei ist das Einzige, was davon übrig bleibt. Lies sie ganz, bevor du etwas anfasst.
+**Für den Agenten der nächsten Sitzung.** Der Rechner, auf dem bis hierher gearbeitet wurde, wird zurückgesetzt; die Sitzung, ihr Notizspeicher und alle lokalen Klone sind danach weg. Übrig bleiben die drei Branches auf GitHub und diese Datei. Lies sie ganz, bevor du etwas anfasst.
 
 Sie ist ein Übergabezettel und **kein Teil des Rahmenwerks**. Lösche sie (und `docs/`, falls dann leer), sobald die offenen Entscheidungen unten getroffen sind. Solange sie liegt, wird sie mit jedem Klon der Vorlage mitkopiert.
 
@@ -13,7 +13,8 @@ Sie enthält bewusst keine Angaben über den Nutzer. Die stehen in `Nutzereinste
 | Branch | Inhalt | Zustand |
 |---|---|---|
 | `main` | Rückführung aus dem Java-Bootcamp, erweiterter Lint, diese Datei | geprüft, gepusht |
-| `redesign/uebersicht` | ein Commit auf `main`: Redesign der Hauptseite | geprüft, gepusht, **noch nicht übernommen** — der Nutzer wollte ihn erst ansehen |
+| `redesign/uebersicht` | Redesign der Hauptseite; enthält `main` vollständig | geprüft, gepusht, **noch nicht übernommen** — der Nutzer wollte ihn erst ansehen |
+| `kurs/java` | das Java-Bootcamp, ein Commit auf `0f9ae06` | Sicherung des Arbeitsstands, gepusht. **Kein Teil der Vorlage** und nie nach `main` zu mergen |
 
 **Auf `main` neu seit `0f9ae06` („add check"):**
 
@@ -34,12 +35,13 @@ Sie enthält bewusst keine Angaben über den Nutzer. Die stehen in `Nutzereinste
 
 Gemessen am Showcase bei 1240 px Breite: vorher über 2700 px hoch; nachher 1285 px, wenn alles zu ist, und 3254 px, wenn alles offen ist. **Aufgeklappt ist die neue Seite also länger.** Der Gewinn kommt aus dem Zuklappen.
 
-## 2 · Was NICHT im Repo ist
+## 2 · Was nicht auf `main` liegt und was gar nicht im Repo ist
 
 - **`Nutzereinstellungen.md`** ist per `.gitignore` ausgeschlossen. `CLAUDE.md` verlangt, sie zuerst zu lesen. Fehlt sie nach dem Aufsetzen, frag den Nutzer danach; die Vorlage ist `Nutzereinstellungen.example.md`. Rate ihren Inhalt nicht.
-- **Das Java-Bootcamp.** Es wurde am 12.11.2026 in einem zweiten Klon desselben Repos gebaut (Ordner „Bootcamp Java" neben dem Vorlagenklon) und **nie committet**: acht Module (Arrays, Typparameter, Varianz, Lambdas, Predicates, Pipeline, Collectors, Grenzen), zwei Wiederholungsblätter, Start- und Abschluss-Lab, dazu `java-labs/`, `docs/`, `Lernzettel.md`, `Referenzkarte.md`, `Themenlandkarte.canvas`. Dort sind die Showcase-Seiten gelöscht und der Kursschlüssel geändert. Ob der Ordner das Zurücksetzen überlebt hat, weißt du nicht. **Frag.**
-  Falls er noch da ist: zwei Rahmenwerk-Dateien sind dort älter als auf `main` (`Rahmenwerk.md`, ein Satz in *Programmierthemen* Punkt 3; `tools/redaktion-lint.mjs` ohne die Erweiterung). Nimm beide von `main`, bevor dort weitergebaut wird.
-- **`AGENT_Zwischenablage.md`** aus dem Java-Klon (ebenfalls ausgeschlossen). Was davon ins Rahmenwerk gehörte, ist auf `main`; ein Kandidat ist übrig: `docs/bau/bau.mjs` im Java-Klon, ein Seitengenerator (Kurztext rein, Lehrkurs-, Lab- und Heftseite raus), noch kursspezifisch.
+- **Das Java-Bootcamp liegt auf dem Branch `kurs/java`, nicht auf `main`.** Es wurde am 12.11.2026 in einem zweiten Klon desselben Repos gebaut und kurz vor dem Zurücksetzen als ein einziger Commit gesichert, so wie die Arbeitskopie war: acht Module (Arrays, Typparameter, Varianz, Lambdas, Predicates, Pipeline, Collectors, Grenzen), zwei Wiederholungsblätter, Start- und Abschluss-Lab, dazu `java-labs/`, `docs/`, `Lernzettel.md`, `Referenzkarte.md`, `Themenlandkarte.canvas`. Dort sind die Showcase-Seiten gelöscht und der Kursschlüssel geändert.
+  Der Branch setzt auf `0f9ae06` auf, nicht auf dem heutigen `main`. Er enthält deshalb die Rahmenwerk-Eingriffe in ihrer ersten Fassung, und zwei Dateien sind dort älter als auf `main` (`Rahmenwerk.md`, ein Satz in *Programmierthemen* Punkt 3; `tools/redaktion-lint.mjs` ohne die Erweiterung). Vor dem Weiterbauen am Kurs `main` hereinholen; genau diese beiden Dateien melden dann einen Konflikt, nimm jeweils die Fassung von `main`. `docs/Uebergabe.md` kommt dabei mit und gehört im Kurs gelöscht.
+  **Das Repo ist öffentlich, der Kurs auf `kurs/java` also auch.** Der Nutzer hat dem Push zugestimmt.
+- **`AGENT_Zwischenablage.md`** aus dem Java-Klon ist per `.gitignore` ausgeschlossen und mit dem Rechner weg, falls der Nutzer sie nicht gesichert hat. Was davon ins Rahmenwerk gehörte, ist auf `main`; ein Kandidat ist übrig: `docs/bau/bau.mjs` auf `kurs/java`, ein Seitengenerator (Kurztext rein, Lehrkurs-, Lab- und Heftseite raus), noch kursspezifisch.
 
 ## 3 · Als Erstes nach dem Aufsetzen
 
@@ -59,9 +61,9 @@ Den Prüflauf ohne Parameter starten: `-Sheets a,b` kommt unter `powershell -Fil
 
 ## 4 · Offene Entscheidungen, alle beim Nutzer
 
-1. **Redesign übernehmen?** `redesign/uebersicht` liegt einen Commit vor `main`, ein Fast-Forward genügt. Nicht geprüft und vorher anzusehen: Druckansicht, Bedienung per Touch und nur mit Tastatur, ein Kurs mit mehr als vier Gruppen. Die Handyansicht wurde nur ausschnittweise gesehen; die Breitenprüfung (320 bis 1340 px, alle Gruppen offen) ist ohne Befund.
+1. **Redesign übernehmen?** `redesign/uebersicht` enthält `main` vollständig, ein Fast-Forward genügt. Nicht geprüft und vorher anzusehen: Druckansicht, Bedienung per Touch und nur mit Tastatur, ein Kurs mit mehr als vier Gruppen. Die Handyansicht wurde nur ausschnittweise gesehen; die Breitenprüfung (320 bis 1340 px, alle Gruppen offen) ist ohne Befund.
 2. **Groß-/Kleinschreibung im Lint behalten?** Gefragt war nur die Erweiterung der Tag-Liste um `h3` und `aside`. Die Unterscheidung kam dazu, weil die längere Liste sonst `List<Figure>` durchgelassen hätte. Der Nutzer hat sie noch nicht bestätigt.
-3. **Wohin mit dem Java-Bootcamp?** Eigenes Repo, eigener Branch oder nur lokal. Bis das entschieden ist, gehört nichts davon auf `main`: die Vorlage bleibt kursfrei.
+3. **Wo bleibt das Java-Bootcamp auf Dauer?** Es liegt als Sicherung auf `kurs/java` im Vorlagen-Repo, und das ist öffentlich. Bleibt es dort, zieht es in ein eigenes Repo, oder wird der Branch gelöscht, sobald der Kurs woanders liegt? Auf `main` gehört nichts davon: die Vorlage bleibt kursfrei.
 4. **Welche der Vorschläge aus Abschnitt 5** gebaut werden und in welcher Reihenfolge.
 
 ## 5 · Vorschläge, noch nicht begonnen
