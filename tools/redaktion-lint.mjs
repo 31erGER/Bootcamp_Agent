@@ -42,12 +42,40 @@ if (!SRC) { console.error('assets/validate.js nicht gefunden'); process.exit(1);
 let namen = process.argv.slice(2);
 if (!namen.length) {
   namen = fs.readdirSync(SRC).filter(f => f.endsWith('.data.js') && !/^(startseite|index)\./.test(f)).map(f => f.replace('.data.js', ''));
+  // ERGAENZT 12.11.2026 (Agent, Rückführung ins Rahmenwerk): Blätter dürfen eine
+  // Ebene tiefer liegen, genau wie in bootcamp-check.ps1 (dort seit 14.08.2026).
+  // Ohne diese Schleife blieb der Standardlauf am Showcase grün und sah
+  // `Klausurphase/Intensiv_01_Netzrechnen` und `Klausurphase/Probeklausur` nie.
+  // Dieselbe Regel wie dort: eine *.data.js mit gleichnamiger *.html daneben.
+  for (const sub of fs.readdirSync(SRC, { withFileTypes: true })) {
+    if (!sub.isDirectory() || ['assets', 'tools', 'Code-Aufgaben', '.claude'].includes(sub.name)) continue;
+    for (const f of fs.readdirSync(path.join(SRC, sub.name))) {
+      if (f.endsWith('.data.js') && fs.existsSync(path.join(SRC, sub.name, f.replace('.data.js', '.html')))) {
+        namen.push(sub.name + '/' + f.replace('.data.js', ''));
+      }
+    }
+  }
 }
 
-const HTMLTAGS = new Set('b strong i em u s code kbd samp var pre span div p br wbr hr sub sup small mark a ul ol li table tr td th img svg details summary'.split(' '));
+// ERWEITERT 12.11.2026 (Agent, Rückführung ins Rahmenwerk). Zwei Änderungen:
+//
+// 1. Die Liste kennt jetzt auch die Blockelemente, die die Showcase-Blätter in
+//    `lead` und Tabellen wirklich benutzen (h3, aside, figure, figcaption,
+//    thead, tbody, caption) und ihre nächsten Verwandten. Vorher meldete der
+//    Lint auf den zwei Klausurphase-Blättern je ein gültiges Tag als rohe
+//    Klammer.
+//
+// 2. Verglichen wird OHNE toLowerCase(). HTML steht im Kurs durchgehend klein,
+//    Typnamen beginnen groß. So bleibt `List<Figure>` ein Befund, obwohl
+//    `figure` in der Liste steht, und ebenso ein Typparameter `<S>`, `<P>`,
+//    `<B>`, `<U>`, `<I>`, `<A>`: der Browser hält auch die groß geschriebene
+//    Form für ein Tag und lässt sie verschwinden. Vorher rutschten genau diese
+//    sechs durch.
+const HTMLTAGS = new Set(('b strong i em u s code kbd samp var pre span div p br wbr hr sub sup small mark a ul ol li table tr td th img svg details summary ' +
+  'h1 h2 h3 h4 h5 h6 aside section figure figcaption blockquote dl dt dd thead tbody tfoot caption abbr').split(' '));
 function roheKlammer(s) {
   for (const m of String(s || '').matchAll(/<\/?([A-Za-z?][\w]*)?/g)) {
-    if (!HTMLTAGS.has((m[1] || '').toLowerCase())) return m[0] + String(s).slice(m.index + m[0].length, m.index + 24);
+    if (!HTMLTAGS.has(m[1] || '')) return m[0] + String(s).slice(m.index + m[0].length, m.index + 24);
   }
   return null;
 }
