@@ -36,6 +36,14 @@ function visibleText(root) {
   return [root.textContent, ...root.children.map(visibleText)].join(' ');
 }
 
+// ERGAENZT 12.11.2026 (Agent, Redesign der Übersicht): alle Knoten mit einer
+// Klasse, nicht nur der erste. Gebraucht für „genau EINE Zeile ist markiert".
+function findAllByClass(root, className, out = []) {
+  if (String(root.className).split(/\s+/).includes(className)) out.push(root);
+  for (const child of root.children) findAllByClass(child, className, out);
+  return out;
+}
+
 const hosts = {
   '[data-hub-head]': new TestNode('header'),
   '[data-hub-user]': new TestNode('section'),
@@ -90,7 +98,7 @@ vm.runInContext(hubSource, context, { filename: 'hub.js' });
 context.window.WB.hub({
   kicker: 'Test',
   headline: 'Test',
-  groups: { 'Modul 01 · Test': { step: true } },
+  groups: { 'Modul 01 · Test': { step: true }, 'Modul 02 · Test': { step: true } },
   entries: [{
     file: 'Testmodul.html',
     id: 'M01',
@@ -100,6 +108,21 @@ context.window.WB.hub({
     tasks: 16,
     points: 295,
     group: 'Modul 01 · Test'
+  },
+  // ERGAENZT 12.11.2026 (Agent, Redesign der Übersicht): zwei Leseseiten ohne
+  // Stand. Sie zählen nicht in die Balken (kein `points`), die drei Prüfungen
+  // von oben bleiben also bei 88 %. Gebraucht werden sie für die neuen Regeln:
+  // welche Gruppe offen steht und welche Zeile markiert ist.
+  {
+    file: 'Testlab.html',
+    kind: 'Lab',
+    title: 'Testlab',
+    group: 'Modul 01 · Test'
+  }, {
+    file: 'Spaeter.html',
+    kind: 'Lehrkurs',
+    title: 'Später',
+    group: 'Modul 02 · Test'
   }]
 });
 
@@ -128,9 +151,37 @@ if (collectedFiles?.join(',') !== 'Testmodul.html') {
   console.error('Speicherbrücke: Testmodul.html wurde nicht vom Hub eingesammelt.');
 }
 
+// ── ERGAENZT 12.11.2026 (Agent, Redesign der Übersicht) ─────────────────────
+// Seit dem Redesign hängen drei Stellen am selben „nächsten Schritt": die
+// Weiter-Karte, die Gruppe, die offen steht, und die markierte Zeile. Laufen
+// sie auseinander, empfiehlt die Seite oben etwas anderes, als sie unten
+// zeigt, und kein Balken fällt deshalb um. Der nächste Schritt ist hier das
+// angefangene Testmodul (14 von 16), nicht das unberührte Testlab daneben.
+const gruppen = findAllByClass(hosts['[data-hub-sheets]'], 'hubgroup');
+const markiert = findAllByClass(hosts['[data-hub-sheets]'], 'is-next');
+const wo = visibleText(findByClass(hosts['[data-hub-user]'], 'resume__where') || new TestNode());
+const redesign = [
+  ['Gruppen', gruppen.length, 2],
+  ['Gruppe mit dem nächsten Schritt steht offen', gruppen[0]?.open, true],
+  ['Spätere Gruppe ist zugeklappt', gruppen[1]?.open, false],
+  ['Gruppe mit dem nächsten Schritt ist markiert', String(gruppen[0]?.className).includes('is-current'), true],
+  ['Genau eine Zeile ist markiert', markiert.length, 1],
+  ['Markiert ist das angefangene Blatt', visibleText(markiert[0] || new TestNode()).includes('Weitermachen'), true],
+  ['Zeilen in der ersten Gruppe', findAllByClass(gruppen[0] || new TestNode(), 'hubrow').length, 2],
+  ['Weiter-Karte nennt die Stelle', wo.includes('Teil 1 von 2') && wo.includes('Aufgabenheft'), true]
+];
+for (const [label, actual, expected] of redesign) {
+  if (actual !== expected) {
+    failures += 1;
+    console.error(`${label}: erwartet ${expected}, erhalten ${actual ?? 'kein Wert'}`);
+  }
+}
+
 if (failures) {
   console.error(`\nERGEBNIS: ROT (${failures} Abweichungen)`);
   process.exit(1);
 }
 
-console.log('ERGEBNIS: GRÜN (alle Balken zeigen 14 von 16 Aufgaben = 88 %)');
+// Erfolgsmeldung am 12.11.2026 um die neuen Regeln ergänzt (Agent, Redesign).
+console.log('ERGEBNIS: GRÜN (alle Balken zeigen 14 von 16 Aufgaben = 88 %; ' +
+  'Weiter-Karte, offene Gruppe und markierte Zeile zeigen auf denselben Schritt)');

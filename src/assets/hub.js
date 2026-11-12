@@ -46,6 +46,32 @@
    Eine vorgeschriebene Zeit ist etwas anderes und bleibt: `klausur.minuten`
    (die Klausurdauer) und `task.timebox` (die Zeitvorgabe einer Papieraufgabe)
    sind keine Schätzungen, sondern Teil der Aufgabenstellung.
+
+   GEAENDERT AM 12.11.2026 (Agent): REDESIGN DER UEBERSICHT. Der Aufruf und
+   alle Felder bleiben gleich, geändert hat sich nur, was daraus gebaut wird.
+   Anlass: schon der Showcase mit zwei Modulen war bei 1240 px Breite über
+   2700 px hoch (gemessen), und jedes weitere Modul hängt eine volle Reihe
+   an. Jeder Abschnitt stand gleich laut da, ob erledigt, aktuell oder noch
+   weit weg, und die Kachel, die die Weiter-Karte empfahl, war in der Wand
+   darunter nicht zu erkennen.
+
+   Ehrlich dazu: ganz aufgeklappt ist die neue Seite LÄNGER als die alte
+   (3254 px am selben Showcase), weil drei Zeilen höher sind als eine Reihe
+   aus drei Kacheln. Kürzer wird sie durch das Zuklappen: 1285 px, wenn
+   alles zu ist.
+
+     1. Der nächste Schritt steht links und groß, der Stand rechts und klein.
+        Er sagt jetzt auch, WO er liegt: Gruppe, Teil k von n, Seitentyp.
+     2. Eine Gruppe ist ein <details>. Offen steht nur die, in der der nächste
+        Schritt liegt. Erledigte und spätere Gruppen sind eine Zeile mit Titel
+        und Stand. Zusammen ergeben die Zeilen die Tabelle aller Module, die
+        Rahmenwerk.md unter „Navigation" verlangt.
+     3. In der offenen Gruppe stehen Zeilen statt Kacheln: Nummer, Titel und
+        Stand je in einer Spalte, die Zeile des nächsten Schritts markiert.
+     4. Ein Knopf [data-hub-toggle] klappt alles auf oder zu, falls die
+        Startseite ihn mitbringt.
+
+   Ohne `group` bleibt alles bei der Kachelwand von vorher.
    ============================================================================ */
 
 window.WB = window.WB || {};
@@ -190,10 +216,116 @@ window.WB = window.WB || {};
       return n + Object.keys(r.stand.badges).filter(k => r.stand.badges[k]).length;
     }, 0);
 
-    /* ── Nutzerkarte ── */
+    /* ── Läufe und nächster Schritt ───────────────────────────────────────────
+       GEAENDERT 12.11.2026 (Agent, Redesign): beides wird jetzt EINMAL und vor
+       allem Rendern bestimmt. Vorher rechnete die Weiter-Karte den nächsten
+       Schritt und die Kartenliste die Läufe, jede für sich. Jetzt hängen drei
+       Stellen am selben Ergebnis: die Weiter-Karte, die Gruppe, die offen
+       steht, und die Zeile, die markiert wird. Rechnet jede selbst, zeigen sie
+       nach dem nächsten Umbau drei verschiedene nächste Schritte.
+
+       Läufe (seit 14.08.2026): solange derselbe Gruppenname kommt, wird
+       angehängt. DIE REIHENFOLGE DER EINTRAEGE BLEIBT UNANGETASTET. Das ist
+       Bedingung, nicht Zufall: sie IST die empfohlene Lernreihenfolge.
+       Gruppiert wird deshalb über aufeinanderfolgende Läufe und nicht über ein
+       Einsammeln nach Namen, sonst könnte eine Gruppe Einträge vorziehen.
+
+       Nächster Schritt: erst das Angefangene, dann das noch nicht Begonnene.
+       Ein bereits fertiges vorzuschlagen wäre die einzige Variante, die
+       niemandem hilft, und ein durchgelesener Lehrkurs zählt als fertig, sonst
+       stünde er hier bis in alle Ewigkeit. */
+    const infos = cfg.groups || {};
+    const laeufe = [];
+    rows.forEach(r => {
+      const name = r.entry.group || '';
+      const letzter = laeufe[laeufe.length - 1];
+      if (letzter && letzter.name === name) letzter.rows.push(r);
+      else laeufe.push({ name: name, rows: [r] });
+    });
+    const gruppiert = laeufe.some(l => l.name);
+
+    const offen = r => r.entry.points
+      ? (r.stand && !r.stand.finished)
+      : (r.lese && !r.lese.done);
+    const unberuehrt = r => r.entry.points ? !r.stand : !r.lese;
+
+    const angefangen = rows.filter(offen)[0];
+    const neu = rows.filter(unberuehrt)[0];
+    const ziel = angefangen || neu || null;
+    const zielLauf = ziel ? laeufe.filter(l => l.rows.indexOf(ziel) !== -1)[0] : null;
+
+    /* ── Nutzerkarte ──
+       GEAENDERT 12.11.2026 (Agent, Redesign): die Weiter-Karte steht zuerst und
+       bekommt die breitere Spalte, der Stand folgt. Vorher war es umgekehrt:
+       Rang und Punkte links und groß, der eine Knopf, auf den es ankommt,
+       rechts in einem Kasten. Die Übersicht soll genau einen nächsten Schritt
+       empfehlen, also ist er auch das Erste, was man liest. */
     const panel = $('[data-hub-user]');
     if (panel) {
-      const main = make('div', 'userpanel__main');
+      const next = make('div', 'userpanel__next');
+      const res = make('div', 'resume');
+
+      if (!ziel) {
+        /* Alles durch. Das darf man auch sagen. */
+        res.appendChild(make('div', 'resume__lbl', 'Modul abgeschlossen'));
+        res.appendChild(make('div', 'resume__title', 'Alles durchgearbeitet'));
+        res.appendChild(make('div', 'resume__meta',
+          score + ' von ' + maxScore + ' Punkten  ·  ' + auszeichnungen + ' Auszeichnungen'));
+        const erstes = bewertbar[0] || rows[0];
+        if (erstes) {
+          const a = make('a', 'resume__btn', 'Schwere Aufgaben ansehen');
+          a.href = erstes.entry.file;
+          res.appendChild(a);
+        }
+      } else {
+        res.appendChild(make('div', 'resume__lbl', angefangen ? 'Weitermachen' : 'Als nächstes'));
+
+        /* Wo der Schritt liegt. Ohne diese Zeile nennt die Karte einen Titel,
+           und man sucht ihn in der Liste darunter. Der Gruppenname darf HTML
+           tragen (er wird auch als Überschrift so gesetzt), der Rest ist Text. */
+        const wo = make('div', 'resume__where');
+        const inGruppe = !!(zielLauf && zielLauf.name);
+        if (inGruppe) {
+          const g = make('span');
+          html(g, zielLauf.name);
+          wo.appendChild(g);
+        }
+        const teil = zielLauf && zielLauf.rows.length > 1
+          ? 'Teil ' + (zielLauf.rows.indexOf(ziel) + 1) + ' von ' + zielLauf.rows.length
+          : '';
+        const rest = [teil, ziel.entry.kind || ''].filter(Boolean).join(' · ');
+        if (rest) wo.appendChild(make('span', null, (inGruppe ? ' · ' : '') + rest));
+        res.appendChild(wo);
+
+        const t = make('div', 'resume__title');
+        html(t, ziel.entry.title);
+        res.appendChild(t);
+
+        let meta;
+        if (ziel.stand) meta = ziel.stand.solved + ' von ' + ziel.stand.total + ' Aufgaben gelöst';
+        else if (ziel.lese) meta = ziel.lese.percent + ' % gelesen';
+        else meta = ziel.entry.points ? 'noch nicht begonnen' : 'zum Lesen';
+        res.appendChild(make('div', 'resume__meta', meta));
+
+        /* Ein Balken nur, wenn schon etwas da ist. Einer auf 0 % wäre eine
+           Behauptung über etwas, das noch nicht stattgefunden hat. */
+        if (ziel.stand || ziel.lese) {
+          const rb = make('div', 'resume__bar');
+          const rf = make('span');
+          rf.style.width = (ziel.stand ? ziel.stand.progress : ziel.lese.percent) + '%';
+          rb.appendChild(rf);
+          res.appendChild(rb);
+        }
+
+        const a = make('a', 'resume__btn', angefangen ? 'Weiter →' : 'Öffnen →');
+        a.href = ziel.entry.file;
+        res.appendChild(a);
+      }
+
+      next.appendChild(res);
+      panel.appendChild(next);
+
+      const main = make('div', 'userpanel__stand');
       const rank = rankFor(pct);
       const nxt = nextRank(pct);
 
@@ -226,51 +358,6 @@ window.WB = window.WB || {};
       });
       main.appendChild(stats);
       panel.appendChild(main);
-
-      /* ── Weiter-Karte ──
-         Erst das Angefangene, dann das noch nicht Begonnene. Ein bereits
-         fertiges vorzuschlagen wäre die einzige Variante, die niemandem hilft —
-         und ein durchgelesener Lehrkurs zählt als fertig, sonst stünde er hier
-         bis in alle Ewigkeit. */
-      const offen = r => r.entry.points
-        ? (r.stand && !r.stand.finished)
-        : (r.lese && !r.lese.done);
-      const unberuehrt = r => r.entry.points ? !r.stand : !r.lese;
-
-      const angefangen = rows.filter(offen)[0];
-      const neu = rows.filter(unberuehrt)[0];
-      const ziel = angefangen || neu;
-
-      const side = make('div', 'userpanel__side');
-      const res = make('div', 'resume');
-
-      if (!ziel) {
-        /* Alles durch. Das darf man auch sagen. */
-        res.appendChild(make('div', 'resume__lbl', 'Modul abgeschlossen'));
-        const t = make('div', 'resume__title', 'Alles durchgearbeitet');
-        res.appendChild(t);
-        res.appendChild(make('div', 'resume__meta',
-          score + ' von ' + maxScore + ' Punkten  ·  ' + auszeichnungen + ' Auszeichnungen'));
-        const a = make('a', 'resume__btn', 'Schwere Aufgaben ansehen');
-        a.href = (rows.filter(r => r.entry.points)[0] || rows[0]).entry.file;
-        res.appendChild(a);
-      } else {
-        res.appendChild(make('div', 'resume__lbl', angefangen ? 'Weitermachen' : 'Als nächstes'));
-        const t = make('div', 'resume__title');
-        html(t, ziel.entry.title);
-        res.appendChild(t);
-        let meta;
-        if (ziel.stand) meta = ziel.stand.solved + ' von ' + ziel.stand.total + ' Aufgaben gelöst';
-        else if (ziel.lese) meta = ziel.lese.percent + ' % gelesen';
-        else meta = ziel.entry.kind || 'Blatt';
-        res.appendChild(make('div', 'resume__meta', meta));
-        const a = make('a', 'resume__btn', angefangen ? 'Weiter' : 'Öffnen');
-        a.href = ziel.entry.file;
-        res.appendChild(a);
-      }
-
-      side.appendChild(res);
-      panel.appendChild(side);
     }
 
     /* ── Blattkarten ──────────────────────────────────────────────────────────
@@ -281,13 +368,8 @@ window.WB = window.WB || {};
        27 Stueck — man sieht sie alle, aber man erkennt nichts.
 
        Jetzt bilden Eintraege mit gleichem `group` IN FOLGE einen Abschnitt mit
-       eigener Ueberschrift, eigenem Fortschritt und eigener Punktesumme.
-
-       DIE REIHENFOLGE DER EINTRAEGE BLEIBT UNANGETASTET. Das ist Bedingung,
-       nicht Zufall: die Weiter-Karte oben schlaegt `rows.filter(offen)[0]` vor,
-       und diese Reihenfolge IST die empfohlene Lernreihenfolge. Gruppiert wird
-       deshalb ueber aufeinanderfolgende Laeufe und nicht ueber ein Einsammeln
-       nach Namen — sonst koennte eine Gruppe Eintraege vorziehen.
+       eigener Ueberschrift, eigenem Fortschritt und eigener Punktesumme. Die
+       Laeufe selbst werden seit dem 12.11.2026 weiter oben gebildet.
 
        Ohne `group` verhaelt sich alles wie vorher: eine Wand. Aeltere Kurse,
        die hub.js mitbenutzen, laufen dadurch unveraendert weiter.
@@ -353,20 +435,87 @@ window.WB = window.WB || {};
         return card;
     }
 
+    /* ── Eine Zeile je Eintrag ────────────────────────────────────────────────
+       NEU 12.11.2026 (Agent, Redesign). In einer Gruppe steht jetzt eine Liste
+       statt eines Kachelrasters. Der Grund ist die Leserichtung: in einem
+       Raster stehen Titel und Stand jeder Kachel an einer anderen Stelle, und
+       das Auge springt. In Zeilen stehen alle Titel untereinander und alle
+       Stände untereinander — man liest eine Spalte herunter und weiß, was
+       offen ist. Das ist die Form eines Inhaltsverzeichnisses, und genau das
+       soll die Übersicht laut Rahmenwerk.md sein.
+
+       `nr` ist die Stelle in der Gruppe: Lehrkurs 1, Heft 2, Lab 3. Dieselbe
+       Zählung wie der Wegweiser in der Seitenleiste eines Blattes.
+
+       Der Balken behält die Klasse `sheetcard__bar`: tools/hub-progress-check
+       sucht ihn darüber, und er ist derselbe Balken wie auf der Kachel. */
+    function zeileFuer(r, nr, istZiel) {
+      const entry = r.entry, stand = r.stand, lese = r.lese;
+      const fertig = istFertig(r);
+      const begonnen = entry.points ? !!stand : !!lese;
+
+      const row = make('a', 'hubrow' + (fertig ? ' is-done' : '') + (istZiel ? ' is-next' : ''));
+      row.href = entry.file;
+      row.appendChild(make('span', 'hubrow__num', fertig ? '✓' : String(nr)));
+
+      const body = make('span', 'hubrow__body');
+      const kind = make('span', 'hubrow__kind');
+      kind.appendChild(make('span', null, (entry.kind || 'Blatt') + (entry.id ? ' · ' + entry.id : '')));
+      /* Die Markierung, die der Kachelwand gefehlt hat: die Weiter-Karte oben
+         nennt einen Titel, und hier steht, welche Zeile gemeint ist. */
+      if (istZiel) kind.appendChild(make('span', 'hubrow__flag', begonnen ? 'Weitermachen' : 'Als nächstes'));
+      body.appendChild(kind);
+      const t = make('span', 'hubrow__title');
+      html(t, entry.title);
+      body.appendChild(t);
+      if (entry.desc) {
+        const d = make('span', 'hubrow__desc');
+        html(d, entry.desc);
+        body.appendChild(d);
+      }
+      row.appendChild(body);
+
+      const side = make('span', 'hubrow__side');
+      let cls = 'hubrow__state', txt;
+      if (!entry.points) {
+        if (lese && lese.done) { cls += ' is-done'; txt = 'gelesen'; }
+        else if (lese) { cls += ' is-open'; txt = lese.percent + ' % gelesen'; }
+        else txt = 'zum Lesen';
+      } else if (!stand) {
+        txt = 'noch nicht begonnen';
+      } else if (stand.finished) {
+        cls += ' is-done';
+        txt = 'fertig · ' + stand.score + ' / ' + stand.maxScore;
+      } else {
+        cls += ' is-open';
+        txt = stand.solved + ' von ' + stand.total + ' gelöst';
+      }
+      side.appendChild(make('span', cls, txt));
+
+      /* Nie begonnen heißt gar kein Balken: einer auf 0 % wäre eine Behauptung
+         über etwas, das noch nicht stattgefunden hat. Die Kachel hat das nur
+         für Lesestoff eingehalten und einem unberührten Aufgabenheft trotzdem
+         einen leeren Balken gegeben; die Zeile hält es für beide. */
+      if (begonnen) {
+        const anteil = entry.points ? stand.progress : lese.percent;
+        const bar = make('span', 'sheetcard__bar' + (fertig ? ' is-done' : ''));
+        const fill = make('span');
+        fill.style.width = anteil + '%';
+        bar.appendChild(fill);
+        side.appendChild(bar);
+      }
+      if (stand && stand.stars) {
+        side.appendChild(make('span', 'hubrow__stars',
+          '★'.repeat(stand.stars) + '☆'.repeat(5 - stand.stars)));
+      }
+      row.appendChild(side);
+
+      return row;
+    }
+
     const list = $('[data-hub-sheets]');
     if (list) {
-      const infos = cfg.groups || {};
-
-      /* Laeufe bilden: solange derselbe Gruppenname kommt, wird angehaengt. */
-      const laeufe = [];
-      rows.forEach(r => {
-        const name = r.entry.group || '';
-        const letzter = laeufe[laeufe.length - 1];
-        if (letzter && letzter.name === name) letzter.rows.push(r);
-        else laeufe.push({ name: name, rows: [r] });
-      });
-
-      const gruppiert = laeufe.some(l => l.name);
+      const abschnitte = [];
 
       if (!gruppiert) {
         rows.forEach(r => list.appendChild(karteFuer(r)));
@@ -380,6 +529,13 @@ window.WB = window.WB || {};
            wollen. Anleitung und Generalprobe sind keine Etappe des Wegs. */
         const etappen = laeufe.filter(l => infos[l.name] && infos[l.name].step);
 
+        /* ERGAENZT 12.11.2026 (Agent, Redesign): bei der Breitenprüfung stehen
+           ALLE Gruppen offen. audit.js misst nur, was sichtbar ist. Mit einer
+           einzigen offenen Gruppe wären die Zeilen aller übrigen ungeprüft, und
+           der Lauf bliebe grün und prüfte weniger. */
+        const alleOffen = /^#(audit|autoaudit|pruefen)$/i.test(
+          (typeof location !== 'undefined' && location.hash) || '');
+
         laeufe.forEach(lauf => {
           const info = infos[lauf.name] || {};
           const gesamt = lauf.rows.length;
@@ -391,27 +547,40 @@ window.WB = window.WB || {};
             ? Math.round((gruppenGeloest / gruppenAufgaben) * 100)
             : (gesamt ? Math.round((fertig / gesamt) * 100) : 0);
 
-          const sec = make('section', 'hubgroup' + (alles ? ' is-done' : ''));
-          const kopf = make('div', 'hubgroup__head');
+          /* GEAENDERT 12.11.2026 (Agent, Redesign): die Gruppe ist ein <details>
+             und ihr Kopf das <summary>. Offen steht genau die Gruppe, in der
+             der nächste Schritt liegt. Alles andere ist EINE Zeile: Marke,
+             Titel, Stand. Vorher stand jede Gruppe aufgeklappt da, und eine
+             erledigte war so hoch wie die aktuelle.
+
+             <details> und kein eigener Klappmechanismus: es klappt ohne eine
+             Zeile Skript, mit Tastatur, und die Suche im Browser öffnet eine
+             zugeklappte Gruppe von selbst, wenn der Treffer darin liegt.
+
+             Im <summary> stehen nur <span> und die Überschrift. Ein <div>
+             darin ist kein gültiges HTML. Die Anordnung macht das Raster. */
+          const aktuell = lauf === zielLauf;
+          const sec = make('details', 'hubgroup' + (alles ? ' is-done' : '') + (aktuell ? ' is-current' : ''));
+          sec.open = alleOffen || aktuell;
+          const kopf = make('summary', 'hubgroup__head');
+
+          /* Die Marke auf der Weglinie: Haken, wenn erledigt, Pfeil, wenn hier
+             der nächste Schritt liegt, sonst die Nummer der Etappe. */
+          kopf.appendChild(make('span', 'hubgroup__mark',
+            alles ? '✓' : (aktuell ? '▸' : (info.step ? String(etappen.indexOf(lauf) + 1) : '·'))));
 
           if (info.step) {
-            kopf.appendChild(make('div', 'hubgroup__label',
+            kopf.appendChild(make('span', 'hubgroup__label',
               'Schritt ' + (etappen.indexOf(lauf) + 1) + ' von ' + etappen.length));
           } else if (info.label) {
-            kopf.appendChild(make('div', 'hubgroup__label', info.label));
+            kopf.appendChild(make('span', 'hubgroup__label', info.label));
           }
 
           const h3 = make('h3', 'hubgroup__title');
           html(h3, lauf.name);
           kopf.appendChild(h3);
 
-          if (info.note) {
-            const n = make('p', 'hubgroup__note');
-            html(n, info.note);
-            kopf.appendChild(n);
-          }
-
-          const meta = make('div', 'hubgroup__meta');
+          const meta = make('span', 'hubgroup__meta');
           meta.appendChild(make('span', 'hubgroup__state' + (alles ? ' is-done' : ''),
             gruppenAufgaben
               ? (alles ? 'fertig · ' : '') + gruppenGeloest + ' von ' + gruppenAufgaben + ' Aufgaben'
@@ -420,22 +589,54 @@ window.WB = window.WB || {};
 
           const punkte = lauf.rows.reduce((s, r) => s + (r.entry.points || 0), 0);
           if (punkte) meta.appendChild(make('span', 'hubgroup__facts', punkte + ' Punkte'));
-          kopf.appendChild(meta);
 
-          const bar = make('div', 'hubgroup__bar' + (alles ? ' is-done' : ''));
+          const bar = make('span', 'hubgroup__bar' + (alles ? ' is-done' : ''));
           const fill = make('span');
           fill.style.width = gruppenProzent + '%';
           bar.appendChild(fill);
-          kopf.appendChild(bar);
+          meta.appendChild(bar);
+          kopf.appendChild(meta);
 
+          kopf.appendChild(make('span', 'hubgroup__chev'));
           sec.appendChild(kopf);
 
-          const raster = make('div', 'sheets');
-          lauf.rows.forEach(r => raster.appendChild(karteFuer(r)));
-          sec.appendChild(raster);
+          /* Der Satz, WARUM die Gruppe hier steht, gehört zum Inhalt und nicht
+             in den Kopf: zwölf zugeklappte Gruppen mit je einem Absatz wären
+             wieder die Wand, die das Zuklappen abschaffen soll. */
+          const inhalt = make('div', 'hubgroup__body');
+          if (info.note) {
+            const n = make('p', 'hubgroup__note');
+            html(n, info.note);
+            inhalt.appendChild(n);
+          }
+          const zeilen = make('div', 'hubrows');
+          lauf.rows.forEach((r, i) => zeilen.appendChild(zeileFuer(r, i + 1, r === ziel)));
+          inhalt.appendChild(zeilen);
+          sec.appendChild(inhalt);
 
           list.appendChild(sec);
+          abschnitte.push(sec);
         });
+
+        /* Alles auf, alles zu. Der Knopf ist optional: eine ältere Startseite
+           hat ihn nicht und läuft unverändert. Beschriftet wird er nach dem,
+           was er als Nächstes TUT, und das hängt davon ab, was offen steht —
+           auch nachdem jemand eine Gruppe von Hand geöffnet hat. */
+        const schalter = $('[data-hub-toggle]');
+        if (schalter) {
+          const alleAuf = () => abschnitte.every(d => d.open);
+          const beschrifte = () => {
+            schalter.textContent = alleAuf() ? 'Alles zuklappen' : 'Alles aufklappen';
+          };
+          schalter.hidden = false;
+          schalter.onclick = () => {
+            const auf = !alleAuf();
+            abschnitte.forEach(d => { d.open = auf; });
+            beschrifte();
+          };
+          abschnitte.forEach(d => { d.ontoggle = beschrifte; });
+          beschrifte();
+        }
       }
     }
 

@@ -1543,6 +1543,26 @@ body.is-hub { background: var(--paper-2); }
   content: ''; height: 1px; width: 16px; background: var(--accent);
   display: inline-block; transform: translateY(-3px);
 }
+/* NEU 12.11.2026 (Agent, Redesign): Abschnittstitel und der Knopf „Alles
+   aufklappen" in einer Zeile. Die Haarlinie trägt jetzt die Zeile; der Titel
+   darin gibt Abstand und Linie ab, sonst stünden zwei Linien übereinander. */
+.hub__bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px 16px; flex-wrap: wrap;
+  margin: 40px 0 0; padding-bottom: 10px;
+  border-bottom: 1px solid var(--hair);
+}
+.hub__bar .hub__section { margin: 0; padding: 0; border: 0; min-width: 0; }
+.hub__toggle {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
+  text-transform: uppercase; font-weight: 700; color: var(--ink-soft);
+  background: transparent; border: 1px solid var(--hair-strong);
+  border-radius: var(--radius); padding: 6px 10px; cursor: pointer;
+}
+.hub__toggle:hover { color: var(--accent-deep); border-color: var(--accent); }
+/* Ohne diese Zeile gewinnt jede `display`-Angabe gegen das Attribut `hidden`,
+   und der Knopf stünde auch auf einer Seite ohne Gruppen. */
+.hub__toggle[hidden] { display: none; }
 .userstat { min-width: 0; }
 .hub__kicker {
   font-family: var(--mono); font-size: 11px; letter-spacing: .28em; text-transform: uppercase;
@@ -1560,51 +1580,72 @@ body.is-hub { background: var(--paper-2); }
   color: var(--ink-soft); max-width: 62ch; margin-top: 18px;
 }
 
-/* ---- Eigener Stand ------------------------------------------------------- */
+/* ---- Naechster Schritt und eigener Stand ---------------------------------
+   GEAENDERT 12.11.2026 (Agent, Redesign der Uebersicht). Die Karte hat zwei
+   Felder, und sie haben die Plaetze getauscht: links und breit der naechste
+   Schritt, rechts und eingesenkt der Stand. Vorher stand der Rang gross links
+   und der eine Knopf, auf den es ankommt, klein rechts in einem Kasten.
+
+   Der Akzentstreifen am linken Rand gehoert zum naechsten Schritt und kommt
+   in der Liste darunter an genau einer Zeile wieder (`.hubrow.is-next`).
+   Beide zeigen auf dasselbe.
+
+   Die Klassen `userpanel__main` und `userpanel__side` gibt es nicht mehr; sie
+   heissen jetzt nach dem, was darin steht.
+   -------------------------------------------------------------------------- */
 .userpanel {
-  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 26px; align-items: center;
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: stretch;
   background: var(--surface); border: 1px solid var(--hair);
   border-radius: var(--radius); box-shadow: var(--shadow);
-  padding: 24px 26px; margin: 8px 0 40px;
+  margin: 8px 0 40px;
 }
-.userpanel__main { min-width: 0; }
+.userpanel__next {
+  min-width: 0; padding: 26px 28px;
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+.userpanel__stand {
+  min-width: 0; padding: 24px 26px;
+  background: var(--surface-2); border-left: 1px solid var(--hair);
+}
 .userpanel__rank { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.userpanel__rank b { font-family: var(--display); font-weight: 800; font-size: 24px; letter-spacing: -.02em; }
+.userpanel__rank b { font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: -.02em; }
 .userpanel__step {
   font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
   color: var(--ink-mute);
 }
-.userpanel__xp { font-size: 13.5px; color: var(--ink-soft); margin-top: 6px; }
+.userpanel__xp { font-size: 13.5px; color: var(--ink-soft); margin-top: 6px; overflow-wrap: anywhere; }
 .userpanel__stats {
-  display: flex; gap: 26px; flex-wrap: wrap; margin-top: 18px;
+  display: flex; gap: 22px; flex-wrap: wrap; margin-top: 18px;
 }
-.userstat__num { font-family: var(--display); font-weight: 900; font-size: 27px; line-height: 1; }
+.userstat__num { font-family: var(--display); font-weight: 900; font-size: 22px; line-height: 1; }
 .userstat__num.is-accent { color: var(--accent); }
 .userstat__lbl {
   font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
   color: var(--ink-mute); margin-top: 5px;
 }
-.userpanel__side { min-width: 0; }
-.resume {
-  display: flex; flex-direction: column; gap: 8px; min-width: 0;
-  background: var(--surface-2); border: 1px solid var(--hair);
-  border-radius: var(--radius); padding: 16px 18px;
-}
+.resume { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .resume__lbl {
-  font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
   color: var(--accent-deep); font-weight: 700;
 }
-.resume__title {
-  font-family: var(--display); font-weight: 700; font-size: 17px;
-  overflow-wrap: anywhere;
+/* Wo der Schritt liegt: Gruppe, Teil k von n, Seitentyp. */
+.resume__where {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-mute);
+  min-width: 0; overflow-wrap: anywhere;
 }
-.resume__meta { font-size: 12.5px; color: var(--ink-mute); }
+.resume__title {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(22px, 3vw, 30px); line-height: 1.12; letter-spacing: -.02em;
+  color: var(--ink); margin-top: 4px;
+  min-width: 0; overflow-wrap: anywhere;
+}
+.resume__meta { font-size: 13.5px; color: var(--ink-soft); overflow-wrap: anywhere; }
 .resume__btn {
-  align-self: flex-start; margin-top: 4px;
-  font-family: var(--mono); font-size: 12.5px;
-  background: var(--accent); color: #fff; text-decoration: none;
-  border-radius: var(--radius); padding: 9px 15px;
+  align-self: flex-start; margin-top: 12px;
+  font-family: var(--mono); font-size: 14px; font-weight: 700;
+  background: var(--accent); color: var(--surface); text-decoration: none;
+  border-radius: var(--radius); padding: 12px 22px;
 }
 .resume__btn:hover { background: var(--ink); }
 
@@ -1652,49 +1693,183 @@ body.is-hub { background: var(--paper-2); }
    Haarlinie und Weissraum. Die Ueberschrift soll den Blick fuehren, nicht
    mit den Karten darunter um Aufmerksamkeit ringen.
    -------------------------------------------------------------------------- */
-.hubgroups { display: flex; flex-direction: column; gap: 34px; }
-.hubgroup { min-width: 0; }
+/* GEAENDERT 12.11.2026 (Agent, Redesign der Uebersicht): die Gruppen sind
+   jetzt EIN WEG und keine Folge von Abschnitten.
+
+   Jede Gruppe ist ein <details>. Links laeuft eine Linie von Marke zu Marke:
+   gruen, soweit erledigt, sonst grau. Die Marke traegt einen Haken, einen
+   Pfeil (hier liegt der naechste Schritt) oder die Nummer der Etappe. Eine
+   zugeklappte Gruppe ist eine Zeile; zusammen sind die Zeilen die Tabelle
+   aller Module mit Stand, die auf einen Bildschirm passt.
+
+   Die Marke haengt absolut an `.hubgroup` und nicht am <summary>: so bleibt
+   sie in der Spalte der Linie, egal wie das Raster des Kopfes umbricht.
+
+   Layoutregel 2 und 3: jede Spalte, die Text traegt, ist `minmax(0, …)`, und
+   jedes Kind hat `min-width: 0`. Die Spalte des Standes ist `auto` und waere
+   unter 760 px breiter als der Titel; dort rutscht sie in eine eigene Zeile
+   (siehe @RESPONSIVE). */
+.hubgroups { display: flex; flex-direction: column; }
+.hubgroup { position: relative; min-width: 0; padding-left: 46px; }
+.hubgroup::before {
+  content: ''; position: absolute; left: 13px; top: 48px; bottom: -18px;
+  width: 2px; background: var(--hair-strong);
+}
+.hubgroup:last-child::before { display: none; }
+.hubgroup.is-done::before { background: var(--done); }
+
 .hubgroup__head {
-  display: flex; flex-direction: column; gap: 6px;
-  margin-bottom: 14px; padding-bottom: 12px;
-  border-bottom: 1px solid var(--hair);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 18px;
+  grid-template-areas: "label meta chev" "title meta chev";
+  column-gap: 18px; row-gap: 3px; align-items: center;
+  padding: 16px 0 15px; border-bottom: 1px solid var(--hair);
+  cursor: pointer; list-style: none;
+}
+.hubgroup__head::-webkit-details-marker { display: none; }
+.hubgroup__head:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+.hubgroup__mark {
+  position: absolute; left: 0; top: 18px;
+  width: 28px; height: 28px; border-radius: 100px;
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: 12px; font-weight: 700; line-height: 1;
+  background: var(--paper-2); border: 2px solid var(--hair-strong); color: var(--ink-mute);
+}
+.hubgroup.is-done .hubgroup__mark {
+  background: var(--done); border-color: var(--done); color: var(--surface);
+}
+.hubgroup.is-current .hubgroup__mark {
+  background: var(--accent); border-color: var(--accent); color: var(--surface);
 }
 .hubgroup__label {
+  grid-area: label; min-width: 0; overflow-wrap: anywhere;
   font-family: var(--mono); font-size: 10.5px; letter-spacing: .22em;
   text-transform: uppercase; color: var(--accent); font-weight: 700;
 }
 .hubgroup__title {
-  font-family: var(--display); font-weight: 800; font-size: clamp(19px, 2.4vw, 24px);
+  grid-area: title;
+  font-family: var(--display); font-weight: 800; font-size: clamp(18px, 2.2vw, 22px);
   line-height: 1.15; letter-spacing: -.02em; color: var(--ink);
   overflow-wrap: anywhere; min-width: 0;
 }
-.hubgroup__note {
-  font-size: 13.5px; line-height: 1.55; color: var(--ink-soft);
-  max-width: 68ch; min-width: 0; overflow-wrap: anywhere;
-}
 .hubgroup__meta {
-  display: flex; align-items: baseline; gap: 8px 16px; flex-wrap: wrap;
-  justify-content: space-between; margin-top: 2px;
+  grid-area: meta; align-self: end; min-width: 0;
+  display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap;
+  justify-content: flex-end; padding-bottom: 3px;
   font-family: var(--mono); font-size: 11px; color: var(--ink-mute);
 }
-.hubgroup__state { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--med); }
+.hubgroup__state { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--ink-mute); }
+.hubgroup.is-current .hubgroup__state { color: var(--med); }
 .hubgroup__state.is-done { color: var(--done); }
 .hubgroup__facts { min-width: 0; overflow-wrap: anywhere; }
-/* Der Balken ist absichtlich duenner als der auf einer Karte: er fasst
+/* Der Balken ist absichtlich duenner als der auf einer Zeile: er fasst
    zusammen, er misst nicht. */
 .hubgroup__bar {
-  height: 3px; border-radius: 2px; background: var(--hair);
-  overflow: hidden; margin-top: 4px;
+  display: block; flex: 0 0 96px; height: 3px; border-radius: 2px;
+  background: var(--hair); overflow: hidden;
 }
 .hubgroup__bar > span {
   display: block; height: 100%; background: var(--med);
   transition: width .3s var(--ease);
 }
 .hubgroup__bar.is-done > span { background: var(--done); }
+/* Der Winkel rechts: zeigt nach unten, solange zu, nach oben, sobald offen.
+   Er steht MITTIG in einer 18 px breiten Spalte und nicht an ihrem Rand: ein
+   um 45° gedrehtes Quadrat ist in der Diagonale breiter als seine Kante, und
+   am Rand ragte es 2 px über den Kopf hinaus. Bei 375 px so gemessen
+   (`summary client=305 inhalt=307`), also genau der Befund, den die
+   Breitenprüfung als „abgeschnitten" meldet. */
+.hubgroup__chev {
+  grid-area: chev; justify-self: center;
+  width: 8px; height: 8px;
+  border-right: 2px solid var(--ink-mute); border-bottom: 2px solid var(--ink-mute);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform .16s var(--ease);
+}
+.hubgroup[open] > .hubgroup__head .hubgroup__chev { transform: translateY(2px) rotate(225deg); }
+.hubgroup__head:hover .hubgroup__chev { border-color: var(--accent); }
+.hubgroup__head:hover .hubgroup__title { color: var(--accent-deep); }
+
 /* Eine fertige Gruppe tritt zurueck — sie ist erledigt und soll den Blick
-   nicht mehr halten. Die Karten darin bleiben voll lesbar. */
-.hubgroup.is-done .hubgroup__head { opacity: .62; }
-.hubgroup.is-done:hover .hubgroup__head { opacity: 1; }
+   nicht mehr halten. Aufgeklappt oder unter dem Zeiger ist sie voll lesbar. */
+.hubgroup.is-done > .hubgroup__head { opacity: .68; }
+.hubgroup.is-done > .hubgroup__head:hover,
+.hubgroup.is-done > .hubgroup__head:focus-visible,
+.hubgroup.is-done[open] > .hubgroup__head { opacity: 1; }
+
+.hubgroup__body { min-width: 0; padding: 14px 0 26px; }
+.hubgroup__note {
+  font-size: 13.5px; line-height: 1.55; color: var(--ink-soft);
+  max-width: 68ch; min-width: 0; overflow-wrap: anywhere;
+  margin-bottom: 14px;
+}
+
+/* ---- Zeilen in einer Gruppe ----------------------------------------------
+   NEU 12.11.2026 (Agent, Redesign). Eine Liste statt eines Kachelrasters:
+   Nummer, Text, Stand. Drei Spalten, damit alle Titel untereinander stehen
+   und alle Staende untereinander — man liest EINE Spalte herunter.
+
+   Die Zeile des naechsten Schritts traegt denselben Akzentstreifen wie die
+   Weiter-Karte oben und eine Marke im Kopf. Mehr nicht: eine zweite Farbe
+   oder ein Kasten wuerde mit der Weiter-Karte um den Blick ringen.
+   -------------------------------------------------------------------------- */
+.hubrows {
+  display: flex; flex-direction: column; min-width: 0;
+  background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.hubrow {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) minmax(0, 176px);
+  column-gap: 16px; align-items: start; min-width: 0;
+  padding: 16px 20px; text-decoration: none; color: inherit;
+  border-bottom: 1px solid var(--hair);
+  transition: background .16s var(--ease);
+}
+.hubrow:last-child { border-bottom: 0; }
+.hubrow:hover { background: var(--surface-2); }
+.hubrow.is-next { box-shadow: inset 4px 0 0 var(--accent); }
+.hubrow__num {
+  width: 30px; height: 30px; border-radius: 100px;
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: 12px; font-weight: 700; line-height: 1;
+  border: 1px solid var(--hair-strong); color: var(--ink-mute);
+}
+.hubrow.is-done .hubrow__num { background: var(--done-bg); border-color: var(--done); color: var(--done); }
+.hubrow.is-next .hubrow__num { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.hubrow__body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.hubrow__kind {
+  display: flex; align-items: center; gap: 6px 10px; flex-wrap: wrap; min-width: 0;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent); font-weight: 700;
+}
+.hubrow__flag {
+  letter-spacing: .1em; color: var(--accent-deep);
+  background: var(--accent-soft); border-radius: 100px; padding: 2px 9px;
+}
+.hubrow__title {
+  font-family: var(--display); font-weight: 700; font-size: 18px;
+  line-height: 1.2; letter-spacing: -.015em; color: var(--ink);
+  min-width: 0; overflow-wrap: anywhere;
+}
+.hubrow:hover .hubrow__title { color: var(--accent-deep); }
+.hubrow.is-done .hubrow__title { color: var(--ink-soft); }
+.hubrow__desc {
+  font-size: 13.5px; line-height: 1.55; color: var(--ink-soft);
+  max-width: 68ch; min-width: 0; overflow-wrap: anywhere;
+}
+.hubrow__side {
+  display: flex; flex-direction: column; gap: 7px; min-width: 0;
+  padding-top: 3px;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-mute);
+}
+.hubrow__state { font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.hubrow__state.is-done { color: var(--done); }
+.hubrow__state.is-open { color: var(--med); }
+.hubrow__stars { color: var(--med); letter-spacing: 1px; }
 /* @HUB:END */
 
 /* @GAME:START ===============================================================
@@ -1702,17 +1877,21 @@ body.is-hub { background: var(--paper-2); }
    geschafft" soll optisch von „das ist die Aufgabe" getrennt bleiben.
    ============================================================================ */
 
-.xpbar, .sheetcard__bar {
+/* ERGAENZT 12.11.2026 (Agent, Redesign): `.resume__bar` ist derselbe Balken in
+   der Weiter-Karte. Eigene Klasse, weil tools/hub-progress-check.mjs den
+   Gesamtbalken ueber `.xpbar` sucht und sonst den falschen faende. */
+.xpbar, .sheetcard__bar, .resume__bar {
   display: block; height: 7px; border-radius: 100px;
   background: var(--hair); overflow: hidden;
 }
-.xpbar > span, .sheetcard__bar > span {
+.xpbar > span, .sheetcard__bar > span, .resume__bar > span {
   display: block; height: 100%; border-radius: 100px;
   background: var(--signal);
   transition: width .6s var(--ease);
 }
 .sheetcard__bar.is-done > span { background: var(--done); }
 .xpbar { margin-top: 10px; }
+.resume__bar { margin-top: 6px; max-width: 340px; }
 
 .badges { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
 .badge {
@@ -1781,7 +1960,10 @@ body.is-hub { background: var(--paper-2); }
   .stat:nth-child(2) { border-right: 0; }
   .stat:nth-child(-n+2) { border-bottom: 1px solid var(--hair); }
 
-  .userpanel { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 20px; }
+  /* GEAENDERT 12.11.2026 (Agent, Redesign): hier stand
+     `.userpanel { grid-template-columns: minmax(0, 1fr); … }`. Die Uebersicht
+     hat keine Seitenleiste, bei 760 px bleiben ihr 724 px — genug fuer zwei
+     Felder. Einspaltig wird die Karte erst im Block darunter. */
 
   /* Zuordnung und Prognose einspaltig — zwei Spalten sind unter 1200 px zu eng
      für Begriff plus Beschreibung. */
@@ -1879,6 +2061,30 @@ body.is-hub { background: var(--paper-2); }
   .hub { padding: 0 16px 70px; }
   .hub__head { padding: 30px 0 20px; }
   .userpanel__stats { gap: 18px; }
+
+  /* ERGAENZT 12.11.2026 (Agent, Redesign der Uebersicht). Einspaltig: erst
+     der naechste Schritt, darunter der Stand. In der Liste rutscht der Stand
+     jeder Gruppe und jeder Zeile unter den Titel — nebeneinander bliebe dem
+     Titel bei 320 px weniger Platz als dem Stand. */
+  .userpanel { grid-template-columns: minmax(0, 1fr); }
+  .userpanel__next { padding: 20px; }
+  .userpanel__stand { padding: 18px 20px; border-left: 0; border-top: 1px solid var(--hair); }
+
+  .hubgroup { padding-left: 38px; }
+  .hubgroup__head {
+    grid-template-columns: minmax(0, 1fr) 18px;
+    grid-template-areas: "label chev" "title chev" "meta meta";
+    column-gap: 12px; row-gap: 4px;
+  }
+  .hubgroup__meta { justify-content: flex-start; padding: 4px 0 0; }
+  .hubgroup__bar { flex: 1 1 96px; }
+
+  .hubrow { grid-template-columns: 30px minmax(0, 1fr); column-gap: 12px; padding: 14px; }
+  .hubrow__side {
+    grid-column: 2; flex-direction: row; flex-wrap: wrap; align-items: center;
+    gap: 6px 12px; padding-top: 8px;
+  }
+  .hubrow__side .sheetcard__bar { flex: 1 1 110px; }
 }
 
 /* Ganz schmal: nur noch dafür sorgen, dass kein einziges Wort überläuft.

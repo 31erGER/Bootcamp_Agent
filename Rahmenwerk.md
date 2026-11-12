@@ -50,7 +50,7 @@ tools/
   intensive-types-check.mjs      Bewertung und Zweitversuch-Regeln der Engine
   intensive-answer-check.mjs     rechnet jedes `result`-Ergebnis unabhängig nach
   file-progress-sync-check.mjs   Speicherbrücke über getrennte file://-Ursprünge
-  hub-progress-check.mjs         Fortschrittsbalken der Übersicht
+  hub-progress-check.mjs         Fortschrittsbalken und nächster Schritt der Übersicht
   exam-coverage-check.mjs        behauptete Abdeckung             ← nur Klausurphase
   probeklausur-quality-check.mjs Klausurbedingungen               ← nur Klausurphase
   klausurphase.config.mjs        die Erwartungen dazu             ← nur Klausurphase
@@ -732,6 +732,27 @@ Zwei Nebenwirkungen, die man mitnehmen sollte:
 
 - Die Gruppe trägt den Modulnamen, also **wiederhole ihn nicht in jedem Kacheltitel**. Aus „Modul 05 · Bäume, vom BST bis zu den Collections" wird „Bäume, vom BST bis zu den Collections".
 - Trägt der Host in einer älteren Startseite noch `class="sheets"`, ist er selbst das Kachelraster. Sobald gruppiert wird, sind seine Kinder aber Abschnitte — `hub.js` setzt die Klasse dann auf `hubgroups` um und legt das Raster eine Ebene tiefer.
+
+## Die Übersicht als Weg
+
+*Geändert am 12.11.2026 vom Agenten (Redesign der Übersicht). Anlass: schon der Showcase mit zwei Modulen war bei 1240 px Breite über 2700 px hoch, und jedes weitere Modul hängt eine volle Reihe an. Jede Gruppe stand aufgeklappt da, eine erledigte so hoch wie die aktuelle, und die Kachel, die die Weiter-Karte empfahl, war in der Wand darunter nicht zu erkennen.*
+
+An den Daten ändert sich nichts: `WB.hub({ groups, entries })` wie oben. Geändert hat sich, was `hub.js` daraus baut.
+
+- **Der nächste Schritt steht zuerst und groß, der Stand daneben und klein.** Die Weiter-Karte nennt außer dem Titel die Stelle: Gruppe, „Teil *k* von *n*", Seitentyp.
+- **Eine Gruppe ist ein `<details>`. Offen steht nur die, in der der nächste Schritt liegt.** Erledigte und spätere Gruppen sind je eine Zeile mit Marke, Titel und Stand. Diese Zeilen **sind** die Tabelle aller Module, die oben unter *Wo bin ich im Kurs* verlangt ist. Ist alles erledigt, sind alle zu.
+- **In der offenen Gruppe stehen Zeilen, keine Kacheln:** Nummer, Text, Stand. Alle Titel stehen untereinander und alle Stände untereinander. Die Nummer ist dieselbe wie im Wegweiser der Seitenleiste.
+- **Genau eine Zeile trägt die Marke „Als nächstes" oder „Weitermachen"** und denselben Akzentstreifen wie die Weiter-Karte.
+- **`note` steht im aufgeklappten Teil**, nicht im Kopf. Zwölf zugeklappte Gruppen mit je einem Absatz wären wieder die Wand.
+- **Ein Knopf mit `data-hub-toggle`** in `startseite.html` klappt alles auf oder zu. Er ist optional; ohne ihn läuft die Seite unverändert.
+
+Drei Dinge, die man beim Weiterbauen wissen muss:
+
+1. **Weiter-Karte, offene Gruppe und markierte Zeile hängen an einer einzigen Rechnung** (`ziel` in `hub.js`). Wer eine der drei Stellen umbaut, lässt die Rechnung, wo sie ist. `tools/hub-progress-check.mjs` prüft, dass alle drei auf denselben Schritt zeigen.
+2. **Bei der Breitenprüfung stehen alle Gruppen offen.** `audit.js` misst nur, was sichtbar ist; `hub.js` öffnet deshalb alles, sobald die Seite mit `#audit`, `#autoaudit` oder `#pruefen` geladen wird. Ohne das bliebe der Lauf grün und prüfte weniger.
+3. **Im `<summary>` stehen nur `<span>` und die Überschrift.** Ein `<div>` darin ist kein gültiges HTML; die Anordnung macht das Raster. Und ein gedrehtes Element am Rand eines Rasters ragt über: der Aufklapp-Winkel stand 2 px über dem Kopf (`summary client=305 inhalt=307`), bis er mittig in eine breitere Spalte kam.
+
+Ohne `group` bleibt es bei der Kachelwand; `.sheets` und `.sheetcard` gibt es deshalb weiter.
 
 ---
 

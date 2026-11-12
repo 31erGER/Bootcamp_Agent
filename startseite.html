@@ -32,6 +32,12 @@
      gleich laut macht, nimmt der Lektion ihren Auftritt.
 
      Der Inhalt steht in src/startseite.data.js.
+
+     GEAENDERT AM 12.11.2026 (Agent, Redesign der Übersicht): die Überschrift
+     über der Liste heißt „Dein Weg durch den Kurs" und steht mit einem Knopf
+     in einer Zeile. Der Knopf klappt alle Gruppen auf oder zu; hub.js blendet
+     ihn ein, sobald es Gruppen gibt, und beschriftet ihn. Alles andere am
+     Redesign liegt in src/assets/hub.js und styles.css — siehe dort.
      ═══════════════════════════════════════════════════════════════════════════ -->
 
 <link rel="stylesheet" href="src/assets/styles.css">
@@ -49,7 +55,10 @@
     <code>file://</code>. Die Blätter laufen, aber der Stand überlebt kein Neuladen.
   </div>
 
-  <h2 class="hub__section">Module und Blätter</h2>
+  <div class="hub__bar">
+    <h2 class="hub__section">Dein Weg durch den Kurs</h2>
+    <button type="button" class="hub__toggle" data-hub-toggle hidden>Alles aufklappen</button>
+  </div>
   <div class="sheets" data-hub-sheets></div>
 
   <h2 class="hub__section">Auszeichnungen</h2>
