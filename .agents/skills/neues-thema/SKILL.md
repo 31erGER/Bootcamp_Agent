@@ -21,3 +21,5 @@ Die vollständige Anweisung steht in zwei Dateien im Wurzelverzeichnis dieses Re
 **Der erste Schritt ist eine Rückfrage, kein Dateianlegen.** Schritt 0 in `NeuesThema.md` verlangt fünf Fragen und eine bestätigte Landkarte, bevor gebaut wird. Ein Themen-Bootcamp ohne Zuschnitt trifft das falsche Ziel — vollständig, geprüft und nutzlos.
 
 Bevor du „fertig" sagst: `pwsh tools/bootcamp-check.ps1` muss ohne Fehler durchlaufen.
+
+**Ist das Thema Code** (eine Programmiersprache, eine Bibliothek, ein Framework): lies vor dem Bauen in `Rahmenwerk.md` den Abschnitt *Programmierthemen*. Er hält fest, was beim Java-Bootcamp Umwege gekostet hat: spitze Klammern, die im Browser verschwinden, Belegprogramme für jede Ausgabe, ein IDE-Projekt, das immer kompilieren muss. Vor dem Prüflauf zusätzlich `node tools/redaktion-lint.mjs` laufen lassen. *(Ergänzt am 12.11.2026 vom Agenten.)*

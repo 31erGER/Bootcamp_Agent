@@ -2186,3 +2186,24 @@ body.is-hub { background: var(--paper-2); }
   text-decoration: none; border-bottom: 1px solid var(--accent-soft);
 }
 .plantile__link:hover { border-color: var(--accent-deep); }
+
+/* ============================================================================
+   ERGAENZT 12.11.2026 (Agent, Bootcamp Java): Inline-Code im Fliesstext.
+
+   Bis hierher gab es eine Regel fuer `code` nur in `.task__body` und in
+   `.theorie`. In einem Fachartikel oder Lab (`.chapter`) stand ein <code>
+   deshalb in der Browser-Standardschrift ohne Hinterlegung. Bei einem
+   Programmierthema traegt aber jeder zweite Satz einen Bezeichner.
+
+   `overflow-wrap: anywhere`, weil ein Bezeichner wie
+   `ArrayIndexOutOfBoundsException` sonst bei 320 px die Zeile sprengt
+   (Layoutregel 5). `.term code` bleibt ausgenommen: dort gilt der Block.
+   Farben ausschliesslich aus colorpalett.css.
+   ============================================================================ */
+.chapter code:not(.term code),
+.theorie code:not(.term code) {
+  font-family: var(--mono); font-size: .86em;
+  background: var(--surface-2); border: 1px solid var(--hair);
+  padding: 1px 5px; border-radius: 3px; color: var(--accent-deep);
+  overflow-wrap: anywhere;
+}

@@ -815,6 +815,37 @@ Du kannst, wenn logisch nötig oder sinnvoll, Unterverzeichnisse anlegen.
 
 ---
 
+# Programmierthemen
+
+*Ergänzt am 12.11.2026 vom Agenten, nach dem Java-Bootcamp (Arrays, Generics, Lambdas, Predicates, Streams): dem ersten Bootcamp, dessen Stoff selbst Code ist. Jeder Punkt hat dort einen Fehler oder einen Umweg gekostet.*
+
+**1 · Spitze Klammern verschwinden lautlos.** Die Engine setzt `prompt`, `feedback`, `wrongNote`, `deep`, Auswahloptionen, Textteile eines Lückentexts, Rasterzeilen, Lösungsschritte und Prüflisten als HTML. Ein `List<Object>` darin hält der Browser für ein Tag: der Typ fehlt im Satz, ohne Fehler und ohne Konsolenmeldung. Drei Vorkehrungen, alle im Java-Bootcamp erprobt:
+
+- In jeder `.data.js` ein Helfer, der vor `WB.register` jedes `<`, das kein erlaubtes Tag beginnt, zu `&lt;` macht (dort `sauber()` genannt), und zwei Kurzformen `c('…')` für `<code>` und `code(…)` für einen `.term`-Block.
+- `node tools/redaktion-lint.mjs` meldet jedes rohe `<` in einem HTML-Feld, ohne Browser und in Sekunden. Es zeigt außerdem die **Hinweise** von `validate.js`, die `bootcamp-check.ps1` verschweigt.
+- Felder, die über `textContent` gesetzt werden (Zuordnung, Reihenfolge, Auswahlfelder, Spaltenköpfe, Fragen einer Umkehraufgabe), bekommen die Klammern **roh**. Dort stört nur ein Typparameter, der wie ein Tag heißt (`<S>`, `<P>`, `<B>`, `<U>`, `<I>`, `<A>`): `validate.js` hält ihn für Markup. Nimm `T`, `R`, `K`, `V`, `E`.
+
+**Fallstrick dazu:** `validate.js` entfernt für Vergleiche und Längenmessung alles zwischen `<` und `>`. Zwei Fragen einer Umkehraufgabe, die sich nur in `List<? super T>` und `List<? extends T>` unterscheiden, gelten ihm als dieselbe.
+
+**2 · Der `summary` einer `.reveal` verträgt genau ein Kind.** Er ist ein Raster mit zwei Spalten. Steht darin Text mit einem `<code>`, wird das `<code>` ein eigenes Rasterelement, landet in der schmalen Spalte und wird bei 320 px abgeschnitten (Befund: `code client=10 inhalt=14`). Den Inhalt in ein `<span>` legen.
+
+**3 · Bildaufgaben ohne Schaltbild.** `node tools/codebild.mjs <Datei.json>` macht aus Codezeilen ein SVG mit anklickbaren Zeilennummern und druckt die Trefferzonen. Die Eingabedatei legst du selbst an (im Java-Bootcamp `docs/codebilder.json`); ihr Format steht im Kopf des Werkzeugs. Damit wird „tippe auf die Zeile, die nicht kompiliert" zu einer `hotspot`-Aufgabe. Die Maße im Werkzeug stammen aus einem Befund der Breitenprüfung; höchstens 52 Zeichen je Zeile.
+
+**4 · Jede Programmausgabe wird erzeugt, nicht erinnert.** Zu jedem Blatt gehört ein einzeln startbares Programm (`docs/belege/<Blatt>.java`), das jede behauptete Ausgabe druckt, mit dem Kapitel oder der Aufgabe am Zeilenanfang. Das ist bei Code, was bei Zahlen die Gegenrechnung ist, und es hat im Java-Bootcamp mehrere erinnerte Werte korrigiert. Dasselbe gilt für Compilermeldungen: javac auf einem deutschen System meldet deutsch; mit `-J-Duser.language=en` bekommt man das englische Original dazu. Beide gehören in den Text, denn gesucht wird im Netz auf Englisch.
+
+**5 · Labs mit Code.** Alle Labs in **einem** IDE-Projekt heißt: eine Datei, die nicht kompiliert, blockiert den Start jedes anderen Labs. Daraus folgt der Aufbau:
+
+- Jede Starter-Datei kompiliert vom ersten Tag an. Offene Methoden werfen eine erkennbare Exception (`UnsupportedOperationException("TODO Etappe 2: …")`), und ein kleines Prüfwerkzeug meldet je Prüfung `OK`, `OFFEN`, `FALSCH` oder `FEHLER`. So zeigt jeder Lauf den Fortschritt.
+- Code, der erst nach einer Etappe kompiliert, steht in der Prüfdatei in Blöcken `/* Etappe n … */`, die der Lernende freischaltet.
+- Musterlösungen liegen in einem eigenen Paket und werden auf **jedem** installierten JDK kompiliert und gestartet; die Ausgaben werden verglichen. Die Sollausgabe auf der Lab-Seite ist die echte.
+- Der SDK-Name in `.idea/misc.xml` muss zu einem Eintrag in der `jdk.table.xml` der IDE passen, sonst öffnet das Projekt ohne SDK.
+
+**6 · Leseseiten brauchen einen Lesestand.** Eine Seite ohne `[data-read-progress]` und ohne `lehrkurs.js` schreibt nie einen Stand. Die Übersicht hält sie für immer für „unberührt" und schlägt sie als nächsten Schritt vor, sobald nichts anderes angefangen ist. Anleitung, Quellen und Etappenplan deshalb als gewöhnliche Leseseite mit Seitenleiste bauen. Bei einem Themen-Bootcamp gehören sie ans **Ende** der Übersicht: der erste Klick soll etwas zum Laufen bringen.
+
+**7 · Das Prüfwerkzeug auf einem Rechner ohne Playwright.** `tools/bootcamp-check.ps1` gibt Edge und Chrome seit dem 12.11.2026 `--headless` und ein eigenes Profil mit; vorher meldete jede Seite „kein Befund". Aufruf ohne `pwsh`: `powershell -NoProfile -ExecutionPolicy Bypass -File tools\bootcamp-check.ps1`. **Offene Lücke:** `-Sheets a,b` wird mit `-File` als ein einziger Name gebunden und nicht getrennt, anders als `-Pages`. Mehrere Blätter prüft man deshalb über den Lauf ohne Parameter.
+
+---
+
 # Persistenz
 
 Ich werde diese Aufgabe im Laufe des Studiums noch ein paar Mal von dir verlangen. Verfasse deshalb deine Arbeitsschritte in `SKILL.md`-Dateien, so dass du dich mit neuem Kontext wieder daran erinnerst bzw. auf Ressourcen zur Erfüllung der Aufgabe zugreifen kannst. Du kannst auch Skripte schreiben, die Prozesse automatisieren und die Skills unterstützen.

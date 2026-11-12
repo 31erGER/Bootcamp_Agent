@@ -159,6 +159,17 @@ function Get-Dom([string] $url, [int] $budgetMs, [string] $size, [string] $profi
     '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
     "--virtual-time-budget=$budgetMs", "--window-size=$size", '--dump-dom', $url
   )
+  # ERGAENZT 12.11.2026 (Agent, Bootcamp Java): Edge und Chrome brauchen
+  # `--headless` ausdruecklich und ein EIGENES Profil. Nur der Playwright-
+  # headless-shell ist von sich aus kopflos. Ohne den Schalter oeffnet Edge
+  # ein Fenster oder haengt sich an die laufende Instanz, `--dump-dom` liefert
+  # nichts, und JEDE Seite meldet „kein Befund" - auch am unveraenderten
+  # Showcase. Gefunden auf einem Rechner ohne Playwright-Cache, auf dem nur
+  # Edge installiert ist.
+  if ((Split-Path -Leaf $browser) -notmatch 'headless-shell') {
+    $args = @('--headless') + $args
+    if (-not $profile) { $profile = Join-Path $tmp 'profil' }
+  }
   if ($profile) { $args = @("--user-data-dir=$profile") + $args }
   $p = Start-Process -FilePath $browser -ArgumentList $args -RedirectStandardOutput $out `
         -RedirectStandardError (Join-Path $tmp 'err.txt') -NoNewWindow -PassThru
