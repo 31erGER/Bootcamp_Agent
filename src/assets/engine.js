@@ -33,6 +33,8 @@
      WB.store             Stand in localStorage, je Dateipfad getrennt
      WB.autosolve()       löst das Blatt über echte Klicks (nur fürs Prüfwerkzeug)
      WB.sheets            alle angemeldeten Blätter
+     WB.weg               die Stelle im Modul und die Weiter-Karte am Seitenende
+                          (NEU 13.11.2026, Agent — siehe „Der Weg in der Seite")
    ============================================================================ */
 
 window.WB = window.WB || {};
@@ -894,6 +896,12 @@ window.WB = window.WB || {};
     const head = make('header', 'task__head');
     head.appendChild(make('div', 'task__num', String(task.id).padStart(2, '0')));
     const titles = make('div', 'task__titles');
+    /* NEU 13.11.2026 (Agent, Redesign der Seiten): die Marke „Als nächstes"
+       oder „Weitermachen". Genau eine Aufgabe trägt sie — dieselbe Marke wie
+       an der einen Zeile der Übersicht. Gesetzt wird sie in wegweisen(). */
+    const flag = make('span', 'task__flag');
+    flag.hidden = true;
+    titles.appendChild(flag);
     titles.appendChild(make('div', 'task__eyebrow', task.eyebrow || ''));
     const h3 = make('h3', 'task__title');
     h3.id = 'task-' + task.id + '-title';
@@ -905,8 +913,35 @@ window.WB = window.WB || {};
     const status = make('span', 'task__status', 'Offen');
     status.setAttribute('data-status', '');
     meta.appendChild(status);
+    /* NEU 13.11.2026 (Agent, Redesign der Seiten): der Knopf, der eine
+       ERLEDIGTE Aufgabe auf ihre Kopfzeile zusammenklappt und wieder öffnet.
+       Er erscheint erst, wenn die Aufgabe abgeschlossen ist — eine offene
+       Aufgabe lässt sich nicht wegklappen. Ein echter <button>, damit das
+       auch mit der Tastatur geht. */
+    const tog = make('button', 'task__toggle');
+    tog.type = 'button';
+    tog.hidden = true;
+    tog.setAttribute('aria-expanded', 'true');
+    tog.setAttribute('aria-label', 'Aufgabe ' + task.id + ' ein- oder ausklappen');
+    tog.appendChild(make('span', 'task__chev'));
+    meta.appendChild(tog);
     head.appendChild(meta);
     art.appendChild(head);
+
+    function klappe(zu) {
+      art.classList.toggle('is-zu', !!zu);
+      tog.setAttribute('aria-expanded', zu ? 'false' : 'true');
+    }
+    tog.addEventListener('click', e => {
+      e.stopPropagation();
+      klappe(!art.classList.contains('is-zu'));
+    });
+    /* Ein Klick irgendwo auf die Kopfzeile ÖFFNET nur. Zuklappen geht allein
+       über den Knopf — sonst klappt die Aufgabe zu, während man im Titel Text
+       markiert. */
+    head.addEventListener('click', () => {
+      if (art.classList.contains('is-zu')) klappe(false);
+    });
 
     /* ── Körper ── */
     const body = make('div', 'task__body');
@@ -970,6 +1005,7 @@ window.WB = window.WB || {};
       art.classList.remove('is-beantwortet');
       art.classList.add(st.state === 'done' ? 'is-done' : 'is-wrong');
       status.textContent = st.state === 'done' ? 'Gelöst' : 'Falsch';
+      tog.hidden = false;
       control.reveal && control.reveal();
       showFeedback(st.state === 'done' ? 1 : 0, false);
     }
@@ -990,6 +1026,7 @@ window.WB = window.WB || {};
       } else {
         art.classList.add(ratio >= 1 ? 'is-done' : 'is-wrong');
         status.textContent = ratio >= 1 ? 'Gelöst' : 'Falsch';
+        tog.hidden = false;
         control.reveal && control.reveal();
         showFeedback(ratio, false);
         if (pts) toast('+' + pts + ' Punkte');
@@ -1032,6 +1069,13 @@ window.WB = window.WB || {};
       button: btn,
       finishTask,
       aufdecken,
+      /* NEU 13.11.2026 (Agent, Redesign der Seiten) — siehe wegweisen(). */
+      klappe,
+      alsNaechste(text) {
+        art.classList.toggle('is-next', !!text);
+        flag.hidden = !text;
+        if (text) flag.textContent = text;
+      },
       markRestored(st) {
         btn.disabled = true;
         control.lock && control.lock();
@@ -1048,6 +1092,7 @@ window.WB = window.WB || {};
         }
         art.classList.add(st.state === 'done' ? 'is-done' : 'is-wrong');
         status.textContent = st.state === 'done' ? 'Gelöst' : 'Falsch';
+        tog.hidden = false;
         control.reveal && control.reveal();
         showFeedback(st.state === 'done' ? 1 : 0, false);
       }
@@ -2071,6 +2116,181 @@ window.WB = window.WB || {};
     showDone(prog);
   }
 
+  /* ── Der Weg in der Seite ─────────────────────────────────────────────────
+     NEU 13.11.2026 (Agent, Redesign der Seiten). Die Übersicht empfiehlt seit
+     dem 12.11.2026 zu jedem Zeitpunkt genau einen nächsten Schritt. Das hörte
+     an der Tür auf: ein Artikel endete mit einem Hinweis auf die Übersicht,
+     ein Heft mit der Punktzahl, ein Lab mit einem Link von Hand. Jetzt endet
+     jede Seite eines Moduls mit DERSELBEN Karte wie die Übersicht, und wer
+     wiederkommt, findet im Kopf die Stelle, an der es weitergeht.
+
+     Die Karte braucht kein neues Datenfeld. Sie liest den Wegweiser, der
+     ohnehin in jeder Seitenleiste steht (Rahmenwerk.md, „Navigation"): der
+     Eintrag mit aria-current="page" ist diese Seite, der danach die nächste.
+     Damit kann die Karte nie etwas anderes sagen als der Wegweiser.
+
+     Hinter dem letzten Schritt eines Moduls führt sie zur Übersicht und nicht
+     ins nächste Modul: welches das ist, weiß nur die Übersicht.
+
+     Benutzt von dieser Datei (Aufgabenheft) und von lehrkurs.js (Artikel, Lab).
+     Eine Seite ohne Wegweiser — Anleitung, Lernplan, Probeklausur — bekommt
+     keine Karte und verhält sich wie vorher.
+
+     Die Klassen resume* sind die der Weiter-Karte auf der Übersicht; `.weiter`
+     ist nur der Rahmen darum. So sehen beide zwangsläufig gleich aus.         */
+  const weg = {
+    /** Wo steht diese Seite im Modul? null, wenn es keinen Wegweiser gibt. */
+    stelle() {
+      const hier = $('.rail a.nav__task[aria-current="page"]');
+      if (!hier || !hier.parentNode) return null;
+      const links = $$('a.nav__task', hier.parentNode);
+      const k = links.indexOf(hier);
+      if (k < 0) return null;
+      const name = a => {
+        const l = $('.nav__label', a);
+        return (l ? l.textContent : a.textContent).trim();
+      };
+      /* Wie der Weg heißt, sagt seine eigene Überschrift: „Dein Weg durch
+         Modul 01", „Dein Weg durch die Klausurphase". Erst wenn sie fehlt oder
+         anders lautet, die Marke oben in der Leiste. */
+      const kopf = $('.nav__group', hier.parentNode);
+      const titel = kopf ? kopf.textContent.replace(/\s+/g, ' ').trim() : '';
+      const marke = $('.rail .brand__name');
+      const modul = /^Dein Weg durch\s+/i.test(titel)
+        ? titel.replace(/^Dein Weg durch\s+/i, '').replace(/^(der|die|das|den|dem)\s+/i, '')
+        : (marke ? marke.textContent.trim() : '');
+      const heim = $$('.rail a[href]')
+        .filter(a => /startseite\.html$/.test(a.getAttribute('href')))[0];
+      return {
+        modul,
+        k: k + 1,
+        n: links.length,
+        naechster: links[k + 1]
+          ? { href: links[k + 1].getAttribute('href'), titel: name(links[k + 1]) }
+          : null,
+        uebersicht: heim ? heim.getAttribute('href') : null
+      };
+    },
+
+    /** Die Karte für „diese Seite ist erledigt": der nächste Teil des Moduls,
+        hinter dem letzten die Übersicht. */
+    naechsteSeite() {
+      const s = this.stelle();
+      if (!s) return null;
+      const vor = s.modul ? s.modul + ' · ' : '';
+      if (s.naechster) {
+        return {
+          label: 'Als nächstes',
+          where: vor + 'Teil ' + (s.k + 1) + ' von ' + s.n,
+          title: s.naechster.titel,
+          href: s.naechster.href,
+          btn: 'Öffnen →'
+        };
+      }
+      if (!s.uebersicht) return null;
+      return {
+        label: (s.modul || 'Modul') + ' ist durch',
+        where: vor + 'Teil ' + s.k + ' von ' + s.n + ' war der letzte',
+        title: 'Zurück zur Übersicht',
+        meta: 'Dort steht, womit es weitergeht.',
+        href: s.uebersicht,
+        btn: 'Zur Übersicht →'
+      };
+    },
+
+    /** Füllt eine Karte. `d` = { label, where, title, meta, href, btn, html }.
+        `html: true` nur für Titel aus einer .data.js (dort ist Markup erlaubt);
+        alles andere wird als Text gesetzt. */
+    fuelle(el, d) {
+      el.innerHTML = '';
+      if (!d) { el.hidden = true; return; }
+      el.hidden = false;
+      const res = make('div', 'resume');
+      res.appendChild(make('div', 'resume__lbl', d.label));
+      if (d.where) res.appendChild(make('div', 'resume__where', d.where));
+      const t = make('div', 'resume__title');
+      if (d.html) html(t, d.title); else t.textContent = d.title;
+      res.appendChild(t);
+      if (d.meta) res.appendChild(make('div', 'resume__meta', d.meta));
+      const a = make('a', 'resume__btn', d.btn);
+      a.href = d.href;
+      res.appendChild(a);
+      el.appendChild(res);
+    },
+
+    _karte(art, setze) {
+      const main = $('.main');
+      if (!main) return null;
+      let el = $('[data-weiter="' + art + '"]', main);
+      if (!el) {
+        el = make('aside', art === 'kopf' ? 'weiter weiter--kopf' : 'weiter');
+        el.setAttribute('data-weiter', art);
+        el.setAttribute('aria-label', art === 'kopf' ? 'Weitermachen' : 'Nächster Schritt');
+        setze(main, el);
+      }
+      return el;
+    },
+
+    /** Die schmale Zeile unter dem Seitenkopf: „Weitermachen bei …". Nur für
+        den, der wiederkommt — beim ersten Besuch steht der Anfang direkt
+        darunter, und ein Sprungziel dorthin wäre Lärm. `null` blendet aus. */
+    kopf(d) {
+      const el = this._karte('kopf', (main, neu) => {
+        const mast = $('.masthead', main);
+        if (mast && mast.nextSibling) main.insertBefore(neu, mast.nextSibling);
+        else if (mast) main.appendChild(neu);
+        else main.insertBefore(neu, main.firstChild);
+      });
+      if (el) this.fuelle(el, d);
+    },
+
+    /** Die Karte am Seitenende, vor der Fußzeile. `null` blendet aus. */
+    schluss(d) {
+      const el = this._karte('ende', (main, neu) => {
+        const foot = $('.foot', main);
+        if (foot) main.insertBefore(neu, foot); else main.appendChild(neu);
+      });
+      if (el) this.fuelle(el, d);
+    }
+  };
+  WB.weg = weg;
+
+  /* NEU 13.11.2026 (Agent, Redesign der Seiten): der eine nächste Schritt im
+     Aufgabenheft. Solange Aufgaben offen sind, ist es die erste offene — sie
+     trägt die Marke, ihr Punkt in der Seitenleiste den Ring, und beide Karten
+     zeigen auf sie. Ist alles beantwortet, zeigt die Karte am Ende auf den
+     nächsten Teil des Moduls. Alle vier Stellen hängen an dieser einen
+     Rechnung, wie `ziel` in hub.js.
+
+     In der Klausur gibt es das nicht: dort sagt einem niemand, wo man
+     weitermachen soll. */
+  function wegweisen(prog) {
+    if (klausur) return;
+    const ziel = prog.tasks.filter(t => prog.get(t.id).state === 'offen')[0] || null;
+    const begonnen = prog.solved > 0;
+    const marke = begonnen ? 'Weitermachen' : 'Als nächstes';
+
+    allRendered.forEach(r => r.alsNaechste(ziel && r.task === ziel ? marke : null));
+    $$('.nav__task[data-nav]').forEach(a => {
+      a.classList.toggle('is-next', !!ziel && a.getAttribute('data-nav') === String(ziel.id));
+    });
+
+    let d = null;
+    if (ziel) {
+      const offen = prog.total - prog.solved;
+      d = {
+        label: marke,
+        where: 'Aufgabe ' + (prog.tasks.indexOf(ziel) + 1) + ' von ' + prog.total +
+          ' · ' + offen + (offen === 1 ? ' ist noch offen' : ' sind noch offen'),
+        title: ziel.title, html: true,
+        href: '#task-' + ziel.id,
+        btn: 'Zur Aufgabe →'
+      };
+    }
+    weg.kopf(begonnen ? d : null);
+    weg.schluss(d || weg.naechsteSeite());
+  }
+
   function buildRail(sheet, prog, railEl) {
     const nav = $('.nav', railEl) || (() => {
       const n = make('nav', 'nav');
@@ -2090,6 +2310,12 @@ window.WB = window.WB || {};
         const lbl = make('span', 'nav__label');
         html(lbl, t.title);
         a.appendChild(lbl);
+        /* NEU 13.11.2026 (Agent, Redesign der Seiten): wer eine zugeklappte
+           Aufgabe anspringt, will sie sehen und nicht ihre Kopfzeile. */
+        a.addEventListener('click', () => {
+          const r = allRendered.filter(x => x.task === t)[0];
+          if (r) r.klappe(false);
+        });
         nav.appendChild(a);
       });
     });
@@ -2126,6 +2352,8 @@ window.WB = window.WB || {};
       el.classList.toggle('is-earned', !!prog.badges[el.getAttribute('data-badge')]);
     });
 
+    wegweisen(prog);
+
     /* Im Klausurmodus ist die Abgabe der Abschluss — sie deckt auf und ruft
        showDone selbst. Sie passiert automatisch, sobald die letzte Aufgabe
        beantwortet ist; genau deshalb braucht das Prüfskript den Abgabeknopf
@@ -2147,7 +2375,10 @@ window.WB = window.WB || {};
       const main = $('.main') || document.body;
       /* Vor der Fußzeile, nicht dahinter: angehängt landete die
          Abschlussmeldung unter dem Schlussstrich und sah aus wie ein Nachtrag. */
-      const foot = $('.foot', main);
+      /* GEAENDERT 13.11.2026 (Agent, Redesign der Seiten): und vor der
+         Weiter-Karte, falls sie schon steht. Erst das Ergebnis, dann der
+         nächste Schritt. */
+      const foot = $('[data-weiter="ende"]', main) || $('.foot', main);
       if (foot) main.insertBefore(el, foot); else main.appendChild(el);
     }
     if (el.classList.contains('show')) return;
@@ -2441,7 +2672,23 @@ window.WB = window.WB || {};
       if (klausur && prog.finished) abgegeben = true;
       allRendered.forEach(r => {
         const st = prog.get(r.task.id);
-        if (st.state !== 'offen') r.markRestored(st);
+        if (st.state !== 'offen') {
+          r.markRestored(st);
+          /* NEU 13.11.2026 (Agent, Redesign der Seiten): wer WIEDERKOMMT,
+             findet erledigte Aufgaben als Zeile vor — Nummer, Titel, Ergebnis —
+             und die erste offene aufgeschlagen darunter. Das ist die Regel der
+             Übersicht („offen steht nur, wo der nächste Schritt liegt"), auf
+             das Heft übertragen.
+
+             NUR hier, beim Wiederherstellen. Eine Aufgabe, die gerade eben
+             gelöst wurde, bleibt offen stehen: ihre Rückmeldung und Vertiefung
+             sind in diesem Moment das Wertvollste auf der Seite.
+
+             In der Klausur bleibt alles, wie es war. Und ein Prüflauf kommt
+             hier nie an: restore() gibt mit #audit & Co. false zurück, die
+             Breitenprüfung misst also weiter jede Aufgabe aufgeklappt. */
+          if (!klausur) r.klappe(true);
+        }
       });
       toast('Stand von zuletzt geladen');
     }

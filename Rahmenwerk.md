@@ -131,6 +131,8 @@ Ein Lab ist in **Etappen** geteilt, und jede Etappe hat zwei Pflichtteile — ei
 
 Das Lab lädt `engine.js` (nur wegen `WB.store`) und `lehrkurs.js`, sonst nichts. Der Lesestand ist der Grund: ohne ihn schlägt die Übersicht das Lab für immer als „als nächstes" vor, weil es nie einen Aufgabenstand bekommt.
 
+*Geändert am 13.11.2026 vom Agenten:* `lehrkurs.js` setzt in jedes `.etappe-ende` einen Haken. Er ist eine Anzeige; fertig wird ein Lab weiter durch Scrollen. Am Markup ändert sich nichts. Siehe *Der Weg in der Seite*, Punkt 4.
+
 ---
 
 # Ein Auslieferungsformat: das HTML-Projekt
@@ -702,6 +704,8 @@ Zwei weitere Details sind nicht Geschmack, sondern Zwang — beide stehen unten 
 
 Erzeuge den Block **einmal und setze ihn dreimal ein**, statt ihn dreimal zu schreiben. Sonst laufen die Fassungen beim nächsten Modul auseinander, und die Navigation ist genau das, was das nicht verträgt.
 
+*Ergänzt am 13.11.2026 vom Agenten:* an diesem Block hängt jetzt mehr als die Seitenleiste. Das Stylesheet zeichnet ihn als Linie mit Marken, und die Weiter-Karte am Seitenende liest aus ihm den nächsten Schritt. Der Block bleibt klassenlos, `aria-current="page"` bleibt Pflicht, und die Überschrift beginnt mit „Dein Weg durch …": der Rest davon ist der Name, den die Karte nennt. Siehe *Der Weg in der Seite*.
+
 **Die Übersicht empfiehlt zu jedem Zeitpunkt genau einen nächsten Schritt.** Vierzehn gleichberechtigte Kacheln sind eine Entscheidung, die ich nicht treffe — und dann mache ich gar nichts.
 
 ## Gruppen auf der Übersicht
@@ -753,6 +757,33 @@ Drei Dinge, die man beim Weiterbauen wissen muss:
 3. **Im `<summary>` stehen nur `<span>` und die Überschrift.** Ein `<div>` darin ist kein gültiges HTML; die Anordnung macht das Raster. Und ein gedrehtes Element am Rand eines Rasters ragt über: der Aufklapp-Winkel stand 2 px über dem Kopf (`summary client=305 inhalt=307`), bis er mittig in eine breitere Spalte kam.
 
 Ohne `group` bleibt es bei der Kachelwand; `.sheets` und `.sheetcard` gibt es deshalb weiter.
+
+## Der Weg in der Seite
+
+*Ergänzt am 13.11.2026 vom Agenten (Redesign von Fachartikel, Aufgabenheft und Lab). Anlass: die Übersicht nannte seit dem Vortag genau einen nächsten Schritt, und das hörte an der Tür auf. Ein Artikel endete mit einem Verweis auf die Übersicht, ein Heft mit der Punktzahl, ein Lab mit einem Link von Hand; gelesene Kapitel sahen in der Seitenleiste aus wie ungelesene.*
+
+**An den Seiten und Daten ändert sich nichts.** Alles Folgende kommt aus `styles.css` (Abschnitt `@WEG`), `engine.js` (`WB.weg`, `wegweisen()`) und `lehrkurs.js`. Ein älterer Kurs bekommt es, sobald er `assets/` übernimmt.
+
+| Stelle | was dort steht | woher |
+|---|---|---|
+| Wegweiser in der Seitenleiste | Linie mit Marken, die aktuelle Seite gefüllt | CSS über `.rail > div:not([class])` und `[aria-current="page"]` |
+| Kapitel- und Etappenliste | dieselben Marken; gelesen oder abgehakt ist grün | `lehrkurs.js` setzt `is-done` |
+| unter dem Seitenkopf | „Weitermachen": erstes ungelesenes Kapitel, erste offene Etappe, erste offene Aufgabe | `WB.weg.kopf()`, nur wenn schon etwas erledigt ist |
+| vor der Fußzeile | die Weiter-Karte der Übersicht: der eine nächste Schritt | `WB.weg.schluss()` |
+| Aufgabenheft | genau eine Aufgabe trägt „Als nächstes" oder „Weitermachen"; beim Wiederkommen sind erledigte Aufgaben eine Zeile | `wegweisen()`, `klappe()` |
+| Lab | jedes `.etappe-ende` hat einen Haken | `wireEtappen()` |
+| Fuß der Seitenleiste | „Übersicht" als Zeile mit runder Marke, „Stand löschen" leise darunter | CSS über `a.filter[href$="startseite.html"]` und `.filter[data-reset]` in `.rail__foot` |
+
+Sechs Entscheidungen, die man nicht aufrollen sollte:
+
+1. **Die Weiter-Karte liest den Wegweiser und kein Datenfeld.** Der Eintrag mit `aria-current="page"` ist diese Seite, der danach die nächste. Die Karte kann deshalb nie etwas anderes sagen als die Seitenleiste. Hinter dem letzten Schritt führt sie zur Übersicht: welches Modul folgt, weiß nur die. **Schreibe deshalb keinen „Nächster Schritt"-Kasten mehr von Hand ans Seitenende.** Zwei Hinweise auf zwei Ziele sind keiner.
+2. **Zugeklappt wird nur beim Wiederherstellen eines Stands.** Eine eben gelöste Aufgabe bleibt offen stehen; ihre Rückmeldung und Vertiefung sind in dem Moment das Wertvollste auf der Seite. In der Klausur gibt es weder Marke noch Zuklappen noch Karte.
+3. **Ein Kapitel gilt als gelesen, wenn sein Ende beim Scrollen durch die oberen drei Viertel des Fensters kam.** Nicht „liegt oberhalb": wer per Sprungmarke zu Kapitel 8 springt, hat die sieben davor nicht gelesen. Und nicht beim Laden: auf einem hohen Bildschirm steht Kapitel 0 im Bild, bevor jemand eine Zeile gelesen hat.
+4. **Ein Lab wird durch Scrollen fertig; die Haken an den Etappen sind Anzeige.** *Entschieden vom Nutzer am 13.11.2026 („Scrollen reicht"). Die erste Fassung vom selben Tag machte die Haken zum Stand: fertig erst, wenn alle gesetzt sind. Das ist zurückgenommen — nicht wieder einführen.* `percent` und `done` kommen wie beim Artikel vom Scrollweg, und die Übersicht hakt das Lab ab, sobald man unten war. Ein Haken färbt die Etappe in der Seitenleiste grün und gibt dem, der wiederkommt, die erste offene Etappe als Sprungziel im Kopf; gespeichert wird er im selben Eintrag als `etappen`, das `hub.js` nicht liest. Scrollen setzt keinen Haken, und ein fertiger Stand ohne Hakenliste auch nicht. Die Weiter-Karte am Ende nennt immer die nächste Seite. Eine Etappe ohne `.etappe-ende` hat keinen Haken.
+5. **Unter 760 px zeigt die klebende Leiste den Wegweiser und einen Merkstreifen nicht.** Die Kapitelmarken stehen dort als Streifen, wie die Aufgabenpunkte eines Hefts. Wo man im Modul ist, sagen auf dieser Breite die Kopfzeile und die Weiter-Karte. Die Warnung „kein Speicher" bleibt sichtbar.
+6. **Im Fuß der Seitenleiste steht kein Link zu einem anderen Teil des Moduls.** *Auf Wunsch des Nutzers am 13.11.2026: im Lab stand dort ein Rücksprung ins Aufgabenheft.* Zwischen den Teilen führt der Wegweiser oben, weiter die Karte am Seitenende. Im Fuß stehen nur der Link zur Übersicht und, wo es einen Stand gibt, „Stand löschen" — beide als `class="filter"` in einem `<div class="filters">`, auch im Lab. Ihr Aussehen kommt aus dem Stylesheet; ein Link zur Übersicht als `nav__task` bekommt es nicht.
+
+Geprüft von `tools/reading-progress-check.mjs` (Kapitelhaken, Haken an den Etappen, Scrollen als Stand des Labs). **Nicht** von einem Werkzeug geprüft und selbst anzusehen: das Heft mit einem halben Stand öffnen. Der Prüflauf beginnt bei null und sieht deshalb nie eine zugeklappte Aufgabe.
 
 ---
 

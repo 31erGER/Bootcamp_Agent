@@ -22,6 +22,15 @@
 
      Als reine Leseseite wird es vom Standardlauf nicht gefunden:
          pwsh tools/bootcamp-check.ps1 -Pages Modul_02_Verbundnetze_Lab
+
+     GEAENDERT AM 13.11.2026 (Agent, Redesign der Seiten):
+       · Die Positionszeile im Kopf nennt die Stelle im Modul (Rahmenwerk.md,
+         „Navigation"); dort stand „Lab · ohne Bewertung".
+       · Jedes `.etappe-ende` bekommt von lehrkurs.js einen Haken. Er ist eine
+         Anzeige; fertig wird das Lab weiter durch Scrollen (Entscheidung des
+         Nutzers vom selben Tag, Rahmenwerk.md, „Der Weg in der Seite", Punkt 4).
+       · Der Merkkasten am Ende verlinkt nicht mehr selbst weiter. Den nächsten
+         Schritt nennt die Weiter-Karte vor der Fußzeile (WB.weg in engine.js).
      ═══════════════════════════════════════════════════════════════════════════ -->
 
 <link rel="stylesheet" href="assets/styles.css">
@@ -68,16 +77,19 @@
       <a class="nav__task" href="#e5"><span class="nav__num">·</span><span class="nav__label">Ergebnis &amp; Hilfe</span></a>
     </nav>
 
+    <!-- GEAENDERT 13.11.2026 (Agent, auf Wunsch des Nutzers): der Rücksprung ins
+         Aufgabenheft ist entfernt; dorthin führt der Wegweiser oben. Der Weg zur
+         Übersicht steht jetzt im selben Markup wie im Lehrkurs und im Heft. -->
     <div class="rail__foot">
-      <div class="nav__group">Weiter</div>
-      <a class="nav__task" href="Modul_02_Verbundnetze.html"><span class="nav__num">←</span><span class="nav__label">Aufgabenheft Modul 02</span></a>
-      <a class="nav__task" href="../startseite.html"><span class="nav__num">←</span><span class="nav__label">Übersicht · Modul 2 von 2</span></a>
+      <div class="filters">
+        <a class="filter" href="../startseite.html">Übersicht · Modul 2 von 2</a>
+      </div>
     </div>
   </aside>
 
   <main class="main">
     <header class="masthead">
-      <div class="masthead__rule"><span><span class="dot"></span>Lab · ohne Bewertung</span><span>5 Etappen</span></div>
+      <div class="masthead__rule"><span><span class="dot"></span>Modul 02 · Schritt 3 von 3 · Lab</span><span>5 Etappen</span></div>
       <div class="kicker">Lastgang mit eigenen Zahlen</div>
       <h1>Rechne es einmal <em>mit deiner Rechnung</em></h1>
       <p class="lede">Volllaststunden und Benutzungsgrad sind zwei Divisionen. Man versteht sie
@@ -257,10 +269,8 @@
       <div class="callout callout--note" style="margin-top:28px">
         <div class="callout__icon">→</div>
         <div class="callout__body"><b>Beide Module sind damit durch.</b> Was jetzt noch kommt,
-        gehört nur zur Klausurphase: der <a href="Klausurphase/Lernplan.html">Lernplan</a>, die
-        <a href="Klausurphase/Abdeckung.html">Abdeckungskarte</a>, der
-        <a href="Klausurphase/Intensiv_01_Netzrechnen.html">Intensivkurs</a> und die
-        <a href="Klausurphase/Probeklausur.html">Probeklausur</a>. Ohne Prüfungstermin ist das
+        gehört nur zur Klausurphase: der Lernplan, die Abdeckungskarte, der Intensivkurs und
+        die Probeklausur. Ohne Prüfungstermin ist das
         Bootcamp hier zu Ende.</div>
       </div>
     </section>

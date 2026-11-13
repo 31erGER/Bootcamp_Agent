@@ -101,6 +101,18 @@ Empfohlene Reihenfolge: erst die kleinen Werkzeugpunkte W1, W3, W4 und H1; dann 
 - Druck: zugeklappte Gruppen der Übersicht bleiben im Ausdruck zu. Ob die Druckregel für `.reveal` in aktuellen Chromium-Versionen noch greift, ist nicht nachgeprüft.
 - Die Lücke im Klausurmodus (vorzeitige Abgabe, dann Neuladen) steht schon in `Rahmenwerk.md`.
 
+## 6a · Nachtrag vom 13.11.2026: Redesign der Seiten
+
+Der Nutzer hat das Redesign der Startseite angesehen und für gut befunden; **übernommen nach `main` ist es damit nicht**, Entscheidung 1 oben bleibt offen. Im Auftrag des Nutzers ist dieselbe Wegsprache auf `redesign/uebersicht` in Fachartikel, Aufgabenheft und Lab eingezogen. Was und warum steht in `Rahmenwerk.md`, *Der Weg in der Seite*; der Code liegt in `styles.css` (`@WEG`), `engine.js` (`WB.weg`, `wegweisen()`) und `lehrkurs.js` (`wireEtappen()`).
+
+- **Umgebung des neuen Rechners:** Node 26, `pwsh` 7.7 und `powershell` vorhanden, Edge, kein Playwright-Cache. Der Prüflauf war vor der ersten Änderung GRÜN mit Exitcode 0.
+- **`Nutzereinstellungen.md` fehlt auf diesem Rechner weiterhin.** Gebaut wurde ohne sie; der Nutzer ist darauf hingewiesen.
+- **Vom Nutzer entschieden: „Scrollen reicht".** Die erste Fassung ließ ein Lab erst fertig werden, wenn alle Etappen abgehakt sind. Das ist am selben Tag zurückgenommen: fertig macht das Scrollen wie beim Artikel, die Haken sind eine Anzeige (grüne Marke in der Leiste, Sprungziel im Kopf) und ändern `percent` und `done` nicht.
+- **Fuß der Seitenleiste, ebenfalls auf Wunsch des Nutzers:** im Lab ist der Rücksprung ins Aufgabenheft entfernt, und „Übersicht" und „Stand löschen" sind neu gestaltet (`styles.css`, `@WEG`, Abschnitt 5; `Rahmenwerk.md`, *Der Weg in der Seite*, Punkt 6).
+- **Was der Prüflauf nicht sieht:** er beginnt bei null, also nie eine zugeklappte Aufgabe, nie die Zeile „Weitermachen", nie einen gesetzten Haken. Diese Zustände wurden von Hand gemessen: sieben Seiten mit halbem Stand auf elf Breiten von 320 bis 1340 px über den Vorschau-Server, ohne Befund. W2 unten (Breitenprüfung mit gesetztem Stand) würde das ins Werkzeug holen.
+- **Nicht geprüft:** Druckansicht der neuen Teile, Bedienung per Touch, ein echter Doppelklick über `file://` (angesehen wurde alles über `http://127.0.0.1`).
+- **Aufgefallen und nicht angefasst:** unter 760 px klebt die Seitenleiste eines Aufgabenhefts mit Fortschritt, Punkten, sechs Filtern und zwei Knöpfen oben und nimmt bei 375 × 760 px knapp die Hälfte des Bildschirms. Das war vorher so. Beim Artikel und Lab ist die Leiste jetzt niedriger, weil der Merkstreifen dort entfällt.
+
 ## 7 · Was beim Arbeiten geholfen hat
 
 **Die Hauptseite ansehen.** Der eingebaute Browser der App zeigt `file://`-Seiten ohne Skripte, die Übersicht ist dann leer. Abhilfe: ein statischer Server auf `127.0.0.1`, danach wieder stoppen. Über `http://` teilen sich alle Seiten einen Speicher, der Lernstand lässt sich also von Hand setzen.

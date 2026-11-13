@@ -23,6 +23,19 @@
          Ursache ist an der Quelle behoben: nichts scrollt mehr von selbst.
        · Die drei Zeichnungen laufen über assets/viz.js und
          assets/viz-fourier.js statt über eine eigene fit()-Kopie.
+
+     GEAENDERT AM 13.11.2026 (Agent, Redesign der Seiten):
+       · Die Positionszeile im Kopf steht in der Reihenfolge aus Rahmenwerk.md,
+         „Navigation": Modul n · Schritt k von j · Seitentyp. Vorher stand der
+         Seitentyp vorn, anders als im Aufgabenheft.
+       · Der Merkkasten „Nächster Schritt" am Ende ist entfernt. Den nächsten
+         Schritt nennt jetzt die Weiter-Karte, die lehrkurs.js vor die Fußzeile
+         setzt (WB.weg in engine.js) — gelesen aus dem Wegweiser der
+         Seitenleiste, also nie anders als dieser.
+       · Die drei Kontrollfragen in Kapitel 9 tragen ihren Text in EINEM
+         <span>. Der <summary> einer .reveal ist ein Raster mit zwei Spalten;
+         ein <span class="math"> darin wurde ein eigenes Rasterelement, und
+         die Frage zerfiel in Stücke (Rahmenwerk.md, „Programmierthemen", 2).
      ═══════════════════════════════════════════════════════════════════════════ -->
 
 <link rel="stylesheet" href="assets/styles.css">
@@ -85,7 +98,7 @@
 
   <main class="main">
     <header class="masthead">
-      <div class="masthead__rule"><span><span class="dot"></span>Lehrkurs · Modul 01 · Schritt 1 von 3</span><span>10 Kapitel</span></div>
+      <div class="masthead__rule"><span><span class="dot"></span>Modul 01 · Schritt 1 von 3 · Lehrkurs</span><span>10 Kapitel</span></div>
       <div class="kicker">Fourier-Analyse</div>
       <h1>Fourier von <em>Grund auf</em></h1>
       <p class="lede">Ein Signal in seine reinen Schwingungen zerlegen — das ist die ganze Idee. Wir bauen sie Schritt für Schritt auf, mit Bildern, die du bewegen kannst, und ohne dass du vorher etwas können musst.</p>
@@ -317,20 +330,15 @@
       </div>
 
       <h3 style="margin-top:34px">Kontrollfragen zum Nachrechnen</h3>
-      <details class="reveal"><summary>Welche Fourier-Koeffizienten hat <span class="math">f(t)=3 + 4cos(t)</span>?</summary>
+      <details class="reveal"><summary><span>Welche Fourier-Koeffizienten hat <span class="math">f(t)=3 + 4cos(t)</span>?</span></summary>
         <div class="q"><p><span class="math">c₀ = 3</span> (Mittelwert), und <span class="math">4cos t = 2e^(it)+2e^(−it)</span> ⇒ <span class="math">c₁ = c₋₁ = 2</span>. Alle anderen 0. Kein Integral nötig — nur Euler anwenden.</p></div>
       </details>
-      <details class="reveal"><summary>Eine Funktion ist ungerade (<span class="math">f(−t)=−f(t)</span>). Was weißt du sofort über die reellen Koeffizienten?</summary>
+      <details class="reveal"><summary><span>Eine Funktion ist ungerade (<span class="math">f(−t)=−f(t)</span>). Was weißt du sofort über die reellen Koeffizienten?</span></summary>
         <div class="q"><p>Alle <span class="math">aₙ = 0</span> (die Kosinusterme). Es bleiben nur Sinusterme <span class="math">bₙ</span>. (Bei geraden Funktionen umgekehrt: nur <span class="math">aₙ</span>.)</p></div>
       </details>
-      <details class="reveal"><summary>Warum ist <span class="math">c₀</span> immer der Mittelwert des Signals?</summary>
+      <details class="reveal"><summary><span>Warum ist <span class="math">c₀</span> immer der Mittelwert des Signals?</span></summary>
         <div class="q"><p>Setzt man <span class="math">n=0</span> in die Formel, wird <span class="math">e^(−i·0·t)=1</span>, also <span class="math">c₀=(1/2π)∫₀^(2π) f(t)dt</span> — das ist genau der Durchschnitt über eine Periode (der Gleichanteil).</p></div>
       </details>
-
-      <div class="callout callout--note" style="margin-top:28px">
-        <div class="callout__icon">🚀</div>
-        <div class="callout__body"><b>Nächster Schritt:</b> Jetzt anwenden — ein Lehrkurs wird erst durch das Übungsblatt zu Wissen. Welche Blätter zu diesem Modul gehören, steht in der <a href="../startseite.html">Übersicht</a>.</div>
-      </div>
     </section>
 
     <footer class="foot">

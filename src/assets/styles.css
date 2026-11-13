@@ -2228,21 +2228,28 @@ body.is-hub { background: var(--paper-2); }
    liest sich als ein Satz, und `overflow-wrap: anywhere` fangt lange
    Dateinamen wie `Loesungen/M05_BaumLoesung.java` ab. `anywhere` und nicht
    `break-word` -- nur `anywhere` fliesst in die min-content-Breite ein. */
+/* GEAENDERT 13.11.2026 (Agent, Redesign der Seiten): das Kriterium stand in
+   11 px Versalien, gesperrt und grün (`font-family: var(--mono); font-size:
+   11px; letter-spacing: .1em; text-transform: uppercase; color: var(--easy)`,
+   Linie `1px solid var(--hair-strong)`), nur das <b> davor war Lesetext. Es
+   ist aber der Satz, an dem man seine Arbeit prüft und die Etappe abhakt
+   (siehe @WEG, 4) — der wichtigste Satz der Etappe, nicht ihr Kleingedrucktes.
+   Jetzt Lesetext in Tinte; die grüne Linie darüber ist das Zeichen für „hier
+   endet etwas". `max-width` wie `.chapter p`, damit die Zeile nicht länger
+   läuft als der Text darüber. */
 .etappe-ende {
   display: block;
   margin: 22px 0 6px;
   padding-top: 14px;
-  border-top: 1px solid var(--hair-strong);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
+  border-top: 2px solid var(--done);
+  max-width: 66ch;
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.55;
   overflow-wrap: anywhere;
-  color: var(--easy);
+  color: var(--ink-soft);
 }
-.etappe-ende b { margin-right: 4px; }
-.etappe-ende b { font-family: var(--body); font-size: 13.5px; letter-spacing: 0;
-                 text-transform: none; color: var(--ink); font-weight: 600; }
+.etappe-ende b { margin-right: 4px; color: var(--ink); font-weight: 600; }
 
 /* Ein Schema als Bild in einem .viz-Rahmen. Das Rahmenwerk hatte nur
    `.hot__stage img` -- ausserhalb einer Hotspot-Aufgabe war ein Bild
@@ -2413,3 +2420,294 @@ body.is-hub { background: var(--paper-2); }
   padding: 1px 5px; border-radius: 3px; color: var(--accent-deep);
   overflow-wrap: anywhere;
 }
+
+/* @WEG:START ==================================================================
+   NEU 13.11.2026 (Agent, Redesign der Seiten): der Weg der Übersicht, in den
+   Seiten fortgesetzt.
+
+   Die Übersicht ist seit dem 12.11.2026 ein Weg: eine Linie, Marken, genau ein
+   nächster Schritt. Fachartikel, Aufgabenheft und Lab kannten davon nichts. Ihr
+   Wegweiser war eine Liste mit einem „▸", gelesene Kapitel sahen aus wie
+   ungelesene, und jede Seite endete an ihrer Fußzeile.
+
+   Dieser Abschnitt trägt alles dazu, an EINER Stelle, mit eigenen
+   Breakpoint- und Druckregeln am Ende:
+
+     1  Seitenleiste   Wegweiser und Kapitelliste als Linie mit Marken
+     2  Weiter-Karte   am Seitenende und, für den, der wiederkommt, im Kopf
+     3  Aufgabenheft   Marke an der nächsten Aufgabe, erledigte als Zeile
+     4  Lab            Etappen abhaken
+
+   Am Markup der Seiten ändert sich dafür NICHTS. Der Wegweiser bleibt der
+   klassenlose <div> aus Rahmenwerk.md („Navigation") und wird hier über
+   `.rail > div:not([class])` getroffen; der aktive Schritt über
+   `[aria-current="page"]`, das ohnehin Pflicht ist. Ein Kurs, der vor diesem
+   Datum gebaut wurde, bekommt das neue Bild also durch das Stylesheet allein.
+
+   Die Aufgabenliste eines Hefts (`.nav__task[data-nav]`) ist ausgenommen: sie
+   hat ihre Punkte mit ✓ und ✗ schon.
+
+   Farben ausschließlich aus colorpalett.css.
+   ============================================================================ */
+
+/* ---- 1 · Seitenleiste ------------------------------------------------------
+   Die Linie ist ein ::before an JEDEM Eintrag, über seine ganze Höhe, und die
+   Marke liegt mit eigenem Grund darüber. Am ersten Eintrag beginnt sie in der
+   Mitte, am letzten endet sie dort. So bleibt die Linie durchgehend, auch wenn
+   ein Titel umbricht und der Eintrag zwei Zeilen hoch wird — ein Strich „von
+   Marke zu Marke" hätte dafür die Höhe des Nachbarn kennen müssen.
+
+   19 px von links: 9 px Innenabstand des Eintrags plus die halbe Marke (11 px)
+   minus die halbe Linie (1 px). `-2px` oben und unten überbrückt die 4 px
+   Abstand, die `.nav` zwischen seine Einträge legt. */
+.rail > div:not([class]) .nav__task::before,
+.rail > .nav .nav__task:not([data-nav])::before {
+  content: ''; position: absolute; left: 19px; top: -2px; bottom: -2px;
+  width: 2px; background: var(--hair-strong);
+}
+.rail > div:not([class]) .nav__task:first-of-type::before,
+.rail > .nav .nav__task:not([data-nav]):first-of-type::before { top: 50%; }
+.rail > div:not([class]) .nav__task:last-of-type::before,
+.rail > .nav .nav__task:not([data-nav]):last-of-type::before { bottom: 50%; }
+
+.rail > div:not([class]) .nav__num,
+.rail > .nav .nav__task:not([data-nav]) .nav__num {
+  position: relative; z-index: 1; flex: 0 0 auto;
+  width: 22px; height: 22px; border-radius: 100px;
+  display: grid; place-items: center;
+  font-size: 10.5px; font-weight: 700; line-height: 1;
+  background: var(--paper); border: 1.5px solid var(--hair-strong); color: var(--ink-mute);
+}
+
+/* Diese Seite: dieselbe gefüllte Marke wie an der Gruppe der Übersicht, in der
+   der nächste Schritt liegt. Der Text „▸" und das <b> bleiben — sie sind die
+   Markierung, die jedes Skript überlebt (Rahmenwerk.md, „Fallstricke"). */
+.rail > div:not([class]) .nav__task[aria-current="page"] .nav__num {
+  background: var(--accent); border-color: var(--accent); color: var(--surface);
+}
+
+/* Gelesenes Kapitel, abgehakte Etappe: grün wie eine erledigte Gruppe, und die
+   Linie durch den Eintrag wird mitgefärbt. Gesetzt von lehrkurs.js. */
+.rail > .nav .nav__task.is-done:not([data-nav]) .nav__num {
+  background: var(--done); border-color: var(--done); color: var(--surface);
+}
+.rail > .nav .nav__task.is-done:not([data-nav])::before { background: var(--done); }
+.rail > .nav .nav__task.is-active:not(.is-done):not([data-nav]) .nav__num {
+  border-color: var(--accent); color: var(--accent-deep);
+}
+
+/* Aufgabenheft: der Punkt der Aufgabe, die als nächste dran ist. */
+.nav__task.is-next .nav__dot {
+  border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint);
+}
+
+/* ---- 2 · Weiter-Karte --------------------------------------------------------
+   Gebaut von WB.weg in engine.js. Der Inhalt trägt die Klassen `resume*` der
+   Weiter-Karte auf der Übersicht; hier steht nur der Rahmen. Der Akzentstreifen
+   links ist derselbe wie dort und wie an der einen markierten Zeile. */
+.weiter {
+  margin-top: 56px; padding: 26px 28px; min-width: 0;
+  background: var(--surface); border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  box-shadow: inset 4px 0 0 var(--accent), var(--shadow);
+}
+/* Ohne diese Zeile gewinnt jede `display`-Angabe gegen das Attribut `hidden`. */
+.weiter[hidden] { display: none; }
+.weiter + .foot { margin-top: 56px; }
+
+/* Die schmale Fassung unter dem Seitenkopf: eine Zeile mit Knopf rechts. Sie
+   soll sagen, wo es weitergeht, und nicht mit der Überschrift darüber um den
+   Blick ringen. `> *` bekommt Spalte 1 und `min-width: 0` (Layoutregel 3). */
+.weiter--kopf {
+  margin-top: 28px; padding: 16px 20px 16px 24px;
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+.weiter--kopf .resume {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 20px; row-gap: 3px; align-items: center;
+}
+.weiter--kopf .resume > * { grid-column: 1; min-width: 0; }
+.weiter--kopf .resume__title { font-size: 19px; margin-top: 0; }
+.weiter--kopf .resume > .resume__btn {
+  grid-column: 2; grid-row: 1 / span 4; align-self: center;
+  margin-top: 0; font-size: 12.5px; padding: 9px 15px;
+}
+
+/* ---- 3 · Aufgabenheft --------------------------------------------------------
+   Die eine Aufgabe, die als nächste dran ist: Akzentstreifen und Marke, wie an
+   der einen Zeile der Übersicht. */
+.task.is-next { box-shadow: inset 4px 0 0 var(--accent), var(--shadow); }
+.task__flag {
+  display: inline-block; margin-bottom: 6px;
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--accent-deep); background: var(--accent-soft);
+  border-radius: 100px; padding: 2px 9px;
+}
+.task__flag[hidden] { display: none; }
+
+/* Der Knopf zum Auf- und Zuklappen. Der Winkel ist derselbe wie an einer
+   Gruppe der Übersicht und steht mittig in einem 30-px-Knopf — ein gedrehtes
+   Quadrat ragt am Rand über, siehe `.hubgroup__chev`. */
+.task__toggle {
+  flex: 0 0 auto; width: 30px; height: 30px; padding: 0;
+  display: grid; place-items: center; cursor: pointer;
+  background: transparent; border: 1px solid var(--hair-strong); border-radius: 100px;
+}
+.task__toggle[hidden] { display: none; }
+.task__toggle:hover { border-color: var(--accent); }
+.task__toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.task__chev {
+  width: 7px; height: 7px;
+  border-right: 2px solid var(--ink-mute); border-bottom: 2px solid var(--ink-mute);
+  transform: translateY(2px) rotate(225deg);
+  transition: transform .16s var(--ease);
+}
+.task.is-zu .task__chev { transform: translateY(-2px) rotate(45deg); }
+
+/* Zugeklappt ist eine erledigte Aufgabe EINE ZEILE: Nummer, Titel, Ergebnis.
+   Nur beim Wiederkommen (engine.js, „Stand wiederherstellen"). Der Rahmen
+   behält seine Farbe — grün gelöst, rot falsch —, der Schatten fällt weg:
+   eine Zeile ist keine Karte. */
+.task.is-zu { box-shadow: none; }
+.task.is-zu .task__body { display: none; }
+.task.is-zu .task__head { border-bottom: 0; padding-top: 12px; padding-bottom: 12px; cursor: pointer; }
+.task.is-zu .task__num { width: 34px; height: 34px; font-size: 13px; }
+.task.is-zu .task__title { font-size: 17px; margin-top: 0; }
+.task.is-zu .task__eyebrow, .task.is-zu .chip { display: none; }
+
+/* ---- 4 · Lab -----------------------------------------------------------------
+   Das Ende einer Etappe ist jetzt die Stelle, an der man sie abhakt. Gebaut
+   von lehrkurs.js; ohne Skript bleibt `.etappe-ende` der Satz, der er war.
+   Der Text steht in einem <span> und nicht lose neben dem Kästchen: ein
+   anonymes Flex-Kind bekäme kein `min-width: 0` (Layoutregel 3). */
+.etappe-ende__ok {
+  display: flex; align-items: center; gap: 8px;
+  width: fit-content; max-width: 100%;
+  margin-top: 12px; padding: 7px 14px 7px 10px; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-soft); background: var(--surface);
+  border: 1px solid var(--hair-strong); border-radius: 100px;
+}
+.etappe-ende__ok span { min-width: 0; overflow-wrap: anywhere; }
+.etappe-ende__ok input { flex: 0 0 auto; width: 15px; height: 15px; accent-color: var(--done); }
+.etappe-ende__ok:hover { border-color: var(--done); }
+.etappe-ende.is-done .etappe-ende__ok {
+  background: var(--done-bg); border-color: var(--done); color: var(--done);
+}
+.chapter.is-done > .chapter__tag::after { content: ' · erledigt'; color: var(--done); }
+/* Die beiden Regeln für `.readbar__head` und `.readbar__val`, die hier am
+   Vormittag des 13.11.2026 standen, sind wieder entfernt: sie gehörten zur
+   Anzeige „2/5" im Balken. Seit „Scrollen reicht" steht dort wie im Artikel
+   eine Prozentzahl. */
+
+/* ---- 5 · Fuß der Seitenleiste ------------------------------------------------
+   NEU 13.11.2026 (Agent, auf Wunsch des Nutzers). Der Weg zurück zur Übersicht
+   und „Stand löschen" waren zwei Filter-Pillen unter sechs Filter-Pillen und
+   von ihnen nicht zu unterscheiden. Jetzt sind es zwei Zeilen mit der runden
+   Marke der Weglinie: die Übersicht als Karte, das Löschen leise darunter und
+   erst unter dem Zeiger in der Warnfarbe.
+
+   Getroffen wird über das Ziel des Links und über `data-reset`, nicht über
+   eine neue Klasse — am Markup der Seiten ändert sich nichts, wie im ganzen
+   Abschnitt. Die Marke ist ein absolut gesetztes ::before und kein Flex-Kind:
+   der Text daneben wäre sonst ein anonymes Flex-Kind (Layoutregel 3).
+   `width` statt `flex-basis`, weil der Knopf in selbsttest.html direkt im
+   Spalten-Flex von `.rail__foot` steht; dort wäre die Basis eine Höhe. */
+.rail__foot a.filter[href$="startseite.html"],
+.rail__foot .filter[data-reset] {
+  position: relative; display: block; width: 100%; min-width: 0;
+  padding: 10px 12px 10px 42px;
+  font-family: var(--body); font-size: 13.5px; line-height: 1.25;
+  letter-spacing: 0; text-transform: none; text-align: left;
+  text-decoration: none; overflow-wrap: anywhere;
+  border-radius: var(--radius);
+}
+.rail__foot a.filter[href$="startseite.html"]::before,
+.rail__foot .filter[data-reset]::before {
+  position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+  width: 22px; height: 22px; border-radius: 100px;
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 700; line-height: 1;
+  background: var(--paper); border: 1.5px solid var(--hair-strong); color: var(--ink-mute);
+  transition: background .16s var(--ease), border-color .16s var(--ease), color .16s var(--ease);
+}
+
+.rail__foot a.filter[href$="startseite.html"] {
+  color: var(--ink); font-weight: 600;
+  background: var(--surface); border: 1px solid var(--hair);
+}
+.rail__foot a.filter[href$="startseite.html"]::before { content: '←'; }
+.rail__foot a.filter[href$="startseite.html"]:hover { border-color: var(--accent); }
+.rail__foot a.filter[href$="startseite.html"]:hover::before {
+  background: var(--accent); border-color: var(--accent); color: var(--surface);
+}
+
+.rail__foot .filter[data-reset] {
+  color: var(--ink-mute); background: transparent; border: 1px solid transparent;
+}
+.rail__foot .filter[data-reset]::before { content: '×'; font-size: 13px; background: transparent; }
+.rail__foot .filter[data-reset]:hover { color: var(--hard); background: var(--hard-bg); }
+.rail__foot .filter[data-reset]:hover::before { border-color: var(--hard); color: var(--hard); }
+
+/* ---- Breiten -------------------------------------------------------------- */
+
+/* Ab 760 px bleibt eine zugeklappte Aufgabe einzeilig: das Ergebnis steht
+   rechts neben dem Titel. Darunter bleibt es bei der zweiten Zeile aus
+   @RESPONSIVE — neben Nummer, Ergebnis und Knopf blieben dem Titel bei 320 px
+   keine 70 px. */
+@media (min-width: 760px) {
+  .task.is-zu .task__head { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .task.is-zu .task__meta { grid-column: auto; }
+}
+
+@media (max-width: 759px) {
+  /* Die Kapitelliste ist hier ein waagerechter Streifen (siehe @RESPONSIVE).
+     Für ein Aufgabenheft galt das schon; ein Artikel oder Lab zeigte dort
+     NICHTS, weil die Nummer versteckt wird und es keinen Punkt gab. Jetzt
+     bleibt die Marke stehen, mit ihrem Haken. Die Linie entfällt: sie liefe
+     senkrecht durch eine waagerechte Reihe. */
+  .rail > .nav .nav__task:not([data-nav]) .nav__num { display: grid; }
+  .rail > .nav .nav__task:not([data-nav])::before { display: none; }
+
+  /* Der Wegweiser bestand hier aus drei leeren Flächen von 8 px, weil
+     Beschriftung und Nummer versteckt sind. Auf dieser Breite sagen die
+     Kopfzeile der Seite und die Weiter-Karte am Ende, wo man im Modul steht;
+     die klebende Leiste gibt dafür keine Zeile her. */
+  .rail > div:not([class]) { display: none; }
+
+  /* Ein Merkstreifen direkt in der Leiste klebt hier mit ihr am oberen Rand
+     und nahm einem Artikel auf 760 px Höhe gut 100 px Lesefläche. Die Warnung
+     „kein Speicher" ist ausgenommen und bleibt sichtbar. */
+  .rail > .note-strip:not([data-store-warning]) { display: none; }
+
+  /* Fuß der Leiste: beide nebeneinander und niedriger. Zwei volle Zeilen
+     kosteten die klebende Leiste hier gut 80 px Höhe. */
+  .rail__foot a.filter[href$="startseite.html"],
+  .rail__foot .filter[data-reset] {
+    width: auto; padding: 6px 12px 6px 33px; font-size: 12.5px;
+  }
+  .rail__foot a.filter[href$="startseite.html"]::before,
+  .rail__foot .filter[data-reset]::before {
+    left: 7px; width: 18px; height: 18px; font-size: 10px;
+  }
+
+  .weiter { margin-top: 40px; padding: 20px; }
+  .weiter--kopf { margin-top: 20px; padding: 14px 16px 14px 20px; }
+  .weiter--kopf .resume { grid-template-columns: minmax(0, 1fr); }
+  .weiter--kopf .resume > .resume__btn {
+    grid-column: 1; grid-row: auto; justify-self: start; margin-top: 8px;
+  }
+}
+
+/* ---- Druck ----------------------------------------------------------------
+   Auf Papier gibt es keinen nächsten Schritt und nichts zum Klappen: Karten,
+   Marke, Knopf und Haken weg, jede zugeklappte Aufgabe aufgeschlagen. */
+@media print {
+  .weiter, .task__toggle, .task__flag, .etappe-ende__ok { display: none !important; }
+  .task.is-zu .task__body { display: block !important; }
+  .task.is-zu .task__head { border-bottom: 1px solid var(--hair); }
+  .task.is-zu .task__eyebrow { display: block; }
+}
+/* @WEG:END */

@@ -33,6 +33,15 @@
 
      Als reine Leseseite wird er vom Standardlauf nicht gefunden:
          pwsh tools/bootcamp-check.ps1 -Pages Modul_02_Verbundnetze_Lehrkurs
+
+     GEAENDERT AM 13.11.2026 (Agent, Redesign der Seiten):
+       · Die Positionszeile im Kopf steht in der Reihenfolge aus Rahmenwerk.md,
+         „Navigation": Modul n · Schritt k von j · Seitentyp. Vorher stand der
+         Seitentyp vorn, anders als im Aufgabenheft.
+       · Der Merkkasten „Nächster Schritt" am Ende ist entfernt. Den nächsten
+         Schritt nennt jetzt die Weiter-Karte, die lehrkurs.js vor die Fußzeile
+         setzt (WB.weg in engine.js) — gelesen aus dem Wegweiser der
+         Seitenleiste, also nie anders als dieser.
      ═══════════════════════════════════════════════════════════════════════════ -->
 
 <link rel="stylesheet" href="assets/styles.css">
@@ -93,7 +102,7 @@
 
   <main class="main">
     <header class="masthead">
-      <div class="masthead__rule"><span><span class="dot"></span>Lehrkurs · Modul 02 · Schritt 1 von 3</span><span>7 Kapitel</span></div>
+      <div class="masthead__rule"><span><span class="dot"></span>Modul 02 · Schritt 1 von 3 · Lehrkurs</span><span>7 Kapitel</span></div>
       <div class="kicker">Verbundnetze</div>
       <h1>Ein Kontinent, <em>eine Frequenz</em></h1>
       <p class="lede">Von Portugal bis Polen läuft jeder Generator im Gleichschritt — und keiner
@@ -373,14 +382,6 @@
         Sekundenbruchteilen schöpfen könnte. Ein Umrichter kann dieses Verhalten nachbilden, aber
         er muss dafür ausdrücklich so gebaut und parametriert sein.</p></div>
       </details>
-
-      <div class="callout callout--note" style="margin-top:28px">
-        <div class="callout__icon">→</div>
-        <div class="callout__body"><b>Nächster Schritt:</b> Jetzt anwenden — ein Lehrkurs wird erst
-        durch das Aufgabenheft zu Wissen. Weiter mit
-        <a href="Modul_02_Verbundnetze.html">Aufgabenheft Modul 02</a>, danach schließt das
-        <a href="Modul_02_Verbundnetze_Lab.html">Lab</a> das Modul ab.</div>
-      </div>
     </section>
 
     <footer class="foot">
