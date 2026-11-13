@@ -13,7 +13,7 @@ Sie enthält bewusst keine Angaben über den Nutzer. Die stehen in `Nutzereinste
 | Branch | Inhalt | Zustand |
 |---|---|---|
 | `main` | Rückführung aus dem Java-Bootcamp, erweiterter Lint, diese Datei | geprüft, gepusht |
-| `redesign/uebersicht` | Redesign der Hauptseite; enthält `main` vollständig | geprüft, gepusht, **noch nicht übernommen** — der Nutzer wollte ihn erst ansehen |
+| `redesign/uebersicht` | Redesign der Hauptseite und der Seiten; enthält `main` vollständig | *Stand 13.11.2026:* auf Anweisung des Nutzers nach `main` übernommen. Ob `origin` nachgezogen ist, sagt `git status` |
 | `kurs/java` | das Java-Bootcamp, ein Commit auf `0f9ae06` | Sicherung des Arbeitsstands, gepusht. **Kein Teil der Vorlage** und nie nach `main` zu mergen |
 
 **Auf `main` neu seit `0f9ae06` („add check"):**
@@ -61,7 +61,7 @@ Den Prüflauf ohne Parameter starten: `-Sheets a,b` kommt unter `powershell -Fil
 
 ## 4 · Offene Entscheidungen, alle beim Nutzer
 
-1. **Redesign übernehmen?** `redesign/uebersicht` enthält `main` vollständig, ein Fast-Forward genügt. Nicht geprüft und vorher anzusehen: Druckansicht, Bedienung per Touch und nur mit Tastatur, ein Kurs mit mehr als vier Gruppen. Die Handyansicht wurde nur ausschnittweise gesehen; die Breitenprüfung (320 bis 1340 px, alle Gruppen offen) ist ohne Befund.
+1. **Redesign übernehmen?** *Entschieden am 13.11.2026: ja, siehe 6a.* `redesign/uebersicht` enthält `main` vollständig, ein Fast-Forward genügt. Nicht geprüft und vorher anzusehen: Druckansicht, Bedienung per Touch und nur mit Tastatur, ein Kurs mit mehr als vier Gruppen. Die Handyansicht wurde nur ausschnittweise gesehen; die Breitenprüfung (320 bis 1340 px, alle Gruppen offen) ist ohne Befund.
 2. **Groß-/Kleinschreibung im Lint behalten?** Gefragt war nur die Erweiterung der Tag-Liste um `h3` und `aside`. Die Unterscheidung kam dazu, weil die längere Liste sonst `List<Figure>` durchgelassen hätte. Der Nutzer hat sie noch nicht bestätigt.
 3. **Wo bleibt das Java-Bootcamp auf Dauer?** Es liegt als Sicherung auf `kurs/java` im Vorlagen-Repo, und das ist öffentlich. Bleibt es dort, zieht es in ein eigenes Repo, oder wird der Branch gelöscht, sobald der Kurs woanders liegt? Auf `main` gehört nichts davon: die Vorlage bleibt kursfrei.
 4. **Welche der Vorschläge aus Abschnitt 5** gebaut werden und in welcher Reihenfolge.
@@ -82,7 +82,7 @@ Empfohlene Reihenfolge: erst die kleinen Werkzeugpunkte W1, W3, W4 und H1; dann 
 
 - **H1 · Stand sichern und laden.** `WB.store.exportJSON()` und `importJSON()` gibt es in `engine.js`, aber keinen Knopf. Auf `file://` ist das der einzige Schutz gegen Browserwechsel oder gelöschte Websitedaten.
 - **H2 · Ränge einstellbar.** „Prüfungsreif" und „Klausurfit" stehen auch in einem Themen-Bootcamp ohne Prüfung, und die Weiter-Karte sagt „Modul abgeschlossen", wenn der ganze Kurs durch ist. Ein optionales `ranks` in `WB.hub` und ein anderes Wort.
-- **H3 · Auf-/Zu-Zustand merken.** Eine von Hand geöffnete Gruppe geht beim Neuladen wieder zu.
+- **H3 · Auf-/Zu-Zustand merken.** *Erledigt am 13.11.2026, siehe 6a.* Eine von Hand geöffnete Gruppe geht beim Neuladen wieder zu.
 - **H4 · Suchfeld** über Titel und Beschreibungen, sobald ein Kurs mehr als etwa 20 Einträge hat.
 
 **Werkzeuge**
@@ -103,12 +103,13 @@ Empfohlene Reihenfolge: erst die kleinen Werkzeugpunkte W1, W3, W4 und H1; dann 
 
 ## 6a · Nachtrag vom 13.11.2026: Redesign der Seiten
 
-Der Nutzer hat das Redesign der Startseite angesehen und für gut befunden; **übernommen nach `main` ist es damit nicht**, Entscheidung 1 oben bleibt offen. Im Auftrag des Nutzers ist dieselbe Wegsprache auf `redesign/uebersicht` in Fachartikel, Aufgabenheft und Lab eingezogen. Was und warum steht in `Rahmenwerk.md`, *Der Weg in der Seite*; der Code liegt in `styles.css` (`@WEG`), `engine.js` (`WB.weg`, `wegweisen()`) und `lehrkurs.js` (`wireEtappen()`).
+Der Nutzer hat das Redesign der Startseite angesehen und für gut befunden und am selben Tag angewiesen, den Branch zu committen und nach `main` zu bringen. Entscheidung 1 oben ist damit getroffen. Im Auftrag des Nutzers ist dieselbe Wegsprache auf `redesign/uebersicht` in Fachartikel, Aufgabenheft und Lab eingezogen. Was und warum steht in `Rahmenwerk.md`, *Der Weg in der Seite*; der Code liegt in `styles.css` (`@WEG`), `engine.js` (`WB.weg`, `wegweisen()`) und `lehrkurs.js` (`wireEtappen()`).
 
 - **Umgebung des neuen Rechners:** Node 26, `pwsh` 7.7 und `powershell` vorhanden, Edge, kein Playwright-Cache. Der Prüflauf war vor der ersten Änderung GRÜN mit Exitcode 0.
 - **`Nutzereinstellungen.md` fehlt auf diesem Rechner weiterhin.** Gebaut wurde ohne sie; der Nutzer ist darauf hingewiesen.
 - **Vom Nutzer entschieden: „Scrollen reicht".** Die erste Fassung ließ ein Lab erst fertig werden, wenn alle Etappen abgehakt sind. Das ist am selben Tag zurückgenommen: fertig macht das Scrollen wie beim Artikel, die Haken sind eine Anzeige (grüne Marke in der Leiste, Sprungziel im Kopf) und ändern `percent` und `done` nicht.
 - **Fuß der Seitenleiste, ebenfalls auf Wunsch des Nutzers:** im Lab ist der Rücksprung ins Aufgabenheft entfernt, und „Übersicht" und „Stand löschen" sind neu gestaltet (`styles.css`, `@WEG`, Abschnitt 5; `Rahmenwerk.md`, *Der Weg in der Seite*, Punkt 6).
+- **Die Übersicht merkt sich die Ansicht (H3), auf Wunsch des Nutzers und unter seiner Bedingung, dass es die Seite nicht bremst.** Offene Gruppen und Scrollstelle, für den Tab (`sessionStorage`), gespeichert einmal bei `pagehide`, ohne Zuhörer am Scrollen. Regeln und Messwerte in `Rahmenwerk.md`, *Die Übersicht als Weg*, Punkt 4; Code in `hub.js`, „Ansicht merken". Nicht geprüft: ein echter Doppelklick über `file://` und der Zurück-Knopf des Browsers.
 - **Was der Prüflauf nicht sieht:** er beginnt bei null, also nie eine zugeklappte Aufgabe, nie die Zeile „Weitermachen", nie einen gesetzten Haken. Diese Zustände wurden von Hand gemessen: sieben Seiten mit halbem Stand auf elf Breiten von 320 bis 1340 px über den Vorschau-Server, ohne Befund. W2 unten (Breitenprüfung mit gesetztem Stand) würde das ins Werkzeug holen.
 - **Nicht geprüft:** Druckansicht der neuen Teile, Bedienung per Touch, ein echter Doppelklick über `file://` (angesehen wurde alles über `http://127.0.0.1`).
 - **Aufgefallen und nicht angefasst:** unter 760 px klebt die Seitenleiste eines Aufgabenhefts mit Fortschritt, Punkten, sechs Filtern und zwei Knöpfen oben und nimmt bei 375 × 760 px knapp die Hälfte des Bildschirms. Das war vorher so. Beim Artikel und Lab ist die Leiste jetzt niedriger, weil der Merkstreifen dort entfällt.

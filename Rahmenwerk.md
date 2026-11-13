@@ -749,12 +749,14 @@ An den Daten ändert sich nichts: `WB.hub({ groups, entries })` wie oben. Geänd
 - **Genau eine Zeile trägt die Marke „Als nächstes" oder „Weitermachen"** und denselben Akzentstreifen wie die Weiter-Karte.
 - **`note` steht im aufgeklappten Teil**, nicht im Kopf. Zwölf zugeklappte Gruppen mit je einem Absatz wären wieder die Wand.
 - **Ein Knopf mit `data-hub-toggle`** in `startseite.html` klappt alles auf oder zu. Er ist optional; ohne ihn läuft die Seite unverändert.
+- **Die Übersicht merkt sich die Ansicht für den Tab.** *Ergänzt am 13.11.2026 vom Agenten auf Wunsch des Nutzers.* Wer aus einem Blatt zurückkommt, findet dieselben Gruppen offen und dieselbe Stelle im Bild. Liegt der nächste Schritt inzwischen woanders, steht seine Gruppe zusätzlich offen. Wer die Übersicht in einem neuen Tab öffnet, beginnt oben mit der einen offenen Gruppe.
 
-Drei Dinge, die man beim Weiterbauen wissen muss:
+Vier Dinge, die man beim Weiterbauen wissen muss:
 
 1. **Weiter-Karte, offene Gruppe und markierte Zeile hängen an einer einzigen Rechnung** (`ziel` in `hub.js`). Wer eine der drei Stellen umbaut, lässt die Rechnung, wo sie ist. `tools/hub-progress-check.mjs` prüft, dass alle drei auf denselben Schritt zeigen.
 2. **Bei der Breitenprüfung stehen alle Gruppen offen.** `audit.js` misst nur, was sichtbar ist; `hub.js` öffnet deshalb alles, sobald die Seite mit `#audit`, `#autoaudit` oder `#pruefen` geladen wird. Ohne das bliebe der Lauf grün und prüfte weniger.
 3. **Im `<summary>` stehen nur `<span>` und die Überschrift.** Ein `<div>` darin ist kein gültiges HTML; die Anordnung macht das Raster. Und ein gedrehtes Element am Rand eines Rasters ragt über: der Aufklapp-Winkel stand 2 px über dem Kopf (`summary client=305 inhalt=307`), bis er mittig in eine breitere Spalte kam.
+4. **Die gemerkte Ansicht darf die Seite nichts kosten.** Das war die Bedingung des Auftrags. Gespeichert wird deshalb genau einmal, beim Verlassen (`pagehide`), in `sessionStorage`; gelesen einmal vor dem Rendern, gescrollt einmal danach. **Kein Zuhörer am Scrollen und keiner am Klappen** — wer hier später „live" speichern will, baut die Kosten ein, die vermieden wurden. Gemessen am Showcase: Lesen 0,001 ms, Schreiben 0,02 ms, 145 Zeichen. Mit einem Anker in der Adresse wird nicht gescrollt, im Prüflauf weder gelesen noch geschrieben. `tools/hub-progress-check.mjs` prüft das alles, auch dass `pagehide` der einzige Zuhörer ist.
 
 Ohne `group` bleibt es bei der Kachelwand; `.sheets` und `.sheetcard` gibt es deshalb weiter.
 

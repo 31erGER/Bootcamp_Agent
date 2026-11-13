@@ -72,6 +72,10 @@
         Startseite ihn mitbringt.
 
    Ohne `group` bleibt alles bei der Kachelwand von vorher.
+
+   ERGAENZT AM 13.11.2026 (Agent, auf Wunsch des Nutzers): die Übersicht merkt
+   sich für den Tab, welche Gruppen offen standen und wo gescrollt war —
+   siehe „Ansicht merken" unten.
    ============================================================================ */
 
 window.WB = window.WB || {};
@@ -168,6 +172,56 @@ window.WB = window.WB || {};
     };
   }
 
+  /* ── Ansicht merken ───────────────────────────────────────────────────────
+     NEU 13.11.2026 (Agent, auf Wunsch des Nutzers). Wer aus einem Blatt zur
+     Übersicht zurückkommt, findet sie so vor, wie er sie verlassen hat:
+     dieselben Gruppen offen, dieselbe Stelle im Bild. Vorher stand sie jedes
+     Mal oben und mit nur einer offenen Gruppe da.
+
+     Der Auftrag stand unter dem Vorbehalt, dass es die Seite nicht bremst.
+     Deshalb drei Festlegungen:
+
+       1. KEIN Zuhörer am Scrollen und keiner am Klappen. Gespeichert wird ein
+          einziges Mal, beim Verlassen der Seite (`pagehide`). Solange jemand
+          liest oder scrollt, läuft keine Zeile dieses Abschnitts.
+       2. Gelesen wird einmal, vor dem Rendern: ein Schlüssel, ein kurzer
+          JSON-Text. Die Gruppen kommen schon richtig geklappt ins Dokument,
+          es wird also nichts ein zweites Mal gesetzt oder gemessen.
+       3. Gescrollt wird einmal, am Ende von WB.hub(), ohne Animation. Die
+          Skripte stehen am Ende von <body>; der Browser hat bis dahin noch
+          nichts gemalt, die Seite springt also nicht sichtbar.
+
+     sessionStorage und nicht localStorage: gemerkt wird für diesen Tab. Wer
+     die Übersicht am nächsten Tag neu öffnet, soll oben beim nächsten Schritt
+     landen und nicht mitten in der Seite von gestern. Der Lernstand ist davon
+     unberührt, der liegt weiter in localStorage.
+
+     Im Prüflauf (Anker #audit, #pruefen …) wird weder gelesen noch
+     geschrieben: dort stehen alle Gruppen offen, und das soll sich niemand
+     merken. Alles in try/catch — ist der Speicher gesperrt, verhält sich die
+     Seite wie vor diesem Datum.                                              */
+  const ansicht = {
+    aus() {
+      return /^#(auto|audit|autoaudit|validate|pruefen)$/i.test(
+        (typeof location !== 'undefined' && location.hash) || '');
+    },
+    schluessel() {
+      return WB.store && WB.store.key ? WB.store.key('ansicht') : 'wb:ansicht';
+    },
+    lies() {
+      if (this.aus()) return null;
+      try {
+        const roh = sessionStorage.getItem(this.schluessel());
+        return roh ? JSON.parse(roh) : null;
+      } catch (e) { return null; }
+    },
+    schreib(wert) {
+      if (this.aus()) return;
+      try { sessionStorage.setItem(this.schluessel(), JSON.stringify(wert)); }
+      catch (e) { /* gesperrt — dann eben wie früher */ }
+    }
+  };
+
   WB.hub = function hub(cfg) {
     const head = $('[data-hub-head]');
     if (head) {
@@ -253,6 +307,13 @@ window.WB = window.WB || {};
     const neu = rows.filter(unberuehrt)[0];
     const ziel = angefangen || neu || null;
     const zielLauf = ziel ? laeufe.filter(l => l.rows.indexOf(ziel) !== -1)[0] : null;
+
+    /* NEU 13.11.2026 (Agent): die gemerkte Ansicht, siehe „Ansicht merken"
+       oben. `klappbar` sammelt jede Gruppe mit ihrer Marke (Stelle + Name),
+       damit beim Verlassen feststeht, welche offen waren. */
+    const gemerkt = ansicht.lies();
+    const zielDatei = ziel ? ziel.entry.file : '';
+    const klappbar = [];
 
     /* ── Nutzerkarte ──
        GEAENDERT 12.11.2026 (Agent, Redesign): die Weiter-Karte steht zuerst und
@@ -561,7 +622,20 @@ window.WB = window.WB || {};
              darin ist kein gültiges HTML. Die Anordnung macht das Raster. */
           const aktuell = lauf === zielLauf;
           const sec = make('details', 'hubgroup' + (alles ? ' is-done' : '') + (aktuell ? ' is-current' : ''));
-          sec.open = alleOffen || aktuell;
+
+          /* GEAENDERT 13.11.2026 (Agent, „Ansicht merken"): gibt es eine
+             gemerkte Ansicht, gilt sie — auch wenn jemand die aktuelle Gruppe
+             zugeklappt hatte. Eine Ausnahme: liegt der nächste Schritt
+             inzwischen woanders als beim Verlassen, steht seine Gruppe
+             zusätzlich offen. Sonst käme man aus einem fertigen Blatt zurück
+             und der Schritt, den die Karte oben empfiehlt, wäre unten
+             versteckt. */
+          const marke = laeufe.indexOf(lauf) + '|' + lauf.name;
+          const warOffen = gemerkt && Array.isArray(gemerkt.offen)
+            ? gemerkt.offen.indexOf(marke) !== -1 || (aktuell && gemerkt.ziel !== zielDatei)
+            : aktuell;
+          sec.open = alleOffen || warOffen;
+          klappbar.push({ el: sec, marke: marke });
           const kopf = make('summary', 'hubgroup__head');
 
           /* Die Marke auf der Weglinie: Haken, wenn erledigt, Pfeil, wenn hier
@@ -665,6 +739,28 @@ window.WB = window.WB || {};
        Moduldateien und Startseite getrennte file://-Speicher besitzen. Die
        Engine sammelt die Originalstände per postMessage ein. Nur wenn wirklich
        ein neuer Stand ankam, wird einmal neu geladen und damit neu gerendert. */
+    /* NEU 13.11.2026 (Agent, „Ansicht merken"): einmal an die gemerkte Stelle,
+       einmal beim Verlassen speichern. Steht ein Anker in der Adresse, hat der
+       Vorrang — dann wollte jemand genau dorthin. `instant`, damit ein
+       `scroll-behavior` im Stylesheet daraus keine Fahrt macht. Das hier
+       steht VOR der Speicherbrücke: lädt sie die Seite neu, feuert `pagehide`
+       und die Ansicht überlebt auch das. */
+    if (typeof window !== 'undefined' && !ansicht.aus()) {
+      const anker = (typeof location !== 'undefined' && location.hash) || '';
+      if (gemerkt && gemerkt.y > 0 && !anker && typeof window.scrollTo === 'function') {
+        window.scrollTo({ top: gemerkt.y, left: 0, behavior: 'instant' });
+      }
+      if (typeof window.addEventListener === 'function') {
+        window.addEventListener('pagehide', () => {
+          ansicht.schreib({
+            ziel: zielDatei,
+            offen: klappbar.filter(k => k.el.open).map(k => k.marke),
+            y: Math.round(window.scrollY || 0)
+          });
+        });
+      }
+    }
+
     if (WB.storeBridge && WB.storeBridge.collect) {
       WB.storeBridge.collect(
         rows.filter(r => r.entry.points).map(r => r.entry.file),
