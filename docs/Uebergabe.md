@@ -1,4 +1,6 @@
-# Übergabe — Stand 12.11.2026
+# Übergabe — Stand 12.11.2026, nachgeführt am 13.11.2026
+
+> **Stand 13.11.2026, auf Anweisung des Nutzers: im Repo gibt es nur noch `main`.** `redesign/uebersicht` ist übernommen und gelöscht. `kurs/java` ist gelöscht; der Java-Kurs liegt als eigenständiges Projekt `Bootcamp_Java` neben diesem Ordner, mit eigener Historie und ohne Remote. Wo unten noch von drei Branches die Rede ist, ist das der Stand vom Vortag. Einzelheiten in 6a.
 
 **Für den Agenten der nächsten Sitzung.** Der Rechner, auf dem bis hierher gearbeitet wurde, wird zurückgesetzt; die Sitzung, ihr Notizspeicher und alle lokalen Klone sind danach weg. Übrig bleiben die drei Branches auf GitHub und diese Datei. Lies sie ganz, bevor du etwas anfasst.
 
@@ -13,8 +15,8 @@ Sie enthält bewusst keine Angaben über den Nutzer. Die stehen in `Nutzereinste
 | Branch | Inhalt | Zustand |
 |---|---|---|
 | `main` | Rückführung aus dem Java-Bootcamp, erweiterter Lint, diese Datei | geprüft, gepusht |
-| `redesign/uebersicht` | Redesign der Hauptseite und der Seiten; enthält `main` vollständig | *Stand 13.11.2026:* auf Anweisung des Nutzers nach `main` übernommen. Ob `origin` nachgezogen ist, sagt `git status` |
-| `kurs/java` | das Java-Bootcamp, ein Commit auf `0f9ae06` | Sicherung des Arbeitsstands, gepusht. **Kein Teil der Vorlage** und nie nach `main` zu mergen |
+| ~~`redesign/uebersicht`~~ | Redesign der Hauptseite und der Seiten | *13.11.2026:* nach `main` übernommen, gepusht, Branch lokal und auf GitHub gelöscht |
+| ~~`kurs/java`~~ | das Java-Bootcamp, ein Commit auf `0f9ae06` | *13.11.2026:* als eigenständiges Projekt `Bootcamp_Java` abgelegt (derselbe Commit `507032f`, geprüft), Branch lokal und auf GitHub gelöscht. **Kein Teil der Vorlage** |
 
 **Auf `main` neu seit `0f9ae06` („add check"):**
 
@@ -38,16 +40,16 @@ Gemessen am Showcase bei 1240 px Breite: vorher über 2700 px hoch; nachher 1285
 ## 2 · Was nicht auf `main` liegt und was gar nicht im Repo ist
 
 - **`Nutzereinstellungen.md`** ist per `.gitignore` ausgeschlossen. `CLAUDE.md` verlangt, sie zuerst zu lesen. Fehlt sie nach dem Aufsetzen, frag den Nutzer danach; die Vorlage ist `Nutzereinstellungen.example.md`. Rate ihren Inhalt nicht.
-- **Das Java-Bootcamp liegt auf dem Branch `kurs/java`, nicht auf `main`.** Es wurde am 12.11.2026 in einem zweiten Klon desselben Repos gebaut und kurz vor dem Zurücksetzen als ein einziger Commit gesichert, so wie die Arbeitskopie war: acht Module (Arrays, Typparameter, Varianz, Lambdas, Predicates, Pipeline, Collectors, Grenzen), zwei Wiederholungsblätter, Start- und Abschluss-Lab, dazu `java-labs/`, `docs/`, `Lernzettel.md`, `Referenzkarte.md`, `Themenlandkarte.canvas`. Dort sind die Showcase-Seiten gelöscht und der Kursschlüssel geändert.
+- **Das Java-Bootcamp liegt nicht mehr in diesem Repo.** *Geändert am 13.11.2026: der Branch `kurs/java`, von dem dieser Absatz handelt, ist gelöscht; der Kurs liegt als Projekt `Bootcamp_Java` neben diesem Ordner. Was unten über den Branch steht, gilt für dieses Projekt. „`main` hereinholen" heißt dort: aus diesem Ordner holen (`git fetch ../Bootcamp_Agent main`), ein Remote gibt es nicht. Der Kurs ist damit nur noch auf diesem Rechner gesichert.* Es wurde am 12.11.2026 in einem zweiten Klon desselben Repos gebaut und kurz vor dem Zurücksetzen als ein einziger Commit gesichert, so wie die Arbeitskopie war: acht Module (Arrays, Typparameter, Varianz, Lambdas, Predicates, Pipeline, Collectors, Grenzen), zwei Wiederholungsblätter, Start- und Abschluss-Lab, dazu `java-labs/`, `docs/`, `Lernzettel.md`, `Referenzkarte.md`, `Themenlandkarte.canvas`. Dort sind die Showcase-Seiten gelöscht und der Kursschlüssel geändert.
   Der Branch setzt auf `0f9ae06` auf, nicht auf dem heutigen `main`. Er enthält deshalb die Rahmenwerk-Eingriffe in ihrer ersten Fassung, und zwei Dateien sind dort älter als auf `main` (`Rahmenwerk.md`, ein Satz in *Programmierthemen* Punkt 3; `tools/redaktion-lint.mjs` ohne die Erweiterung). Vor dem Weiterbauen am Kurs `main` hereinholen; genau diese beiden Dateien melden dann einen Konflikt, nimm jeweils die Fassung von `main`. `docs/Uebergabe.md` kommt dabei mit und gehört im Kurs gelöscht.
-  **Das Repo ist öffentlich, der Kurs auf `kurs/java` also auch.** Der Nutzer hat dem Push zugestimmt.
-- **`AGENT_Zwischenablage.md`** aus dem Java-Klon ist per `.gitignore` ausgeschlossen und mit dem Rechner weg, falls der Nutzer sie nicht gesichert hat. Was davon ins Rahmenwerk gehörte, ist auf `main`; ein Kandidat ist übrig: `docs/bau/bau.mjs` auf `kurs/java`, ein Seitengenerator (Kurztext rein, Lehrkurs-, Lab- und Heftseite raus), noch kursspezifisch.
+  ~~Das Repo ist öffentlich, der Kurs auf `kurs/java` also auch.~~ *Seit dem 13.11.2026 nicht mehr: der Branch ist auf GitHub gelöscht.*
+- **`AGENT_Zwischenablage.md`** aus dem Java-Klon ist per `.gitignore` ausgeschlossen und mit dem Rechner weg, falls der Nutzer sie nicht gesichert hat. Was davon ins Rahmenwerk gehörte, ist auf `main`; ein Kandidat ist übrig: `docs/bau/bau.mjs` im Projekt `Bootcamp_Java`, ein Seitengenerator (Kurztext rein, Lehrkurs-, Lab- und Heftseite raus), noch kursspezifisch.
 
 ## 3 · Als Erstes nach dem Aufsetzen
 
 1. Klonen, `Nutzereinstellungen.md` wiederherstellen (siehe oben).
 2. **Die Umgebung neu feststellen.** Alles, was die alte Sitzung über den Rechner wusste, gilt nicht mehr: gibt es `pwsh` oder nur `powershell`? Welcher Browser, gibt es einen Playwright-Cache? Ist `node` im PATH?
-3. Prüflauf auf `main`, dann auf `redesign/uebersicht`. Beide endeten zuletzt mit `ERGEBNIS: GRUEN` und Exitcode 0. Ist einer rot, ist das eine Eigenheit des neuen Rechners und kein alter Fehler; kläre es, bevor du weiterbaust.
+3. Prüflauf auf `main` (seit dem 13.11.2026 der einzige Branch). Er endete zuletzt mit `ERGEBNIS: GRUEN` und Exitcode 0. Ist er rot, ist das eine Eigenheit des neuen Rechners und kein alter Fehler; kläre es, bevor du weiterbaust.
 4. Dem Nutzer die Entscheidungen aus Abschnitt 4 vorlegen. Nichts davon selbst entscheiden.
 
 ```
@@ -63,7 +65,7 @@ Den Prüflauf ohne Parameter starten: `-Sheets a,b` kommt unter `powershell -Fil
 
 1. **Redesign übernehmen?** *Entschieden am 13.11.2026: ja, siehe 6a.* `redesign/uebersicht` enthält `main` vollständig, ein Fast-Forward genügt. Nicht geprüft und vorher anzusehen: Druckansicht, Bedienung per Touch und nur mit Tastatur, ein Kurs mit mehr als vier Gruppen. Die Handyansicht wurde nur ausschnittweise gesehen; die Breitenprüfung (320 bis 1340 px, alle Gruppen offen) ist ohne Befund.
 2. **Groß-/Kleinschreibung im Lint behalten?** Gefragt war nur die Erweiterung der Tag-Liste um `h3` und `aside`. Die Unterscheidung kam dazu, weil die längere Liste sonst `List<Figure>` durchgelassen hätte. Der Nutzer hat sie noch nicht bestätigt.
-3. **Wo bleibt das Java-Bootcamp auf Dauer?** Es liegt als Sicherung auf `kurs/java` im Vorlagen-Repo, und das ist öffentlich. Bleibt es dort, zieht es in ein eigenes Repo, oder wird der Branch gelöscht, sobald der Kurs woanders liegt? Auf `main` gehört nichts davon: die Vorlage bleibt kursfrei.
+3. **Wo bleibt das Java-Bootcamp auf Dauer?** *Entschieden am 13.11.2026: eigenständiges Projekt `Bootcamp_Java`, Branch gelöscht, siehe 6a.* Es lag als Sicherung auf `kurs/java` im Vorlagen-Repo, und das ist öffentlich. Bleibt es dort, zieht es in ein eigenes Repo, oder wird der Branch gelöscht, sobald der Kurs woanders liegt? Auf `main` gehört nichts davon: die Vorlage bleibt kursfrei.
 4. **Welche der Vorschläge aus Abschnitt 5** gebaut werden und in welcher Reihenfolge.
 
 ## 5 · Vorschläge, noch nicht begonnen
@@ -110,6 +112,7 @@ Der Nutzer hat das Redesign der Startseite angesehen und für gut befunden und a
 - **Vom Nutzer entschieden: „Scrollen reicht".** Die erste Fassung ließ ein Lab erst fertig werden, wenn alle Etappen abgehakt sind. Das ist am selben Tag zurückgenommen: fertig macht das Scrollen wie beim Artikel, die Haken sind eine Anzeige (grüne Marke in der Leiste, Sprungziel im Kopf) und ändern `percent` und `done` nicht.
 - **Fuß der Seitenleiste, ebenfalls auf Wunsch des Nutzers:** im Lab ist der Rücksprung ins Aufgabenheft entfernt, und „Übersicht" und „Stand löschen" sind neu gestaltet (`styles.css`, `@WEG`, Abschnitt 5; `Rahmenwerk.md`, *Der Weg in der Seite*, Punkt 6).
 - **Die Übersicht merkt sich die Ansicht (H3), auf Wunsch des Nutzers und unter seiner Bedingung, dass es die Seite nicht bremst.** Offene Gruppen und Scrollstelle, für den Tab (`sessionStorage`), gespeichert einmal bei `pagehide`, ohne Zuhörer am Scrollen. Regeln und Messwerte in `Rahmenwerk.md`, *Die Übersicht als Weg*, Punkt 4; Code in `hub.js`, „Ansicht merken". Nicht geprüft: ein echter Doppelklick über `file://` und der Zurück-Knopf des Browsers.
+- **Branches aufgeräumt, auf Anweisung des Nutzers („mach alles auf main und lösch die Branches").** `redesign/uebersicht` war vollständig in `main` enthalten und ist lokal und auf GitHub gelöscht. `kurs/java` ging nicht nach `main` (dort sind die Showcase-Seiten gelöscht und der Kursschlüssel geändert), sondern auf Anweisung in ein eigenes Projekt `Bootcamp_Java` neben diesem Ordner: `git init`, den Branch aus diesem Klon geholt, derselbe Commit `507032f` und derselbe Baum, 199 Dateien, `fsck` ohne Befund, Lint dort GRÜN mit 10 Blättern. Erst danach wurde der Branch gelöscht. Das Projekt hat kein Remote; **der Kurs ist damit nur lokal gesichert**, der Nutzer weiß das. Der Kurs steht noch auf dem Rahmenwerk vom 12.11.2026, ohne Redesign.
 - **Was der Prüflauf nicht sieht:** er beginnt bei null, also nie eine zugeklappte Aufgabe, nie die Zeile „Weitermachen", nie einen gesetzten Haken. Diese Zustände wurden von Hand gemessen: sieben Seiten mit halbem Stand auf elf Breiten von 320 bis 1340 px über den Vorschau-Server, ohne Befund. W2 unten (Breitenprüfung mit gesetztem Stand) würde das ins Werkzeug holen.
 - **Nicht geprüft:** Druckansicht der neuen Teile, Bedienung per Touch, ein echter Doppelklick über `file://` (angesehen wurde alles über `http://127.0.0.1`).
 - **Aufgefallen und nicht angefasst:** unter 760 px klebt die Seitenleiste eines Aufgabenhefts mit Fortschritt, Punkten, sechs Filtern und zwei Knöpfen oben und nimmt bei 375 × 760 px knapp die Hälfte des Bildschirms. Das war vorher so. Beim Artikel und Lab ist die Leiste jetzt niedriger, weil der Merkstreifen dort entfällt.
